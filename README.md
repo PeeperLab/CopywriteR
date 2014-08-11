@@ -4,10 +4,19 @@ ENCODER
 ENCODER: off-target sequence reads for DNA copy number detection by whole-exome sequencing
 
 
-Installation:
+# Requirements:
+
+Samtools and MACS
 
 
-How to run ENCODER:
+# Installation:
+
+R CMD INSTALL ENCODER.tar.gz
+
+
+
+# ENCODER usage:
+
 
 
 
