@@ -16,12 +16,14 @@ ENCODER was developed for UNIX based systems (including MAC OSX) and requires th
 
 - MACS 1.4 (http://liulab.dfci.harvard.edu/MACS/). To test MACS `$ macs14 --version`
 
-- Multiple R-packages available from bioconductor.org
-Executing the following code in R will install or update the required packages: 
+- Multiple R-packages available from bioconductor.org. 
+ Executing the following code in R will install or update the required packages: 
 
-`source("http://bioconductor.org/biocLite.R")` 
-`biocLite(c('Rsamtools', 'CGHcall', 'snowfall', 'doParallel', 'IRanges'))` 
-`update.packages(repos=biocinstallRepos(), ask=FALSE)` 
+`> source("http://bioconductor.org/biocLite.R")` 
+
+`> biocLite(c('Rsamtools', 'CGHcall', 'snowfall', 'doParallel', 'IRanges'))` 
+
+`> update.packages(repos=biocinstallRepos(), ask=FALSE)` 
 
 
 # Installation R-package:
