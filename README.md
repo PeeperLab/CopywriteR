@@ -11,7 +11,7 @@ Samtools and MACS
 
 # Installation:
 
-'$ R CMD INSTALL ENCODER.tar.gz'
+`$ R CMD INSTALL ENCODER.tar.gz`
 
 
 
