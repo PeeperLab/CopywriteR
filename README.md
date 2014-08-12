@@ -28,11 +28,41 @@ ENCODER was developed for UNIX based systems (including MAC OSX) and requires th
 
 # Installation R-package:
 
+After installing the required tools as described above you can download the pre-compiled ENCODER R-package and annotation files. 
+
 The pre-compiled ENCODER R-package can be installed from the command line with the following command: `$ R CMD INSTALL ENCODER.tar.gz`. 
 
 
 
 # ENCODER usage:
+
+- preENCODER
+The function `preENCODER()` 
+
+- ENCODER
+The function `ENCODER()`
+
+- CNAprofiles
+The function `CNAprofile()`
+
+
+# Contact
+
+Developers:
+- Thomas Kuilman (t.kuilman@nki.nl)
+- Oscar Krijgsman (o.krijgsman@nki.nl)
+Peeper group
+
+Division of Molecular Oncology (H5)
+
+The Netherlands Cancer Institute
+
+Plesmanlaan 121
+
+1066 CX Amsterdam
+
+The Netherlands
+
 
 
 

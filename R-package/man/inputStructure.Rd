@@ -32,11 +32,12 @@ For a bin size of 20kb pre-calculated mappability, GC-content and target regions
   \item{inputFile}{input files for ENCODER}
 }
 \references{
-%% ~put references to the literature/web site here ~
+ENCODER: DNA copy number detection from off-target sequence data. Thomas Kuilman, Arno Velds, Kristel Kemper, Marco Ranzani, Lorenzo Bombardelli, Guotai Xu, Julian de Ruiter, Bauke Ylstra, Jos Jonkers, Sven Rottenberg, Lodewyk F. Wessels, David J. Adams, Daniel S. Peeper, Oscar Krijgsman Submitted for publication. 
 }
 \author{
 %%  ~~who you are~~
-Thomas Kuilman and Oscar Krijgsman
+Thomas Kuilman (t.kuilman@nki.nl)
+Oscar Krijgsman (o.krijgsman@nki.nl)
 }
 \note{
 %%  ~~further notes~~
@@ -53,9 +54,7 @@ Thomas Kuilman and Oscar Krijgsman
 ##--	or do  help(data=index)  for the standard data sets.
 
 ## The function is currently defined as
-function (x) 
-{
-  }
+function (x) {}
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

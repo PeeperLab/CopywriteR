@@ -5,7 +5,7 @@
 preENCODER is used to generate annotation files for the desired bin size
 }
 \description{
-In ENCODER genome-wide annotation files with mappability, GC_content and blacklists for 1000kb bins are providedmin binary .rda files. The function preENCODER reads the provided data files and generates annotation files for the desired bin size. The output folder will contain the files needed to run the main function ENCODER. 
+In ENCODER genome-wide annotation files with mappability, GC_content and blacklists for 1000kb bins are provided as binary .rda files. The function preENCODER reads the provided data files and generates annotation files for the desired bin size. The output folder will contain the files needed to run the main function ENCODER. 
 For each reference genome and binSize this function has to be executed once. 
 }
 \usage{
@@ -29,7 +29,7 @@ Currently annotation files can be generated for both human (hg19) and mouse (mm1
 %% ...
 }
 \references{
-%% ~put references to the literature/web site here ~
+ENCODER: DNA copy number detection from off-target sequence data. Thomas Kuilman, Arno Velds, Kristel Kemper, Marco Ranzani, Lorenzo Bombardelli, Guotai Xu, Julian de Ruiter, Bauke Ylstra, Jos Jonkers, Sven Rottenberg, Lodewyk F. Wessels, David J. Adams, Daniel S. Peeper, Oscar Krijgsman Submitted for publication. 
 }
 \author{
 Oscar krijgsman (o.krijgsman@nki.nl)
@@ -50,11 +50,5 @@ Thomas Kuilman (t.kuilman@nki.nl)
 ##--	or do  help(data=index)  for the standard data sets.
 
 ## The function is currently defined as
-function (x) 
-{
-  }
+function (x) {  }
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
