@@ -4,6 +4,6 @@ Title: DNA copy number profiles from whole exome sequencing
 Version: 0.99.0
 Date: 2014-08-4
 Author: Thomas Kuilman, Oscar Krijgsman
-Maintainer: Thomas Kuilman <t.kuilman@nki.nl>
+Maintainer: Thomas Kuilman <t.kuilman@nki.nl> and Oscar Krijgsman <o.krijgsman@nki.nl>
 Description: ENCODER generate DNA copy number profiles from whole exome sequencing by analysing the ‘off-target’ sequence reads. By exploiting the ‘off-target’ sequence reads, it allows for creation of robust copy number profiles from WES with a uniform read depth and evenly distributed data points over the genome.  
 License: GPL
