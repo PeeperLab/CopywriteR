@@ -37,20 +37,25 @@ The pre-compiled ENCODER R-package can be installed from the command line with t
 # ENCODER usage:
 
 - preENCODER
-The function `preENCODER()` 
+The function `preENCODER(MAPA_GC_location, outputFolder, binSize, reference)` will generate reference files for mapability, GC-content and bin files. 
+This function should be run for each reference (e.g. hg19, mm10) and binSize. 
 
 - ENCODER
-The function `ENCODER()`
+The function `ENCODER()` 
 
 - CNAprofiles
-The function `CNAprofile()`
+The function `CNAprofile()` 
+
+For more details see R-package. `> ?preENCODER`, `> ?ENCODER`, and `> ?CNAprofile`  in R will show help files for each function. 
 
 
 # Contact
 
-Developers:
+For questions regarding the package, problems installing, bug reports etc. please contact:
+
 - Thomas Kuilman (t.kuilman@nki.nl)
 - Oscar Krijgsman (o.krijgsman@nki.nl)
+
 Peeper group
 
 Division of Molecular Oncology (H5)
