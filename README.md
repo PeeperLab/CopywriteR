@@ -36,17 +36,21 @@ The pre-compiled ENCODER R-package can be installed from the command line with t
 
 # ENCODER usage:
 
+Start R and load the ENCODER package (assuming package is installed as described above): `> library("ENCODER")`
+
+ENCODER contains three main functions: 
+
 - preENCODER
 The function `preENCODER(MAPA_GC_location, outputFolder, binSize, reference)` will generate reference files for mapability, GC-content and bin files. 
 This function should be run for each reference (e.g. hg19, mm10) and binSize. 
 
 - ENCODER
-The function `ENCODER()` 
+The function `ENCODER(bamfolder, destinationfolder, referenceFolder, whichControl, captureRegionsBedFile, ncpu)` 
 
 - CNAprofiles
 The function `CNAprofile()` 
 
-For more details see R-package. `> ?preENCODER`, `> ?ENCODER`, and `> ?CNAprofile`  in R will show help files for each function. 
+For more details see R-package. `> ?preENCODER`, `> ?ENCODER`, and `> ?CNAprofile`  in R will show help files and descriptions for each of the functions. 
 
 
 # Contact
@@ -68,7 +72,15 @@ Plesmanlaan 121
 
 The Netherlands
 
+# Changes and additions we are currently working on
 
+- Increase speed for generating bins in `preENCODER`
+- Make captureRegionsBedFile optional
+- Different input structure to indicate which bam files should be used as controls
+- Change from MACS 1.4 to other ChIP seq tool available in R
+- Change from Samtools to Rsamtools
+- Remove all unix specific functions and commands
+- Compile into bioConductor package
 
 
 

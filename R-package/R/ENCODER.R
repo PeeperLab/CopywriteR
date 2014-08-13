@@ -1,43 +1,37 @@
-############################################################
-######  Pipeline for copy number alteration analysis  ######
-############################################################
-
-## Dependencies:
-## Samtools
-## MACS1.4.2
-## Bedtools
-## Rsamtools
-## SeqCNV.R
-## snowfall
-## CGHcall
-## doParallel (and its dependencies)
-## IRanges
-
-## Use sorted bed-files: sort -k1,1 -k2,2n in.bed > in.sorted.bed
-## Optional: captureRegionsBedFile
-## Eindig met Stanford file (ID, chr, start, stop)
-## optional: extended output
-## Std output
-## Does not work with 1 sample?
-
-## To do list ENCODER R-package
-## Change from doParallel to snowFall
-
-input <- inputStructure("./", "./", c(1,2,3,4,5,6,1,2,3,4,5,6), "hg19", "/srv/nfs4/medoid-bulk/NKI/t.kuilman/Resources/Agilent_SureSelect_All_exon_50M_hg19_edit.bed", 12)
-
-input <- inputStructure("/srv/nfs4/paranoid-home/NKI/t.kuilman/PDX_cellines_pipeline/BAMfiles/", "/srv/nfs4/paranoid-home/NKI/t.kuilman/PDX_cellines_pipeline/", c(1,2,3,4,5,6,1,2,3,4,5,6), "hg19", "/srv/nfs4/medoid-bulk/NKI/t.kuilman/Resources/Agilent_SureSelect_All_exon_50M_hg19_edit.bed", 12)
-
-inputStructure <- function(bamfolder, destinationfolder, whichControl, reference, captureRegionsBedFile, ncpu) {
-	if(!(reference == "hg19" || reference == "mm9" || reference == "mm10")) {
-		stop("Unknown reference")
-	}
-	system(paste0("mkdir ", destinationfolder, "/CNAprofiles/"))
+ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl, captureRegionsBedFile, ncpu) {
+	
+	start_time <- Sys.time()
+	
+	##############################################################
+	## Generate inputStructure to run ENCODER and check folders ##
+	##############################################################
+	
+	# Check all folders
+	if(file.exists(paste(bamfolder))==FALSE){
+	stop("The bamfolder could not be found. Please change your bamfolder path.")}
+	
+	if(file.exists(paste(destinationfolder))==FALSE){
+	stop("The destinationfolder could not be found. Please change your destinationfolder path.")}
+	
+	if(file.exists(paste(referenceFolder))==FALSE){
+	stop("The referenceFolder could not be found. Please change your referenceFolder path or run `preENCODER` to generate the required folder with GC-content and mapability files for the desired binSize.")}
+	
+	perFolder<-strsplit(paste(referenceFolder), "/")
+	ref_bin_info<-unlist(strsplit(perFolder[[1]][length(perFolder[[1]])], "_"))
+	
+	reference <- ref_bin_info[1] 
+	binSize <- as.numeric(gsub("kb","",ref_bin_info[2]))*1000
+	
+	#### List all input files and write to log
+	dir.create(paste0(destinationfolder, "/CNAprofiles/"))
+	# Get all bam files in bamfolder
 	bam_list <- list.files(path = bamfolder, pattern = ".bam$")
 	sink(file = paste0(destinationfolder, "CNAprofiles/log.txt"), type = c("output", "message"))
 	for(i in 1:length(bam_list)) {
 		cat("The control for sample", bam_list[i], "will be", bam_list[whichControl[i]], "\n")
 	}
 	cat("The reference for this analysis is", reference, "\n")
+	cat("The binSize for this analysis is", binSize, "\n")
 	cat("The capture region file is", captureRegionsBedFile, "\n")
 	cat("This analysis will be run on", ncpu, "cpus", "\n\n\n")
 	sink()
@@ -47,50 +41,34 @@ inputStructure <- function(bamfolder, destinationfolder, whichControl, reference
 	cat("The reference for this analysis is", reference, "\n")
 	cat("The capture region file is", captureRegionsBedFile, "\n")
 	cat("This analysis will be run on", ncpu, "cpus", "\n\n\n")
-	return(list(bamfolder = bamfolder, destinationfolder = destinationfolder, whichControl = whichControl, reference = reference, captureRegionsBedFile = captureRegionsBedFile, ncpu = ncpu))
-}
 
 
+	inputStructure<-list(binSize = binSize, reference = reference bamfolder = bamfolder, destinationfolder = destinationfolder, whichControl = whichControl, referenceFolder = referenceFolder, captureRegionsBedFile = captureRegionsBedFile, ncpu = ncpu)
 
 
-# ENCODER <- function(inputFile, outputFolder, reference, binSize, bedfile, ncpu){
-
-ENCODER <- function(inputStructure) {
-	BINSIZE = 20000
-	
-	start_time <- Sys.time()
 	sink(file = paste0(inputStructure$destinationfolder, "CNAprofiles/log.txt"), append = TRUE, type = c("output", "message"))
 	options(width = 150)
-	system(paste0("mkdir ", inputStructure$destinationfolder, "/CNAprofiles/BamBaiMacsFiles/"))
+	
+	dir.create(paste0(inputStructure$destinationfolder, "/CNAprofiles/BamBaiMacsFiles/"))
+		
+	captureRegionsBedFile <- inputStructure$captureRegionsBedFile
+	
+	windowBedFile <- paste0(referenceFolder, "bins.bed")
+	gcContentBedFile <- paste0(referenceFolder, "GC_content.bed")
+	mappabilityBedFile <- paste0(referenceFolder, "mapability.bed")
+	blacklistBedFile <- paste0(referenceFolder, "blacklist.bed")
 
+	bed <- read.table(file = windowBedFile, sep = "\t") ######
+	nchrom <- length(unique(bed$V1))
+	
+	
+	##################################
+	#### Run the actual algortihm ####
+	##################################
+	
 	# Load library for parallel computing
 	library(snowfall)
-	
-	# Set the reference-dependent files
-	seqCNVFile <- "/srv/nfs4/medoid-bulk/NKI/t.kuilman/R_scripts_others/gcmappa/SeqCNV/SeqCNV.R"
-	captureRegionsBedFile <- inputStructure$captureRegionsBedFile
-	if(inputStructure$reference == "hg19") {
-		windowBedFile <- "/srv/nfs4/medoid-bulk/NKI/t.kuilman/Resources/Genome_bin_0_20000_avelds.bed"
-		gcContentBedFile <- "/srv/nfs4/medoid-bulk/NKI/t.kuilman/R_scripts_others/gcmappa/gccontent-20000-hg19.txt"
-		mappabilityBedFile <- "/srv/nfs4/medoid-bulk/NKI/t.kuilman/R_scripts_others/gcmappa/mapa51-20K-hg19.bed"
-		blacklistBedFile <- "/srv/nfs4/medoid-bulk/NKI/t.kuilman/R_scripts_others/gcmappa/hg19-blacklist-nochr.bed"
-		nchrom = 24
-	}
-	if(inputStructure$reference == "mm9") {
-		windowBedFile <- "/srv/nfs4/medoid-bulk/NKI/t.kuilman/Resources/Genome_bin_0_20000_avelds_mm9.bed"
-		gcContentBedFile <- "/srv/nfs4/medoid-bulk/NKI/t.kuilman/R_scripts_others/gcmappa/gccontent-20000-mm9.txt"
-		mappabilityBedFile <- "/srv/nfs4/medoid-bulk/NKI/t.kuilman/R_scripts_others/gcmappa/mapa51-20K-mm9.bed"
-		blacklistBedFile <- "/srv/nfs4/medoid-bulk/NKI/t.kuilman/R_scripts_others/gcmappa/mm9-blacklist-nochr.bed"
-		nchrom = 21
-	}
-	if(inputStructure$reference == "mm10") {
-		windowBedFile <- "/srv/nfs4/medoid-bulk/NKI/t.kuilman/Resources/Genome_bin_0_20000_avelds_mm10.bed"
-		gcContentBedFile <- "/srv/nfs4/medoid-bulk/NKI/t.kuilman/R_scripts_others/gcmappa/gccontent-20000-mm10.txt"
-		mappabilityBedFile <- "/srv/nfs4/medoid-bulk/NKI/t.kuilman/R_scripts_others/gcmappa/mapa51-20K-mm10.bed"
-		blacklistBedFile <- "/srv/nfs4/medoid-bulk/NKI/t.kuilman/R_scripts_others/gcmappa/mm10-blacklist-nochr.bed"
-		nchrom = 21
-	}
-	
+
 	# Create list of .bam files
 	setwd(inputStructure$bamfolder)
 	bam_list <- list.files(path = inputStructure$bamfolder, pattern = ".bam$")
@@ -110,7 +88,7 @@ ENCODER <- function(inputStructure) {
 	properreads <- function(bam_list, inputStructure) {	
 		system(paste0("samtools view -b -f 2 -q 37 ", bam_list, " > ", inputStructure$destinationfolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list)))
 		paste0("samtools view -b -f 2 -q 37 ", bam_list, " > ", inputStructure$destinationfolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list))
-	}
+	}inputStructure$binSize
 	sfInit(parallel=TRUE, cpus = inputStructure$ncpu)
 	toLog <- sfLapply(bam_list, properreads, inputStructure)
 	sfStop()
@@ -267,7 +245,7 @@ ENCODER <- function(inputStructure) {
 		controlFor <- grep(controlNumber, inputStructure$whichControl)
 		for (i in 1:nrow(read_count)) {
 			if(read_count[i,2] == intersection[i,1] && read_count[i,3] == intersection[i,2] && read_count[i,4] == intersection[i,3] ) {
-				fraction_of_bin <- (BINSIZE-as.numeric(intersection[i,4])) / BINSIZE
+				fraction_of_bin <- (inputStructure$binSize-as.numeric(intersection[i,4])) / BINSIZE
 				read_count[i,(4 + 2 * length(bam_list) + controlFor)] <- fraction_of_bin
 				if(fraction_of_bin != 0) {
 					read_count[i,(4 + controlFor)] <- as.numeric(read_count[i,(4 + length(bam_list) + controlFor)]) / fraction_of_bin
@@ -288,7 +266,7 @@ ENCODER <- function(inputStructure) {
 	write.table(read_count, file = paste0(inputStructure$destinationfolder, "CNAprofiles/", "read_counts_compensated.txt"), row.names = FALSE, col.names = TRUE, sep = "\t")
 
 	# Create histograms of fraction_of_bin (fraction of length in bins (after peak region removal)
-	system(paste0("mkdir ", inputStructure$destinationfolder, "CNAprofiles/qc/"))
+	dir.create(paste0(inputStructure$destinationfolder, "CNAprofiles/qc/"))
 	for(i in 1:length(bam_list)) {
 		pdf(paste0(inputStructure$destinationfolder, "CNAprofiles/qc/fraction_of_bin_", i, ".pdf"), width=7, height=7)
 		plot(ecdf(as.numeric(read_count[,4+(2*length(bam_list))+i])), verticals = TRUE, ylab = "Fraction of bins",
@@ -296,16 +274,13 @@ ENCODER <- function(inputStructure) {
 		dev.off()
 	}
 
-	###########################
-	###  Script by a.velds  ###
-	###########################
-	
-	require(iterators)
-	require(foreach)
-	library(doParallel)
+	##########################
+	###   CNVseq section   ###
+	##########################
+
 	registerDoParallel(cores = inputStructure$ncpu)
 	
-	source(seqCNVFile)
+
 	read_count <- read_count[,1:(4 + length(bam_list))]
 	for(i in 5:ncol(read_count)) {
 		write.table(read_count[,c(2,3,4,i)], colnames(read_count)[i], quote = FALSE, sep = "\t", row.names = FALSE, col.names = FALSE)
@@ -340,7 +315,7 @@ ENCODER <- function(inputStructure) {
 	cat("\n\n")
 
 	###########################
-	###  Script by a.velds  ###
+	###   CNVseq section2   ###
 	###########################
 	
 	# Create table with corrected log2 values and write to file
