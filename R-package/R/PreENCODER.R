@@ -2,6 +2,7 @@
 
 preENCODER<-function(MAPA_GC_location, outputFolder, binSize, reference){
 	
+	require(matrixStats)
 	
 	####### Checks
 	## Check whether folders exist.
@@ -39,8 +40,7 @@ preENCODER<-function(MAPA_GC_location, outputFolder, binSize, reference){
 	# Load blacklist, CG-content and mapability files
 	load(paste(MAPA_GC_location, "/hg19_1kb/mapa_1kb.rda", sep=""))
 	load(paste(MAPA_GC_location, "/hg19_1kb/GCcontent_1kb.rda", sep=""))
-	bed_file<-read.table(paste(MAPA_GC_location, "/hg19_1kb/hg19-blacklist-nochr.bed", sep=""), sep="\t")
-	Chr_length<-read.table(file="/Users/o.krijgsman/Desktop/Chr_length.txt", sep="\t", header=F)
+	bed_file<-read.table(paste(MAPA_GC_location, "/hg19_1kb/blacklist-nochr.bed", sep=""), sep="\t")
 
 	## Create output files
 
@@ -77,20 +77,44 @@ preENCODER<-function(MAPA_GC_location, outputFolder, binSize, reference){
 	
 	###### Create mapabillity file with desired bin size
 
+	MERGEBINNUMBER <- binSize/1000
+	library(matrixStats)
 
-
+	newMapa <- NULL
+	options(warn = -1)
+	options(scipen = 999)
+	for(chr in unique(mapa[,1])) {
+		col2 <- colMins(matrix(mapa[mapa[,1] == chr,2], nrow = MERGEBINNUMBER))
+		col3 <- colMaxs(matrix(mapa[mapa[,1] == chr,3], nrow = MERGEBINNUMBER))
+		col4 <- colMeans(matrix(mapa[mapa[,1] == chr,4], nrow = MERGEBINNUMBER))
+		tmp <- cbind(chr, col2, col3, col4)
+		tmp <- tmp[1:(nrow(tmp)-1),]
+		newMapa <- rbind(newMapa, tmp)
+	}
+	options(scipen = 0)
+	options(warn = 0)
 	
-	cat("Generated mapabillity file for binSize", binSize,"of bp", "\n")	
-	
-	
-	
+	cat("Generated mapabillity file for binSize of", binSize,"bp", "\n")	
 	
 	###### Create GC-content file with desired bin size
 
+	newGC <- NULL
+	options(warn = -1)
+	options(scipen = 999)
+	for(chr in unique(mapa[,1])) {
+		col2 <- colMins(matrix(GC2[GC2[,1] == chr,2], nrow = MERGEBINNUMBER))
+		col3 <- colMaxs(matrix(GC2[GC2[,1] == chr,3], nrow = MERGEBINNUMBER))
+		col4 <- colMeans(matrix(GC2[GC2[,1] == chr,4], nrow = MERGEBINNUMBER))
+		col5 <- colMeans(matrix(GC2[GC2[,1] == chr,5], nrow = MERGEBINNUMBER))
+		tmp <- cbind(chr, col2, col3, col4, col5)
+		tmp <- tmp[1:(nrow(tmp)-1),]
+		newGC <- rbind(newGC, tmp)
+	}
+	options(scipen = 0)
+	options(warn = 0)
 
 
-
-	cat("Generated GC-content file for binSize", binSize,"of bp", "\n")		
+	cat("Generated GC-content file for binSize of", binSize,"bp", "\n")		
 	
 	
 	
@@ -103,13 +127,13 @@ preENCODER<-function(MAPA_GC_location, outputFolder, binSize, reference){
 
 	## Write files to folder
 	# Blacklist
-	write.table(bed_file, file=paste(outputFolder, file_name,"/blacklist.bed", sep="\t"), quote=F, row.names=F)
+	write.table(bed_file, file=paste(outputFolder, file_name,"/blacklist.bed", sep=""), quote=F, row.names=F, sep="\t")
 	# GC-content
-	write.table(?????, file=paste(outputFolder, file_name,"/GC_content.txt", sep="\t"), quote=F, row.names=F)
+	write.table(newGC, file=paste(outputFolder, file_name,"/GC_content.txt", sep=""), quote=F, row.names=F, sep="\t")
 	# Mapability
-	write.table(?????, file=paste(outputFolder, file_name,"/mapability.bed", sep="\t"), quote=F, row.names=F)	
+	write.table(newMapa, file=paste(outputFolder, file_name,"/mapability.bed", sep=""), quote=F, row.names=F, sep="\t")	
 	# bed file with bins
-	write.table(bed_file, file=paste(outputFolder, file_name,"/bins.bed", sep="\t"), quote=F, row.names=F, col.names=F)
+	write.table(bed_file, file=paste(outputFolder, file_name,"/bins.bed", sep=""), quote=F, row.names=F, col.names=F, sep="\t")
 
 	
 }
