@@ -19,12 +19,13 @@ preENCODER(MAPA_GC_location, outputFolder, binSize, reference)
   \item{reference}{reference, e.g. hg19 or mm10}
 }
 \details{
-Currently annotation files can be generated for both human (hg19) and mouse (mm10) genomes. Each 
+Currently annotation files can only be generated for  human (hg19). 
+We are currently implementing mm10 and will be available in the next release. 
+
+Annotation files can only be generated with binSize that are a multiplication of 1000bp (1kb). 
 }
 \value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
-%%  \item{comp1 }{Description of 'comp1'}
+\item{folder}{folder with generated annotation files with desired binSize}
 %%  \item{comp2 }{Description of 'comp2'}
 %% ...
 }
@@ -50,5 +51,4 @@ Thomas Kuilman (t.kuilman@nki.nl)
 ##--	or do  help(data=index)  for the standard data sets.
 
 ## The function is currently defined as
-function (x) {  }
-}
+# preENCODER(MAPA_GC_location, outputFolder, binSize, reference)

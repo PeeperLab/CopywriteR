@@ -61,6 +61,8 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 	bed <- read.table(file = windowBedFile, sep = "\t") ######
 	nchrom <- length(unique(bed$V1))
 	
+	inputStructure<-list(binSize = binSize, reference = reference, bamfolder = bamfolder, destinationfolder = destinationfolder, whichControl = whichControl, referenceFolder = referenceFolder, captureRegionsBedFile = captureRegionsBedFile, ncpu = ncpu, nchrom = nchrom)
+
 	
 	##################################
 	#### Run the actual algortihm ####

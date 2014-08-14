@@ -1,34 +1,13 @@
-plotCNA <- function(destinationfolder, nchrom = "determined.from.reference") {
+plotCNA <- function(destinationfolder) {
 	load(paste0(destinationfolder, "CNAprofiles/input.Rdata"), .GlobalEnv)
-	library(CGHcall)
-
-
-
-## Change, get chromosome number from .Rdata
-	if(nchrom == "determined.from.reference") {
-		# Set the reference-dependent files
-		if(inputStructure$reference == "hg19") {
-			nchrom = 24
-		}
-		if(inputStructure$reference == "mm9") {
-			nchrom = 21
-		}
-		if(inputStructure$reference == "mm10") {
-			nchrom = 21
-		}
-	}
-
-chrom <- 
-
-
-
+	require(CGHcall)
 
 	# Read data
 	read_count <- read.table(file = paste0(inputStructure$destinationfolder, "CNAprofiles/log2ratio_compensated_corrected.txt"), sep = "\t", header = TRUE, check.names = FALSE)
 
 	# Run CGHcall
 	raw <- make_cghRaw(read_count)
-	prep <- preprocess(raw, maxmiss = 30, nchrom = nchrom)
+	prep <- preprocess(raw, maxmiss = 30, nchrom = inputStructure$nchrom)
 	nor <-  normalize(prep, method = "median", smoothOutliers = TRUE)
 	seg <-  segmentData(nor, method = "DNAcopy", nperm = 2000, undo.splits = "sdundo", min.width = 5, undo.SD = 1, clen = 25, relSDlong = 5)
 	segnorm <- postsegnormalize(seg, inter = c(-1,1))
@@ -63,7 +42,7 @@ chrom <-
 		dev.off()
 			
 		# Make per-genome plots
-		for (j in 1:nchrom){
+		for (j in 1:inputStructure$nchrom){
 			print(j)
 			png(file=paste0("chromo_", j, "_", colnames_read_count[i],"_freqonly.png"), width=2*480, height=480)
 				plot(nor[chromosomes(nor) == j,i], dotres=1)
