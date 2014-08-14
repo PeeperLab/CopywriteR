@@ -88,7 +88,8 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 	properreads <- function(bam_list, inputStructure) {	
 		system(paste0("samtools view -b -f 2 -q 37 ", bam_list, " > ", inputStructure$destinationfolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list)))
 		paste0("samtools view -b -f 2 -q 37 ", bam_list, " > ", inputStructure$destinationfolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list))
-	}inputStructure$binSize
+	}
+	#inputStructure$binSize
 	sfInit(parallel=TRUE, cpus = inputStructure$ncpu)
 	toLog <- sfLapply(bam_list, properreads, inputStructure)
 	sfStop()
