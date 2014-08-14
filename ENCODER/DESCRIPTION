@@ -4,5 +4,6 @@ Version: 1.0
 Date: 2014-08-4
 Author: Thomas Kuilman
 Maintainer: Thomas Kuilman <t.kuilman@nki.nl>
+Depends:   CGHcall,  IRanges,  Rsamtools,  gtools,  matrixStats,  snowfall, doParallel
 Description: ENCODER generate DNA copy number profiles from whole exome sequencing by analysing the offtarget sequence reads. By exploiting the offtarget sequence reads, it allows for creation of robust copy number profiles from WES with a uniform read depth and evenly distributed data points over the genome.  
 License: GPL-2

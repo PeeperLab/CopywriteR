@@ -2,7 +2,7 @@
 
 preENCODER<-function(MAPA_GC_location, outputFolder, binSize, reference){
 	
-	require(matrixStats)
+		require("matrixStats")
 	
 	####### Checks
 	## Check whether folders exist.

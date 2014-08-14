@@ -2,6 +2,13 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 	
 	start_time <- Sys.time()
 	
+	require("IRanges")
+	require("Rsamtools")
+	require("gtools")
+	require("matrixStats")
+	require("snowfall")
+	require("doParallel")
+	
 	##############################################################
 	## Generate inputStructure to run ENCODER and check folders ##
 	##############################################################
