@@ -53,7 +53,7 @@ preENCODER<-function(MAPA_GC_location, outputFolder, binSize, reference){
 		Chr_length[i,2]<- GC2$End[max(which(GC2$Chromosome==unique(GC2$Chromosome)[i]))]
 	}
 
-	L_bin<-round(Chr_length[,2]/binSize)
+	L_bin<-floor(Chr_length[,2]/binSize)
 	bed_file<-matrix(data=0, ncol=3, nrow=sum(L_bin))
 
 	for (i in 1:numChr){
@@ -74,13 +74,25 @@ preENCODER<-function(MAPA_GC_location, outputFolder, binSize, reference){
 	}
 	cat("Generated", binSize, "bp bins for all", numChr,"chromosomes", "\n")
 	
-	# mapability
 	
+	###### Create mapabillity file with desired bin size
+
+
+
 	
 	cat("Generated mapabillity file for binSize", binSize,"of bp", "\n")	
-	# GC-content
+	
+	
+	
+	
+	###### Create GC-content file with desired bin size
+
+
+
 
 	cat("Generated GC-content file for binSize", binSize,"of bp", "\n")		
+	
+	
 	
 	# Create folder for output files
 	file_name<-paste(reference, "_", binSize/1000, "kb", sep="")
@@ -102,9 +114,3 @@ preENCODER<-function(MAPA_GC_location, outputFolder, binSize, reference){
 	
 }
 
-
-MAPA_GC_location<-"/Users/o.krijgsman/Documents/PostDoc/Projects/ENCODER_package/Annotation/"
-
-
-## To run
-preENCODER("/Users/o.krijgsman/Documents/PostDoc/Projects/ENCODER_package/Annotation/",	"/Users/o.krijgsman/Documents/PostDoc/Projects/ENCODER_package/testruns/", 20000, "hg19")

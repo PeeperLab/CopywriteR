@@ -43,7 +43,7 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 	cat("This analysis will be run on", ncpu, "cpus", "\n\n\n")
 
 
-	inputStructure<-list(binSize = binSize, reference = reference bamfolder = bamfolder, destinationfolder = destinationfolder, whichControl = whichControl, referenceFolder = referenceFolder, captureRegionsBedFile = captureRegionsBedFile, ncpu = ncpu)
+	inputStructure<-list(binSize = binSize, reference = reference, bamfolder = bamfolder, destinationfolder = destinationfolder, whichControl = whichControl, referenceFolder = referenceFolder, captureRegionsBedFile = captureRegionsBedFile, ncpu = ncpu)
 
 
 	sink(file = paste0(inputStructure$destinationfolder, "CNAprofiles/log.txt"), append = TRUE, type = c("output", "message"))

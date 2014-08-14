@@ -55,7 +55,8 @@ For more details see R-package. `> ?preENCODER`, `> ?ENCODER`, and `> ?CNAprofil
 
 # Contact
 
-For questions regarding the package, problems installing, bug reports etc. please contact:
+We have tried to make the use of ENCODER as simple as possible. 
+If however, any questions arise regarding the package, you have problems with the installation, bugs to report or anything else related to the package please do not hesitate and contact:
 
 - Thomas Kuilman (t.kuilman@nki.nl)
 - Oscar Krijgsman (o.krijgsman@nki.nl)
@@ -71,6 +72,10 @@ Plesmanlaan 121
 1066 CX Amsterdam
 
 The Netherlands
+
+# Reported bugs
+
+- 140813, Yeay, no bugs
 
 # Changes and additions we are currently working on
 
