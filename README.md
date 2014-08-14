@@ -84,13 +84,13 @@ The Netherlands
 
 # Changes and additions we are currently working on
 
-- [] Allow making GC-content and mapability-files for any custom set of regions
-- [] Make captureRegionsBedFile optional
-- [] Different input structure to indicate which bam files should be used as controls
-- [] Change from MACS 1.4 to other ChIP seq tool available in R
-- [] Change from Samtools to Rsamtools
-- [] Remove all unix specific functions and commands
-- [] Compile into bioConductor package
+- [ ] Allow making GC-content and mapability-files for any custom set of regions
+- [ ] Make captureRegionsBedFile optional
+- [ ] Different input structure to indicate which bam files should be used as controls
+- [ ] Change from MACS 1.4 to other ChIP seq tool available in R
+- [ ] Change from Samtools to Rsamtools
+- [ ] Remove all unix specific functions and commands
+- [ ] Compile into bioConductor package
 - [x] Increase speed for generating bins in `preENCODER`
 
 
