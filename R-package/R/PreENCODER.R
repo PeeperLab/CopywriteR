@@ -29,7 +29,7 @@ preENCODER<-function(MAPA_GC_location, outputFolder, binSize, reference){
 	}
 	
 	## Check if binSize is factor of 1kb
-	ifelse(!.is.wholenumber(binSize/1000), ){
+	if(!.is.wholenumber(binSize/1000)){
 		stop("Please provide a binSize which is a multiplication of 1000.")
 	}
 	
