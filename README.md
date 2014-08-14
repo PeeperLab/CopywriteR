@@ -21,18 +21,14 @@ ENCODER was developed for UNIX based systems (including MAC OSX) and requires th
 
 `> source("http://bioconductor.org/biocLite.R")` 
 
-`> biocLite()`
-
 `> biocLite(c('Rsamtools', 'CGHcall', 'snowfall', 'doParallel', 'IRanges'))` 
 
 `> update.packages(repos=biocinstallRepos(), ask=FALSE)` 
 
 - Remaining R-packages are available through CRAN.
  Executing the following code in R will install or update the remaining packages: 
- 
-`> local({r <- getOption('repos'); r['CRAN'] <- 'http://cran-mirror.cs.uu.nl/'; options(repos=r)})`
 
-`. install.packages(c('matrixStats'))`
+`> install.packages(c('matrixStats'))`
 
 
 # Installation R-package:
@@ -88,13 +84,14 @@ The Netherlands
 
 # Changes and additions we are currently working on
 
-- [x] Increase speed for generating bins in `preENCODER`
+- [] Allow making GC-content and mapability-files for any custom set of regions
 - [] Make captureRegionsBedFile optional
 - [] Different input structure to indicate which bam files should be used as controls
 - [] Change from MACS 1.4 to other ChIP seq tool available in R
 - [] Change from Samtools to Rsamtools
 - [] Remove all unix specific functions and commands
 - [] Compile into bioConductor package
+- [x] Increase speed for generating bins in `preENCODER`
 
 
 
