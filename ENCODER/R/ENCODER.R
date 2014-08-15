@@ -74,9 +74,6 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 	##################################
 	#### Run the actual algortihm ####
 	##################################
-	
-	# Load library for parallel computing
-	library(snowfall)
 
 	# Create list of .bam files
 	setwd(inputStructure$bamfolder)

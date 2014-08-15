@@ -82,14 +82,15 @@ The Netherlands
 
 # Reported bugs
 
-- 140813, Yeay, no bugs
+- 140814 - Destination folder needs complete path `./` does not work. 
+- 140814 - Currently all folders to start ENCODER need a trailing `/`. 
 
 # Changes and additions we are currently working on
 
 - [ ] Allow making GC-content and mapability-files for any custom set of regions
 - [ ] Make captureRegionsBedFile optional
 - [ ] Different input structure to indicate which bam files should be used as controls
-- [ ] Change from MACS 1.4 to other ChIP seq tool available in R
+- [ ] Change from MACS 1.4 to other ChIP seq tool available in R (chipseq from bioconductor?)
 - [ ] Change from Samtools to Rsamtools
 - [ ] Remove all unix specific functions and commands
 - [ ] Compile into bioConductor package
