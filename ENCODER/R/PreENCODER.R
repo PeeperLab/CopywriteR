@@ -103,7 +103,7 @@ preENCODER<-function(MAPA_GC_location, outputFolder, binSize, reference){
 	options(scipen = 0)
 	options(warn = 0)
 
-
+	newGC<-newGC[-which(newGC[,1]=="MT"),]
 	cat("Generated GC-content file for binSize of", binSize,"bp", "\n")		
 	
 	
