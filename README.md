@@ -32,7 +32,7 @@ ENCODER was developed for UNIX based systems (including MAC OSX) and requires th
  
 `> local({r <- getOption('repos'); r['CRAN'] <- 'http://cran-mirror.cs.uu.nl/'; options(repos=r)})`
 
-`. install.packages(c('matrixStats'))`
+`> install.packages(c('matrixStats'))`
 
 
 # Installation R-package:
