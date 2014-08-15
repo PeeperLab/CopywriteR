@@ -82,8 +82,14 @@ The Netherlands
 
 # Reported bugs
 
-- 140814 - Destination folder needs complete path `./` does not work. 
-- 140814 - Currently all folders to start ENCODER need a trailing `/`. 
+Major bugs
+
+- 140814 - None...
+
+Minor bugs
+
+- 140814 - Destination folder needs complete path, `./` alone does not work. 
+- 140814 - Currently all folder paths in `> ENCODER()` need a trailing `/`. 
 
 # Changes and additions we are currently working on
 
