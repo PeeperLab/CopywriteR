@@ -95,6 +95,7 @@ Minor bugs
 - [ ] Change from MACS 1.4 to other ChIP seq tool available in R (chipseq from bioconductor?)
 - [ ] Change from Samtools to Rsamtools
 - [ ] Remove all unix specific functions and commands
+- [ ] Clean up code
 - [ ] Compile into bioConductor package
 - [x] Increase speed for generating bins in `preENCODER`
 
