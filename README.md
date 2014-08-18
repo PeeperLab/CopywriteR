@@ -22,12 +22,12 @@ ENCODER was developed for UNIX based systems (including MAC OSX) and requires th
 
 `> biocLite(c('Rsamtools', 'CGHcall', 'snowfall', 'doParallel', 'IRanges'))` 
 
-`> update.packages(repos=biocinstallRepos(), ask=FALSE)` 
+`> update.packages(repos = biocinstallRepos(), ask = FALSE)` 
 
 - Remaining R-packages are available through CRAN.
  Executing the following code in R will install or update the remaining packages: 
 
-`> install.packages(c('matrixStats'))`
+`> install.packages(c('matrixStats', 'data.table'))`
 
 
 # Installation R-package:
