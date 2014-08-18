@@ -1,4 +1,4 @@
-ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl, captureRegionsBedFile, ncpu) {
+ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl, captureRegionsBedFile, ncpu) {
 	
 	start_time <- Sys.time()
 	
@@ -7,21 +7,21 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 	require("gtools")
 	require("matrixStats")
 	require("snowfall")
-	require("doParallel")
+	require("data.table")
 	
 	##############################################################
 	## Generate inputStructure to run ENCODER and check folders ##
 	##############################################################
 	
 	# Check all folders
-	if(file.exists(paste(bamfolder))==FALSE){
-	stop("The bamfolder could not be found. Please change your bamfolder path.")}
+	if(file.exists(paste(bamFolder)) == FALSE){
+	stop("The bamFolder could not be found. Please change your bamFolder path.")}
 	
-	if(file.exists(paste(destinationfolder))==FALSE){
-	stop("The destinationfolder could not be found. Please change your destinationfolder path.")}
+	if(file.exists(paste(destinationFolder)) == FALSE){
+	stop("The destinationFolder could not be found. Please change your destinationFolder path.")}
 	
-	if(file.exists(paste(referenceFolder))==FALSE){
-	stop("The referenceFolder could not be found. Please change your referenceFolder path or run `preENCODER` to generate the required folder with GC-content and mapability files for the desired binSize.")}
+	if(file.exists(paste(referenceFolder)) == FALSE){
+	stop("The referenceFolder could not be found. Please change your referenceFolder path or run `preENCODER` to generate the required folder with GC-content and mapability files for your desired bin size.")}
 	
 	perFolder<-strsplit(paste(referenceFolder), "/")
 	ref_bin_info<-unlist(strsplit(perFolder[[1]][length(perFolder[[1]])], "_"))
@@ -30,10 +30,11 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 	binSize <- as.numeric(gsub("kb","",ref_bin_info[2]))*1000
 	
 	#### List all input files and write to log
-	dir.create(paste0(destinationfolder, "/CNAprofiles/"))
-	# Get all bam files in bamfolder
-	bam_list <- list.files(path = bamfolder, pattern = ".bam$")
-	sink(file = paste0(destinationfolder, "CNAprofiles/log.txt"), type = c("output", "message"))
+	dir.create(paste0(destinationFolder, "/CNAprofiles/"))
+	
+	# Get all bam files in bamFolder
+	bam_list <- list.files(path = bamFolder, pattern = ".bam$")
+	sink(file = paste0(destinationFolder, "CNAprofiles/log.txt"), type = c("output", "message"))
 	for(i in 1:length(bam_list)) {
 		cat("The control for sample", bam_list[i], "will be", bam_list[whichControl[i]], "\n")
 	}
@@ -49,35 +50,31 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 	cat("The capture region file is", captureRegionsBedFile, "\n")
 	cat("This analysis will be run on", ncpu, "cpus", "\n\n\n")
 
-
-	inputStructure<-list(binSize = binSize, reference = reference, bamfolder = bamfolder, destinationfolder = destinationfolder, whichControl = whichControl, referenceFolder = referenceFolder, captureRegionsBedFile = captureRegionsBedFile, ncpu = ncpu)
-
-
-	sink(file = paste0(inputStructure$destinationfolder, "CNAprofiles/log.txt"), append = TRUE, type = c("output", "message"))
-	options(width = 150)
-	
-	dir.create(paste0(inputStructure$destinationfolder, "/CNAprofiles/BamBaiMacsFiles/"))
-		
-	captureRegionsBedFile <- inputStructure$captureRegionsBedFile
-	
 	windowBedFile <- paste0(referenceFolder, "bins.bed")
+	blacklistBedFile <- paste0(referenceFolder, "blacklist.bed")
 	gcContentBedFile <- paste0(referenceFolder, "GC_content.bed")
 	mappabilityBedFile <- paste0(referenceFolder, "mapability.bed")
-	blacklistBedFile <- paste0(referenceFolder, "blacklist.bed")
 
 	bed <- read.table(file = windowBedFile, sep = "\t") ######
 	nchrom <- length(unique(bed$V1))
 	
-	inputStructure<-list(binSize = binSize, reference = reference, bamfolder = bamfolder, destinationfolder = destinationfolder, whichControl = whichControl, referenceFolder = referenceFolder, captureRegionsBedFile = captureRegionsBedFile, ncpu = ncpu, nchrom = nchrom)
+	inputStructure<-list(binSize = binSize, reference = reference, bamFolder = bamFolder, destinationFolder = destinationFolder, whichControl = whichControl, referenceFolder = referenceFolder, captureRegionsBedFile = captureRegionsBedFile, ncpu = ncpu, nchrom = nchrom)
 
+	sink(file = paste0(inputStructure$destinationFolder, "CNAprofiles/log.txt"), append = TRUE, type = c("output", "message"))
+	options(width = 150)
+	
+	dir.create(paste0(inputStructure$destinationFolder, "CNAprofiles/BamBaiMacsFiles/"))
+		
+	captureRegionsBedFile <- inputStructure$captureRegionsBedFile
+	
 	
 	##################################
 	#### Run the actual algortihm ####
 	##################################
 
 	# Create list of .bam files
-	setwd(inputStructure$bamfolder)
-	bam_list <- list.files(path = inputStructure$bamfolder, pattern = ".bam$")
+	setwd(inputStructure$bamFolder)
+	bam_list <- list.files(path = inputStructure$bamFolder, pattern = ".bam$")
 	cat(bam_list, "\n", sep = "\n")
 
 	# Index .bam files
@@ -92,8 +89,8 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 
 	# Remove anomalous reads and reads with Phred < 37
 	properreads <- function(bam_list, inputStructure) {	
-		system(paste0("samtools view -b -f 2 -q 37 ", bam_list, " > ", inputStructure$destinationfolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list)))
-		paste0("samtools view -b -f 2 -q 37 ", bam_list, " > ", inputStructure$destinationfolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list))
+		system(paste0("samtools view -b -f 2 -q 37 ", bam_list, " > ", inputStructure$destinationFolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list)))
+		paste0("samtools view -b -f 2 -q 37 ", bam_list, " > ", inputStructure$destinationFolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list))
 	}
 	#inputStructure$binSize
 	sfInit(parallel=TRUE, cpus = inputStructure$ncpu)
@@ -114,8 +111,8 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 	################
 	
 	# Create new .bam list
-	setwd(paste0(inputStructure$destinationfolder, "CNAprofiles/BamBaiMacsFiles/"))
-	bam_list <- list.files(path = paste0(inputStructure$destinationfolder, "CNAprofiles/BamBaiMacsFiles/"), pattern = "_properreads.bam$")
+	setwd(paste0(inputStructure$destinationFolder, "CNAprofiles/BamBaiMacsFiles/"))
+	bam_list <- list.files(path = paste0(inputStructure$destinationFolder, "CNAprofiles/BamBaiMacsFiles/"), pattern = "_properreads.bam$")
 	cat(bam_list, "\n", sep = "\n")
 
 	# Index _properreads.bam files
@@ -169,7 +166,7 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 	cat(unlist(toLog), "\n", sep = "\n")
 
 	# Create new .bam list
-	bam_list <- list.files(path = paste0(inputStructure$destinationfolder, "CNAprofiles/BamBaiMacsFiles/"), pattern = "_peakrm.bam$")
+	bam_list <- list.files(path = paste0(inputStructure$destinationFolder, "CNAprofiles/BamBaiMacsFiles/"), pattern = "_peakrm.bam$")
 	cat(bam_list, "\n", sep = "\n")
 
 	# Index _peakrm.bam files
@@ -230,11 +227,16 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 	sink()
 	
 	# Compensate for removal of reads in peak regions
+	##################
+	save(read_count, file = paste0(inputStructure$destinationFolder, "CNAprofiles/read_count.Rdata"))
+	##################
+	load(file = paste0(inputStructure$destinationFolder, "CNAprofiles/read_count.Rdata"), .GlobalEnv)
+	
 	read_count <- cbind(read_count, read_count[,-c(1, 2, 3, 4)], read_count[,-c(1, 2, 3, 4)])
 	for(controlNumber in controlNumbers) {	
 
 		# Calculate the cumulative length of peak regions per bin
-		intersection <- system(paste0("bedtools intersect -a ", windowBedFile, " -b ", inputStructure$destinationfolder,
+		intersection <- system(paste0("bedtools intersect -a ", windowBedFile, " -b ", inputStructure$destinationFolder,
 			"CNAprofiles/BamBaiMacsFiles/MACS", controlNumber, "_peaks.bed -wao"), intern = TRUE)
 		intersection <- strsplit(intersection, "\t")
 		intersection <- do.call(rbind, intersection)
@@ -252,7 +254,7 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 		controlFor <- grep(controlNumber, inputStructure$whichControl)
 		for (i in 1:nrow(read_count)) {
 			if(read_count[i,2] == intersection[i,1] && read_count[i,3] == intersection[i,2] && read_count[i,4] == intersection[i,3] ) {
-				fraction_of_bin <- (inputStructure$binSize-as.numeric(intersection[i,4])) / inputStructure$binSize
+				fraction_of_bin <- (binSize-as.numeric(intersection[i,4])) / binSize
 				read_count[i,(4 + 2 * length(bam_list) + controlFor)] <- fraction_of_bin
 				if(fraction_of_bin != 0) {
 					read_count[i,(4 + controlFor)] <- as.numeric(read_count[i,(4 + length(bam_list) + controlFor)]) / fraction_of_bin
@@ -266,16 +268,65 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 			}
 		}
 	}
+	
+	##################
+	read_count_original <- read_count
+	
+	load(file = paste0(inputStructure$destinationFolder, "CNAprofiles/read_count.Rdata"), .GlobalEnv)
+	read_count <- cbind(read_count, read_count[,-c(1, 2, 3, 4)], read_count[,-c(1, 2, 3, 4)])
+	
+	#### Add data.table library	
+	library(data.table)
+
+	for(controlNumber in controlNumbers) {
+
+		# Calculate overlap of peaks with bins using bedtools
+		intersection <- system(paste0("bedtools intersect -a ", windowBedFile, " -b ", inputStructure$destinationFolder,
+			"CNAprofiles/BamBaiMacsFiles/MACS", controlNumber, "_peaks.bed -wao"), intern = TRUE)
+		intersection <- strsplit(intersection, "\t")
+		intersection <- as.data.frame(do.call(rbind, intersection))
+		intersection <- intersection[,c(1,2,3,9)]
+		colnames(intersection) <- c("Chromosome", "StartPos", "StopPos", "Overlap")
+		intersection$Overlap <- as.numeric(as.character(intersection$Overlap))
+		
+		## Calculate the cumulative overlap using data.table
+		intersection <- data.table(intersection)
+		intersection <- intersection[,lapply(.SD, sum), by = c("Chromosome", "StartPos", "StopPos")]
+		intersection <- as.data.frame(intersection)
+
+		# Check correspondence bins, calculate fraction of remaining bin length (after peak region removal), and calculate compensated read numbers
+		controlFor <- grep(controlNumber, inputStructure$whichControl)
+		if(all(read_count[,2] == intersection[,1] & read_count[,3] == intersection[,2] & read_count[,4] == intersection[,3])) {
+			fraction_of_bin <- (binSize-as.numeric(intersection[,4])) / binSize
+			read_count[,(4 + 2 * length(bam_list) + controlFor)] <- fraction_of_bin
+			for (i in 1:nrow(read_count)) {
+				if(fraction_of_bin[i] != 0) {
+					read_count[i,(4 + controlFor)] <- as.numeric(read_count[i,(4 + length(bam_list) + controlFor)]) / fraction_of_bin[i]
+				}
+				else {
+					read_count[i,(4 + controlFor)] <- 0
+				}
+			}
+		}
+		else {
+			stop("Bins do not correspond")
+		}
+	}
+	
+	identical(read_count_original, read_count)
+	##################
+	
+	
 	colnames(read_count) <- c("BinID", "Chromosome", "StartPos", "StopPos", sub(pattern = "$", ".compensated", paste(bam_list)),
 		paste(bam_list), sub(pattern = "$", ".fractionOfBin", paste(bam_list)))
 
 	# Create output file
-	write.table(read_count, file = paste0(inputStructure$destinationfolder, "CNAprofiles/", "read_counts_compensated.txt"), row.names = FALSE, col.names = TRUE, sep = "\t")
+	write.table(read_count, file = paste0(inputStructure$destinationFolder, "CNAprofiles/", "read_counts_compensated.txt"), row.names = FALSE, col.names = TRUE, sep = "\t")
 
 	# Create histograms of fraction_of_bin (fraction of length in bins (after peak region removal)
-	dir.create(paste0(inputStructure$destinationfolder, "CNAprofiles/qc/"))
+	dir.create(paste0(inputStructure$destinationFolder, "CNAprofiles/qc/"))
 	for(i in 1:length(bam_list)) {
-		pdf(paste0(inputStructure$destinationfolder, "CNAprofiles/qc/fraction_of_bin_", i, ".pdf"), width=7, height=7)
+		pdf(paste0(inputStructure$destinationFolder, "CNAprofiles/qc/fraction_of_bin_", i, ".pdf"), width=7, height=7)
 		plot(ecdf(as.numeric(read_count[,4+(2*length(bam_list))+i])), verticals = TRUE, ylab = "Fraction of bins",
 			xlab = "Remaining fraction of bin after peak removal", main = "Cumulative distribution of remaining bin fraction")
 		dev.off()
@@ -283,10 +334,7 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 
 	##########################
 	###   CNVseq section   ###
-	##########################
-
-	registerDoParallel(cores = inputStructure$ncpu)
-	
+	##########################	
 
 	read_count <- read_count[,1:(4 + length(bam_list))]
 	for(i in 5:ncol(read_count)) {
@@ -305,14 +353,21 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 	colnames(data$cov) <- sampnames
 	usepoints <- !(data$anno$chr %in% c("X","Y","MT", "chrX", "chrY", "chrM"))
 	
-	system.time(ratios <- foreach(x=iter(data$cov, by="col"), .combine="cbind") %dopar% {
-		 .tng(data.frame(count=x[,1], gc=data$anno$gc, mapa=data$anno$mapa), use=usepoints, correctmapa=T, plot=paste0(inputStructure$destinationfolder, "CNAprofiles/qc/", colnames(x), ".png"))
-	})
+	# Perform normalization (in .tng helper function)
+	i <- c(1:ncol(data$cov))
+	normalizeRC <- function(i, data, .tng, usepoints, inputStructure) {	
+		.tng(data.frame(count = data$cov[,i], gc = data$anno$gc, mapa = data$anno$mapa), use = usepoints, correctmapa = TRUE, plot = paste0(inputStructure$destinationFolder, "CNAprofiles/qc/", colnames(data$cov)[i], ".png"))
+	}
+	sfInit(parallel=TRUE, cpus = inputStructure$ncpu)
+	ratios <- sfLapply(i, normalizeRC, data, .tng, usepoints, inputStructure)
+	sfStop()
+	ratios <- matrix(unlist(ratios), ncol = 2)
 	
 	colnames(ratios) <- sampnames
+	
 	rd <- list(ratios=ratios[!data$anno$black & !is.na(data$anno$mapa) & data$anno$mapa > .2, ], anno=data$anno[!data$anno$black & !is.na(data$anno$mapa) & data$anno$mapa > .2, ])
 	
-	sink(file = paste0(inputStructure$destinationfolder, "CNAprofiles/log.txt"), append = TRUE, type = c("output", "message"))
+	sink(file = paste0(inputStructure$destinationFolder, "CNAprofiles/log.txt"), append = TRUE, type = c("output", "message"))
 	rd2 <- rd
 	for(i in 1:length(bam_list)) {
 		rd2$ratios[,i] <- rd$ratios[,i] - rd$ratios[,inputStructure$whichControl[i]]
@@ -329,8 +384,7 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 	read_count <- matrix(nrow = nrow(rd$ratios))
 	read_count <- cbind(read_count, rd$anno[1:3])
 	read_count[,1] <- paste(rd$anno[,1], paste(rd$anno[,2], rd$anno[,3], sep = "-"), sep = ":")
-	read_count <- cbind(read_count, rd$ratios)
-	read_count <- cbind(read_count, rd2$ratios)
+	read_count <- cbind(read_count, rd$ratios, rd2$ratios)
 	colnames(read_count) <- c("BinID", "Chromosome", "StartPos", "StopPos", colnames(read_count[5:length(colnames(read_count))]))
 	
 	read_count <- read_count[-which(rowSums(is.na(read_count[,-c(1:4)])) > 0),]
@@ -340,11 +394,11 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 	read_count[read_count == -Inf] <- -.Machine$integer.max/2
 	read_count[read_count == Inf] <- .Machine$integer.max/2
 	
-	write.table(read_count, paste0(inputStructure$destinationfolder, "CNAprofiles/log2ratio_compensated_corrected.txt"), sep="\t", row.names=F, quote=F)
+	write.table(read_count, paste0(inputStructure$destinationFolder, "CNAprofiles/log2ratio_compensated_corrected.txt"), sep="\t", row.names=F, quote=F)
 
 	# Calculate statistics of overlap of peaks and capture regions
 	for(controlNumber in controlNumbers) {
-		intersection <- system(paste0("bedtools intersect -a ", captureRegionsBedFile, " -b ", inputStructure$destinationfolder, "CNAprofiles/BamBaiMacsFiles/MACS", controlNumber, "_peaks.bed -wao"), intern = TRUE)
+		intersection <- system(paste0("bedtools intersect -a ", captureRegionsBedFile, " -b ", inputStructure$destinationFolder, "CNAprofiles/BamBaiMacsFiles/MACS", controlNumber, "_peaks.bed -wao"), intern = TRUE)
 		intersection <- strsplit(intersection, "\t")
 		intersection <- do.call(rbind, intersection)
 		intersection <- intersection[,c(1,2,3,9)]
@@ -359,7 +413,7 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 		
 		cat("Number of exons covered by peaks in sample ", bam_list[controlNumber], ": ", sum(intersection[,4] != "0"), "\n")
 	
-		intersection <- system(paste0("bedtools intersect -a ", inputStructure$destinationfolder, "CNAprofiles/BamBaiMacsFiles/MACS", controlNumber, "_peaks.bed -b ", captureRegionsBedFile, " -wao"), intern = TRUE)
+		intersection <- system(paste0("bedtools intersect -a ", inputStructure$destinationFolder, "CNAprofiles/BamBaiMacsFiles/MACS", controlNumber, "_peaks.bed -b ", captureRegionsBedFile, " -wao"), intern = TRUE)
 		intersection <- strsplit(intersection, "\t")
 		intersection <- do.call(rbind, intersection)
 		intersection <- intersection[,c(1,2,3,9)]
@@ -374,12 +428,12 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 		
 		cat("Number of peaks covered by exons in sample", bam_list[controlNumber], ": ", sum(intersection[,4] != "0"), "\n")
 		cat("Total number of exons in sample", bam_list[controlNumber], ": ", nrow(read.table(captureRegionsBedFile, sep = "\t")), "\n")
-		cat("Total number of peaks", bam_list[controlNumber], ":", nrow(read.table(paste0(inputStructure$destinationfolder, "CNAprofiles/BamBaiMacsFiles/MACS", controlNumber, "_peaks.bed"), sep = "\t")), "\n\n")
+		cat("Total number of peaks", bam_list[controlNumber], ":", nrow(read.table(paste0(inputStructure$destinationFolder, "CNAprofiles/BamBaiMacsFiles/MACS", controlNumber, "_peaks.bed"), sep = "\t")), "\n\n")
 		
 	}
 	sink()
 	cat("Total calculation time: ", Sys.time() - start_time, "\n\n")
-	save(inputStructure, file = paste0(inputStructure$destinationfolder, "CNAprofiles/input.Rdata"))
+	save(inputStructure, file = paste0(inputStructure$destinationFolder, "CNAprofiles/input.Rdata"))
 
 	quit(save = "yes")
 }
