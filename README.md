@@ -70,11 +70,11 @@ Peeper group
 
 - Lab website (http://research.nki.nl/peeperlab/)
 
-Division of Molecular Oncology
-Netherlands Cancer Institute
-Plesmanlaan 121
-1066 CX Amsterdam
-The Netherlands
+Division of Molecular Oncology 
+Netherlands Cancer Institute 
+Plesmanlaan 121 
+1066 CX Amsterdam 
+The Netherlands 
 
 # Reported bugs
 
