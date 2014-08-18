@@ -20,7 +20,7 @@ ENCODER was developed for UNIX based systems (including MAC OSX) and requires th
 
 `> source("http://bioconductor.org/biocLite.R")` 
 
-`> biocLite(c('Rsamtools', 'CGHcall', 'snowfall', 'doParallel', 'IRanges'))` 
+`> biocLite(c('Rsamtools', 'CGHcall', 'snowfall', 'IRanges'))` 
 
 `> update.packages(repos = biocinstallRepos(), ask = FALSE)` 
 
