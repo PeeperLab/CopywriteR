@@ -68,14 +68,12 @@ If however, any questions arise regarding the package, you have problems with th
 
 Peeper group
 
-Division of Molecular Oncology (H5)
+- Lab website (http://research.nki.nl/peeperlab/)
 
-The Netherlands Cancer Institute
-
+Division of Molecular Oncology
+Netherlands Cancer Institute
 Plesmanlaan 121
-
 1066 CX Amsterdam
-
 The Netherlands
 
 # Reported bugs
