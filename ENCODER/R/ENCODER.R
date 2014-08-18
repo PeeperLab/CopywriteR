@@ -74,9 +74,6 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 	##################################
 	#### Run the actual algortihm ####
 	##################################
-	
-	# Load library for parallel computing
-	library(snowfall)
 
 	# Create list of .bam files
 	setwd(inputStructure$bamfolder)
@@ -223,7 +220,7 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 		}
 		return(list(readmap, paste0("Rsamtools finished calculating reads per bin in sample ", i, " out of ", length(bam_list), "; number of bins = ", length(bamreads))))
 	}
-	sfInit(parallel=TRUE, cpus = length(bam_list))
+	sfInit(parallel=TRUE, cpus = inputStructure$ncpu)
 	res <- sfSapply(i, scanbam, bam_list, bed)
 	sfStop()
 	for(i in seq(1,2*length(bam_list),2)) {
@@ -255,7 +252,7 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 		controlFor <- grep(controlNumber, inputStructure$whichControl)
 		for (i in 1:nrow(read_count)) {
 			if(read_count[i,2] == intersection[i,1] && read_count[i,3] == intersection[i,2] && read_count[i,4] == intersection[i,3] ) {
-				fraction_of_bin <- (inputStructure$binSize-as.numeric(intersection[i,4])) / BINSIZE
+				fraction_of_bin <- (inputStructure$binSize-as.numeric(intersection[i,4])) / inputStructure$binSize
 				read_count[i,(4 + 2 * length(bam_list) + controlFor)] <- fraction_of_bin
 				if(fraction_of_bin != 0) {
 					read_count[i,(4 + controlFor)] <- as.numeric(read_count[i,(4 + length(bam_list) + controlFor)]) / fraction_of_bin

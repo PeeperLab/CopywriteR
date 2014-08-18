@@ -45,34 +45,24 @@ preENCODER<-function(MAPA_GC_location, outputFolder, binSize, reference){
 	## Create output files
 
 	###### Create bins with desired bin size
-	numChr<-length(unique(GC2$Chromosome))
 
-	Chr_length<-matrix(data=0, ncol=2, nrow=numChr)
-	for (i in 1:numChr){
-		Chr_length[i,1]<-unique(GC2$Chromosome)[i]
-		Chr_length[i,2]<- GC2$End[max(which(GC2$Chromosome==unique(GC2$Chromosome)[i]))]
+	MERGEBINNUMBER <- binSize/1000
+	library(matrixStats)
+	
+	newBin <- NULL
+	options(warn = -1)
+	options(scipen = 999)
+	for(chr in unique(mapa[,1])) {
+		col2 <- colMins(matrix(mapa[mapa[,1] == chr,2], nrow = MERGEBINNUMBER))
+		col3 <- colMaxs(matrix(mapa[mapa[,1] == chr,3], nrow = MERGEBINNUMBER))
+		tmp <- cbind(chr, col2, col3)
+		tmp <- tmp[1:(nrow(tmp)-1),]
+		newBin <- rbind(newBin, tmp)
 	}
-
-	L_bin<-floor(Chr_length[,2]/binSize)
-	bed_file<-matrix(data=0, ncol=3, nrow=sum(L_bin))
-
-	for (i in 1:numChr){
-		for (j in 1:L_bin[i]){
-			# Chromosome 1
-			if (i==1){
-				bed_file[j,1]<-paste(Chr_length[i,1])
-				bed_file[j,2]<-(j*binSize)-(binSize-1)
-				bed_file[j,3]<-(j*binSize)
-			}
-			## Chromosomes 2 : Last
-			if (i>1){
-				bed_file[(sum(L_bin[1:(i-1)]))+j,1]<-paste(Chr_length[i,1])
-				bed_file[(sum(L_bin[1:(i-1)]))+j,2]<-(j*binSize)-(binSize-1)
-				bed_file[(sum(L_bin[1:(i-1)]))+j,3]<-(j*binSize)
-			}
-		}
-	}
-	cat("Generated", binSize, "bp bins for all", numChr,"chromosomes", "\n")
+	options(scipen = 0)
+	options(warn = 0)
+	
+	cat("Generated", binSize, "bp bins for all chromosomes", "\n")
 	
 	
 	###### Create mapabillity file with desired bin size
@@ -113,7 +103,7 @@ preENCODER<-function(MAPA_GC_location, outputFolder, binSize, reference){
 	options(scipen = 0)
 	options(warn = 0)
 
-
+	newGC<-newGC[-which(newGC[,1]=="MT"),]
 	cat("Generated GC-content file for binSize of", binSize,"bp", "\n")		
 	
 	
@@ -127,13 +117,13 @@ preENCODER<-function(MAPA_GC_location, outputFolder, binSize, reference){
 
 	## Write files to folder
 	# Blacklist
-	write.table(bed_file, file=paste(outputFolder, file_name,"/blacklist.bed", sep=""), quote=F, row.names=F, sep="\t")
+	write.table(bed_file, file=paste(outputFolder, file_name,"/blacklist.bed", sep=""), quote=F, row.names=F, sep="\t", col.names=F)
 	# GC-content
-	write.table(newGC, file=paste(outputFolder, file_name,"/GC_content.txt", sep=""), quote=F, row.names=F, sep="\t")
+	write.table(newGC, file=paste(outputFolder, file_name,"/GC_content.txt", sep=""), quote=F, row.names=F, sep="\t", col.names=F)
 	# Mapability
-	write.table(newMapa, file=paste(outputFolder, file_name,"/mapability.bed", sep=""), quote=F, row.names=F, sep="\t")	
+	write.table(newMapa, file=paste(outputFolder, file_name,"/mapability.bed", sep=""), quote=F, row.names=F, sep="\t", col.names=F)	
 	# bed file with bins
-	write.table(bed_file, file=paste(outputFolder, file_name,"/bins.bed", sep=""), quote=F, row.names=F, col.names=F, sep="\t")
+	write.table(newBin, file=paste(outputFolder, file_name,"/bins.bed", sep=""), quote=F, row.names=F, col.names=F, sep="\t")
 
 	
 }

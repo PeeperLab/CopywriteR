@@ -67,28 +67,34 @@ If however, any questions arise regarding the package, you have problems with th
 
 Peeper group
 
-Division of Molecular Oncology (H5)
+- Lab website (http://research.nki.nl/peeperlab/)
 
-The Netherlands Cancer Institute
-
-Plesmanlaan 121
-
-1066 CX Amsterdam
-
-The Netherlands
+Division of Molecular Oncology  
+Netherlands Cancer Institute  
+Plesmanlaan 121  
+1066 CX Amsterdam  
+The Netherlands  
 
 # Reported bugs
 
-- 140813, Yeay, no bugs
+Major bugs
+
+- 140814 - None...
+
+Minor bugs
+
+- 140814 - Destination folder needs complete path, `./` alone does not work. 
+- 140814 - Currently all folder paths in `> ENCODER()` need a trailing `/`. 
 
 # Changes and additions we are currently working on
 
 - [ ] Allow making GC-content and mapability-files for any custom set of regions
 - [ ] Make captureRegionsBedFile optional
 - [ ] Different input structure to indicate which bam files should be used as controls
-- [ ] Change from MACS 1.4 to other ChIP seq tool available in R
+- [ ] Change from MACS 1.4 to other ChIP seq tool available in R (chipseq from bioconductor?)
 - [ ] Change from Samtools to Rsamtools
 - [ ] Remove all unix specific functions and commands
+- [ ] Clean up code
 - [ ] Compile into bioConductor package
 - [x] Increase speed for generating bins in `preENCODER`
 
