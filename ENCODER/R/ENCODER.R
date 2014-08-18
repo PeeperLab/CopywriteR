@@ -220,7 +220,7 @@ ENCODER <- function(bamfolder, destinationfolder, referenceFolder, whichControl,
 		}
 		return(list(readmap, paste0("Rsamtools finished calculating reads per bin in sample ", i, " out of ", length(bam_list), "; number of bins = ", length(bamreads))))
 	}
-	sfInit(parallel=TRUE, cpus = length(bam_list))
+	sfInit(parallel=TRUE, cpus = inputStructure$ncpu)
 	res <- sfSapply(i, scanbam, bam_list, bed)
 	sfStop()
 	for(i in seq(1,2*length(bam_list),2)) {
