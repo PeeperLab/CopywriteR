@@ -80,7 +80,6 @@ Minor bugs
 
 - [ ] Extract binSize from bins.bed file
 - [ ] Implement check for packages
-- [ ] Allow processing of single-end sequences
 - [ ] Allow making GC-content and mapability-files for any custom set of regions
 - [ ] Make captureRegionsBedFile optional
 - [ ] Different input structure to indicate which bam files should be used as controls
@@ -89,6 +88,7 @@ Minor bugs
 - [ ] Remove all unix specific functions and commands
 - [ ] Clean up code
 - [ ] Compile into bioConductor package
+- [x] Allow processing of single-end sequences
 - [x] Increase speed for generating bins in `preENCODER`
 
 
