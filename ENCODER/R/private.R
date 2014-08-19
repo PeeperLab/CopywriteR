@@ -33,7 +33,6 @@
 		anno$mapa <- mapa[match(annoid, paste(mapa$chr, mapa$start, mapa$end, sep=":")),"mapa"]
 	}
 	if(!is.null(black)) {
-		suppressPackageStartupMessages(require(IRanges))
 		anno$black <- rep(F, nrow(anno))
 		for (c in levels(anno$chr)) {
 			ar <- IRanges(anno$start[anno$chr == c], anno$end[anno$chr == c])
