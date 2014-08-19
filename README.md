@@ -25,7 +25,6 @@ ENCODER was developed for UNIX based systems (including OSX) and requires the fo
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`> install.packages(c('matrixStats', 'data.table'))` 
 
-
 # Installation R-package:
 
 After installing the required tools as described above you can download the pre-compiled ENCODER R-package and annotation files. The package can be installed from the command line using the following command:
@@ -70,6 +69,7 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 Major bugs
 
 - 140814 - None...
+
 
 Minor bugs
 
