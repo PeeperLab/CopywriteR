@@ -290,15 +290,15 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 		dev.off()
 	}
 
-	####################
-	## CNVseq section ##
-	####################	
+	#############################################
+	## Normalize for GC-content and mapability ##
+	#############################################
 
 	read_count <- read_count[,1:(4 + length(bam_list))]
 	for(i in 5:ncol(read_count)) {
 		write.table(read_count[,c(2,3,4,i)], colnames(read_count)[i], quote = FALSE, sep = "\t", row.names = FALSE, col.names = FALSE)
 	}
-	f <- .findCovFiles("bam.compensated")
+	f <- list.files(pattern = "bam.compensated")
 	
 	gc <- read.delim(gcContentBedFile)[,c(1,2,3,5)]
 	colnames(gc) <- c("chr","start","end","gc")

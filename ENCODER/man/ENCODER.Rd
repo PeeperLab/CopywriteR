@@ -7,12 +7,12 @@ ENCODER: off-target sequence reads for DNA copy number detection with whole-exom
 Generates DNA copy number profiles from whole exome sequencing bam files
 }
 \usage{
-ENCODER(bamfolder, destinationfolder, referenceFolder, whichControl, captureRegionsBedFile, ncpu)
+ENCODER(bamFolder, destinationFolder, referenceFolder, whichControl, captureRegionsBedFile, ncpu)
 }
 
 \arguments{
-  \item{bamfolder}{path to folder with the BAM files}
-  \item{destinationfolder}{path to folder where output should be written to}
+  \item{bamFolder}{path to folder with the BAM files}
+  \item{destinationFolder}{path to folder where output should be written to}
   \item{referenceFolder}{path to folder with the annotation files generated with \code{\link{preENCODER}} }
   \item{whichControl}{file that indicates which samples should be used as reference}
   \item{captureRegionsBedFile}{path to the capture design, should have the bed extension}

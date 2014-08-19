@@ -79,8 +79,6 @@ Minor bugs
 # Changes and additions we are currently working on
 
 - [ ] Extract binSize from bins.bed file
-- [ ] Implement check for packages
-- [ ] Allow making GC-content and mapability-files for any custom set of regions
 - [ ] Make captureRegionsBedFile optional
 - [ ] Different input structure to indicate which bam files should be used as controls
 - [ ] Change from MACS 1.4 to other ChIP seq tool available in R (chipseq from bioconductor?)

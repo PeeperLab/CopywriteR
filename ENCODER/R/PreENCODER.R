@@ -65,7 +65,6 @@ preENCODER<-function(MAPA_GC_location, outputFolder, binSize, reference){
 	###### Create mapabillity file with desired bin size
 
 	MERGEBINNUMBER <- binSize/1000
-	library(matrixStats)
 
 	newMapa <- NULL
 	options(warn = -1)
