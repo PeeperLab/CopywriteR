@@ -16,14 +16,14 @@ ENCODER was developed for UNIX based systems (including OSX) and requires the fo
 - Multiple R-packages available from bioconductor.org. 
  Executing the following code in R will install or update the required packages: 
 
-&nbsp;&nbsp;&nbsp;`> source("http://bioconductor.org/biocLite.R")` 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`> source("http://bioconductor.org/biocLite.R")` 
 
-&nbsp;&nbsp;&nbsp;`> biocLite(c('Rsamtools', 'CGHcall', 'snowfall', 'IRanges'))` 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`> biocLite(c('Rsamtools', 'CGHcall', 'snowfall', 'IRanges'))` 
 
 - Additional R-packages are available through CRAN.
  Executing the following code in R will install or update the remaining required packages: 
 
-&nbsp;&nbsp;&nbsp;`> install.packages(c('matrixStats', 'data.table'))` 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`> install.packages(c('matrixStats', 'data.table'))` 
 
 
 # Installation R-package:
@@ -49,7 +49,7 @@ This function should be run for each combination of reference (e.g. hg19, mm10) 
 The function `ENCODER(bamFolder, destinationFolder, referenceFolder, whichControl, captureRegionsBedFile, ncpu)` will generate separate tables with compensated read counts and normalized compensated read counts (after correction for GC-content, mapability and removal of blacklisted regions).
 
 - CNAprofiles  
-The function `CNAprofile(destinationFolder)` 
+The function `CNAprofile(destinationFolder)` performs segmentation, calling and plotting of copy number profiles using the CGHcall package.
 
 For more details see R-package. `> ?preENCODER`, `> ?ENCODER`, and `> ?CNAprofile`  in R will show help files and descriptions for each of the functions. 
 
@@ -61,17 +61,9 @@ We have tried to make the ENCODER code readable and its use as easy as possible.
 - Thomas Kuilman (t.kuilman@nki.nl)
 - Oscar Krijgsman (o.krijgsman@nki.nl)
 
-# About us
-
 Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 - Lab website (http://research.nki.nl/peeperlab/)
-
-Division of Molecular Oncology  
-Netherlands Cancer Institute  
-Plesmanlaan 121  
-1066 CX Amsterdam  
-The Netherlands  
 
 # Reported bugs
 
