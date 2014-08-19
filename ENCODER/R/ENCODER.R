@@ -87,11 +87,11 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	cat(unlist(toLog), "\n", sep = "\n")
 	
 	# Check whether BAMs are paired-end
-	numberpairedendreads <- function(bam_list, inputStructure) {
+	numberpairedendreads <- function(bam_list) {
 		system(paste0("samtools view -f 1 -c ", bam_list), intern = TRUE)
 	}
 	sfInit(parallel=TRUE, cpus = ncpu)
-	pairedEnd <- sfLapply(bam_list, numberpairedendreads, inputStructure)
+	pairedEnd <- sfLapply(bam_list, numberpairedendreads)
 	sfStop()
 	pairedEnd <- ifelse(unlist(pairedEnd) > 0, TRUE, FALSE)
 	for(i in 1:length(bam_list)) {
@@ -101,7 +101,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 
 	# Remove anomalous reads and reads with Phred < 37
 	i <- c(1:length(bam_list))
-	properreads <- function(i, bam_list, inputStructure, pairedEnd) {
+	properreads <- function(i, bam_list, destinationFolder, pairedEnd) {
 		if(pairedEnd[i]) {
 			system(paste0("samtools view -b -f 2 -q 37 ", bam_list[i], " > ", destinationFolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list[i])))
 			paste0("samtools view -b -f 2 -q 37 ", bam_list[i], " > ", destinationFolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list[i]))
@@ -112,7 +112,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 		}
 	}
 	sfInit(parallel=TRUE, cpus = ncpu)
-	toLog <- sfLapply(i, properreads, bam_list, inputStructure, pairedEnd)
+	toLog <- sfLapply(i, properreads, bam_list, destinationFolder, pairedEnd)
 	sfStop()
 	cat(unlist(toLog), "\n", sep = "\n")
 
@@ -174,12 +174,12 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	
 	# Remove peak-regions from .bam files
 	i <- c(1:length(bam_list))
-	peakrm <- function(i, bam_list, inputStructure) {
+	peakrm <- function(i, bam_list, whichControl) {
 		system(paste0("bedtools intersect -abam ", bam_list[i], " -b MACS", whichControl[i], "_peaks.bed -v > ", gsub(".bam$", "_peakrm.bam", bam_list[i])))
 		paste0("bedtools intersect -abam ", bam_list[i], " -b MACS", whichControl[i], "_peaks.bed -v > ", gsub(".bam$", "_peakrm.bam", bam_list[i]))
 	}
 	sfInit(parallel=TRUE, cpus = ncpu)
-	toLog <- sfSapply(i, peakrm, bam_list, inputStructure)
+	toLog <- sfSapply(i, peakrm, bam_list, whichControl)
 	sfStop()
 	cat(unlist(toLog), "\n", sep = "\n")
 
@@ -319,11 +319,11 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	
 	# Perform normalization (in .tng helper function)
 	i <- c(1:ncol(data$cov))
-	normalizeRC <- function(i, data, .tng, usepoints, inputStructure) {	
+	normalizeRC <- function(i, data, .tng, usepoints, destinationFolder) {	
 		.tng(data.frame(count = data$cov[,i], gc = data$anno$gc, mapa = data$anno$mapa), use = usepoints, correctmapa = TRUE, plot = paste0(destinationFolder, "CNAprofiles/qc/", colnames(data$cov)[i], ".png"))
 	}
 	sfInit(parallel=TRUE, cpus = ncpu)
-	ratios <- sfLapply(i, normalizeRC, data, .tng, usepoints, inputStructure)
+	ratios <- sfLapply(i, normalizeRC, data, .tng, usepoints, destinationFolder)
 	sfStop()
 	ratios <- matrix(unlist(ratios), ncol = 2)
 	
@@ -402,6 +402,6 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	
 	sink()
 	cat("Total calculation time: ", Sys.time() - start_time, "\n\n")
-	save(inputStructure, file = paste0(destinationFolder, "CNAprofiles/input.Rdata"))
+	save(inputStructure <- list(destinationFolder = destinationFolder, ncpu = ncpu, nchrom = nchrom), file = paste0(destinationFolder, "CNAprofiles/input.Rdata"))
 
 }
