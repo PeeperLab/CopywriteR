@@ -402,6 +402,8 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	
 	sink()
 	cat("Total calculation time: ", Sys.time() - start_time, "\n\n")
-	save(inputStructure <- list(destinationFolder = destinationFolder, ncpu = ncpu, nchrom = nchrom), file = paste0(destinationFolder, "CNAprofiles/input.Rdata"))
+	
+	inputStructure <- list(destinationFolder = destinationFolder, ncpu = ncpu, nchrom = nchrom)
+	save(inputStructure, file = paste0(destinationFolder, "CNAprofiles/input.Rdata"))
 
 }

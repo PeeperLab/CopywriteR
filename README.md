@@ -45,7 +45,7 @@ The function `preENCODER(MAPA_GC_location, outputFolder, binSize, reference)` wi
 This function should be run for each combination of reference (e.g. hg19, mm10) and binSize. 
 
 - ENCODER  
-The function `ENCODER(bamFolder, destinationFolder, referenceFolder, whichControl, captureRegionsBedFile, ncpu)` will generate separate tables with compensated read counts and normalized compensated read counts (after correction for GC-content, mapability and removal of blacklisted regions).
+The function `ENCODER(bamFolder, destinationFolder, referenceFolder, whichControl, ncpu, captureRegionsBedFile)` will generate separate tables with compensated read counts and normalized compensated read counts (after correction for GC-content, mapability and removal of blacklisted regions).
 
 - CNAprofiles  
 The function `CNAprofile(destinationFolder)` performs segmentation, calling and plotting of copy number profiles using the CGHcall package.
