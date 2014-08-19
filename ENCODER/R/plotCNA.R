@@ -1,6 +1,5 @@
 plotCNA <- function(destinationFolder) {
 	load(paste0(destinationFolder, "CNAprofiles/input.Rdata"), .GlobalEnv)
-	require("CGHcall")
 
 	# Read data
 	read_count <- read.table(file = paste0(inputStructure$destinationFolder, "CNAprofiles/log2ratio_compensated_corrected.txt"), sep = "\t", header = TRUE, check.names = FALSE)

@@ -12,7 +12,6 @@
 	}
 
 	#naturally sort data 
-	require(gtools)
 	d <- lapply(d, function(x) {
 		x[,1] <- factor(x[,1], levels=mixedsort(levels(x[,1])))
 		x[order(x[,1], x[,2]),]

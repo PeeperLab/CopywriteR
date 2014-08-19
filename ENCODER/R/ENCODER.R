@@ -207,7 +207,6 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	cat("\n\n")
 	
 	# Create read_count matrix
-	library(Rsamtools)
 	
 	bed <- read.table(file = windowBedFile, sep = "\t") ######
 	read_count <- matrix(data = 0, ncol = 4, nrow = nrow(bed))
@@ -241,9 +240,6 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	# Compensate for removal of reads in peak regions
 	read_count <- cbind(read_count, read_count[,-c(1, 2, 3, 4)], read_count[,-c(1, 2, 3, 4)])
 	
-	# Data.table library is used for aggregating data.frames
-	library(data.table)
-
 	for(controlNumber in controlNumbers) {
 
 		# Calculate overlap of peaks with bins using bedtools
