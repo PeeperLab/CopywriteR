@@ -16,28 +16,28 @@ ENCODER was developed for UNIX based systems (including OSX) and requires the fo
 - Multiple R-packages available from bioconductor.org. 
  Executing the following code in R will install or update the required packages: 
 
-&nbsp;&nbsp;`> source("http://bioconductor.org/biocLite.R")` 
+&nbsp;&nbsp;&nbsp;`> source("http://bioconductor.org/biocLite.R")` 
 
-&nbsp;&nbsp;`> biocLite(c('Rsamtools', 'CGHcall', 'snowfall', 'IRanges'))` 
+&nbsp;&nbsp;&nbsp;`> biocLite(c('Rsamtools', 'CGHcall', 'snowfall', 'IRanges'))` 
 
 - Additional R-packages are available through CRAN.
  Executing the following code in R will install or update the remaining required packages: 
 
-&nbsp;&nbsp;`> install.packages(c('matrixStats', 'data.table'))` 
+&nbsp;&nbsp;&nbsp;`> install.packages(c('matrixStats', 'data.table'))` 
 
 
 # Installation R-package:
 
 After installing the required tools as described above you can download the pre-compiled ENCODER R-package and annotation files. The package can be installed from the command line using the following command:
 
-&nbsp;&nbsp;`$ R CMD INSTALL ENCODER.tar.gz` 
+&nbsp;&nbsp;&nbsp;`$ R CMD INSTALL ENCODER.tar.gz` 
 
 
 # ENCODER usage:
 
 Start R and load the ENCODER package using: 
 
-&nbsp;&nbsp;`> library("ENCODER")`
+&nbsp;&nbsp;&nbsp;`> library("ENCODER")`
 
 ENCODER contains three main functions: 
 
