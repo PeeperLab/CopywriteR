@@ -78,6 +78,7 @@ Minor bugs
 
 # Changes and additions we are currently working on
 
+- [ ] Extract binSize from bins.bed file
 - [ ] Implement check for packages
 - [ ] Allow processing of single-end sequences
 - [ ] Allow making GC-content and mapability-files for any custom set of regions

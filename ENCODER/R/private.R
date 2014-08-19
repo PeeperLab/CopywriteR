@@ -1,11 +1,6 @@
 
 .is.wholenumber <- function(x, tol = .Machine$double.eps^0.5)  abs(x - round(x)) < tol
 
-
-.findCovFiles <- function(pattern,...) {
-	list.files(pattern=pattern, ...)
-}
-
 .loadCovData <- function(files, gc=NULL, mapa=NULL, black=NULL, excludechr=NULL, datacol=5) {
 	d <- lapply(files, read.delim, header=F)
 	cnames <- .removeCommonFix(files)
@@ -48,30 +43,6 @@
 		}
 	}
 	list(cov=cov, anno=anno)
-}
-
-.normalizeSampleGC <- function(x, gc, maxpoints=15000, plot=F) {
-	x <- 2^x
-	valid <- is.finite(x) & !is.na(gc) #& x > 0
-	use <- which(valid)
-	if(length(use) > maxpoints) use <- sample(use, maxpoints)
-
-	df <- data.frame(x=x[use],gc=gc[use])
-	fit <- loess(x~gc, data=df)
-	normv <- rep(NA, length(x))
-	normv[valid] <- predict(fit, data.frame(gc=gc[valid]))
-	if(plot) {
-		plot(x~gc, data=df)
-		lines(normv, col=2)
-	}
-	log2(x/(normv/median(normv, na.rm=T)))
-}
-
-.normalizeGC <- function(ratios) {
-	m <- ratios$ratios
-	for (i in 1:ncol(m))
-	m[,i] <- .normalizeSampleGC(m[,i],ratios$anno$X5_pct_gc)
-	list(ratios=m, anno=ratios$anno)
 }
 
 .tng <- function(df, use, correctmapa=TRUE,  plot=NULL, verbose=T) {
@@ -146,7 +117,6 @@
 	}
 }
 
-
 .removeCommonFix <- function(names, distance=1) {
 	l <- strsplit(names,"")
 
@@ -166,4 +136,3 @@
 	sapply(names, function(x) substr(x, pclip, nchar(x) - eclip), USE.NAMES=F)
 
 }
-

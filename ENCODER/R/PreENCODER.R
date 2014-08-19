@@ -119,7 +119,7 @@ preENCODER<-function(MAPA_GC_location, outputFolder, binSize, reference){
 	# Blacklist
 	write.table(bed_file, file=paste(outputFolder, file_name,"/blacklist.bed", sep=""), quote=F, row.names=F, sep="\t", col.names=F)
 	# GC-content
-	write.table(newGC, file=paste(outputFolder, file_name,"/GC_content.txt", sep=""), quote=F, row.names=F, sep="\t", col.names=F)
+	write.table(newGC, file=paste(outputFolder, file_name,"/GC_content.bed", sep=""), quote=F, row.names=F, sep="\t", col.names=F)
 	# Mapability
 	write.table(newMapa, file=paste(outputFolder, file_name,"/mapability.bed", sep=""), quote=F, row.names=F, sep="\t", col.names=F)	
 	# bed file with bins
