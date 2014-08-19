@@ -23,7 +23,7 @@ ENCODER was developed for UNIX based systems (including OSX) and requires the fo
 - Additional R-packages are available through CRAN.
  Executing the following code in R will install or update the remaining required packages: 
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`> install.packages(c('matrixStats', 'data.table'))` 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`> install.packages(c('matrixStats', 'data.table', 'gtools'))` 
 
 # Installation R-package:
 
