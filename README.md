@@ -8,33 +8,41 @@ ENCODER allows the extraction of uniformly distributed copy number information, 
 
 ## Requirements:
 
-ENCODER was developed for UNIX based systems (including OSX) and requires the following tools to be installed on your system:
+ENCODER was developed for UNIX based systems (including OSX) and requires the following command line tools:
 
 - Samtools (http://samtools.sourceforge.net/) - To test Samtools: `$ samtools`
 - Bedtools (http://bedtools.readthedocs.org/) - To test Bedtools: `$ bedtools --version`
 - MACS 1.4 (http://liulab.dfci.harvard.edu/MACS/). To test MACS: `$ macs14 --version`
-- Multiple R-packages available from bioconductor.org.
 
-Executing the following code in R will install or update the required packages:
+The following R-packages are required to run ENCODER:
+
+- Rsamtools
+- CGHcall
+- snowfall
+- IRanges
+- matrixStats
+- data.table
+- gtools
+
+Some of these can be installed from bioconductor.org:
 
     > source("http://bioconductor.org/biocLite.R")
     > biocLite(c('Rsamtools', 'CGHcall', 'snowfall', 'IRanges'))
 
-Additional R-packages are available through CRAN. Executing the following code in R will install or update the remaining required packages:
+The remaining R-packages are available through CRAN:
 
     > install.packages(c('matrixStats', 'data.table', 'gtools'))
 
-
 ## Installation R-package:
 
-After installing the required tools as described above you can download the pre-compiled ENCODER R-package and annotation files. The package can be installed from the command line using the following command:
+After installing the required tools as described above you can download the pre-compiled ENCODER R-package and annotation files.
+The package can be installed from the command line using the following command:
 
     $ R CMD INSTALL ENCODER.tar.gz
 
-
 ## ENCODER usage:
 
-Start R and load the ENCODER package using:
+Load the ENCODER package in R using:
 
     > library("ENCODER")
 
@@ -49,12 +57,16 @@ ENCODER will generate separate tables with compensated read counts and normalize
 
     ENCODER(bamFolder, destinationFolder, referenceFolder, whichControl, ncpu, captureRegionsBedFile)
 
-CNAprofiles performs segmentation, calling and plotting of copy number profiles using the CGHcall package.
+CNAprofile performs segmentation, calling and plotting of copy number profiles using the CGHcall package.
 
     CNAprofile(destinationFolder)
 
-For more details see R-package. `> ?preENCODER`, `> ?ENCODER`, and `> ?CNAprofile`  in R will show help files and descriptions for each of the functions.
+For more details see R-package manual.
+Alternatively, one of the following commands can be used to show help files for the corresponding function:
 
+    > ?preENCODER
+    > ?ENCODER
+    > ?CNAprofile
 
 ## Contact
 
@@ -70,20 +82,14 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 ## Reported bugs
 
-Major bugs
-
-- 140814 - None...
-
-Minor bugs / caveats
-
-- 140814 - Destination folder needs complete path, `./` alone does not work.
-- 140814 - Currently all folder paths in `> ENCODER()` need a trailing `/`.
-
+- None
 
 ## Changes and additions we are currently working on
 
+- [ ] Remove requirement for a trailing `/` in folder path names
+- [ ] Support for relative path names
 - [ ] Extract binSize from bins.bed file
-- [ ] Different input structure to indicate which bam files should be used as controls
+- [ ] Implement different input structure to indicate which bam files should be used as references
 - [ ] Change from MACS 1.4 to other ChIP seq tool available in R (chipseq from bioconductor?)
 - [ ] Change from Samtools to Rsamtools
 - [ ] Remove all unix specific functions and commands
