@@ -78,6 +78,8 @@ Minor bugs
 
 # Changes and additions we are currently working on
 
+- [ ] Implement check for packages
+- [ ] Allow processing of single-end sequences
 - [ ] Allow making GC-content and mapability-files for any custom set of regions
 - [ ] Make captureRegionsBedFile optional
 - [ ] Different input structure to indicate which bam files should be used as controls
