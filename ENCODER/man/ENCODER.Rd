@@ -7,7 +7,7 @@ ENCODER: off-target sequence reads for DNA copy number detection with whole-exom
 Generates DNA copy number profiles from whole exome sequencing bam files
 }
 \usage{
-ENCODER(bamFolder, destinationFolder, referenceFolder, whichControl, captureRegionsBedFile, ncpu)
+ENCODER(bamFolder, destinationFolder, referenceFolder, whichControl, ncpu, captureRegionsBedFile)
 }
 
 \arguments{
