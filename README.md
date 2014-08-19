@@ -79,13 +79,13 @@ Minor bugs
 # Changes and additions we are currently working on
 
 - [ ] Extract binSize from bins.bed file
-- [ ] Make captureRegionsBedFile optional
 - [ ] Different input structure to indicate which bam files should be used as controls
 - [ ] Change from MACS 1.4 to other ChIP seq tool available in R (chipseq from bioconductor?)
 - [ ] Change from Samtools to Rsamtools
 - [ ] Remove all unix specific functions and commands
 - [ ] Clean up code
 - [ ] Compile into bioConductor package
+- [x] Make captureRegionsBedFile optional
 - [x] Allow processing of single-end sequences
 - [x] Increase speed for generating bins in `preENCODER`
 
