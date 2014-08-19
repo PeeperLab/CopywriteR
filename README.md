@@ -89,6 +89,6 @@ Minor bugs / caveats
 - [ ] Remove all unix specific functions and commands
 - [ ] Clean up code
 - [ ] Compile into bioConductor package
-- √ Make captureRegionsBedFile optional
-- √ Allow processing of single-end sequences
-- √ Increase speed for generating bins in `preENCODER`
+- [x] Make captureRegionsBedFile optional
+- [x] Allow processing of single-end sequences
+- [x] Increase speed for generating bins in `preENCODER`
