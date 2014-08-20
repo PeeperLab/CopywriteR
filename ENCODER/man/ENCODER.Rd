@@ -12,9 +12,9 @@ ENCODER(bamFolder, destinationFolder, referenceFolder, whichControl, ncpu, captu
 
 \arguments{
   \item{bamFolder}{path to folder with the BAM files}
-  \item{destinationFolder}{path to folder where output should be written to}
+  \item{destinationFolder}{path to folder to which output should be written}
   \item{referenceFolder}{path to folder with the annotation files generated with \code{\link{preENCODER}} }
-  \item{whichControl}{file that indicates which samples should be used as reference}
+  \item{whichControl}{file that indicates the index of the reference BAM-file for every sample. For instance, if the file list is Ref1.bam; Tumor1.bam, and Ref1.bam (with index 1 in file list) should be used as a reference for both samples, c(1,1) or rep(1,2) would be appropriate}
   \item{captureRegionsBedFile}{path to the capture design, should have the bed extension}
   \item{ncpu}{number of CPUs available for calculations}
 }

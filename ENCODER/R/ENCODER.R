@@ -38,19 +38,19 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	
 	# Create data.frame with bam-files and corresponding reference and index of reference
 	bam_list <- list.files(path = bamFolder, pattern = ".bam$")
-	bamControlList <- data.frame(bamName = bam_list, index = whichControl, stringsAsFactors = FALSE) #####
+	control_list <- whichControl #####
 	
 	sink(file = paste0(destinationFolder, "CNAprofiles/log.txt"), type = c("output", "message"))
-	for(i in 1:nrow(bamControlList)) {
-		cat("The control for sample", bamControlList$bamName[i], "will be", bamControlList$bamName[bamControlList$index[i]], "\n") #####
+	for(i in 1:length(bam_list)) {
+		cat("The control for sample", bam_list[i], "will be", bam_list[control_list[i]], "\n") #####
 	}
 	cat("The reference for this analysis is", reference, "\n")
 	cat("The binSize for this analysis is", binSize, "\n")
 	cat("The capture region file is", captureRegionsBedFile, "\n")
 	cat("This analysis will be run on", ncpu, "cpus", "\n\n\n")
 	sink()
-	for(i in 1:nrow(bamControlList)) {
-		cat("The control for sample", bamControlList$bamName[i], "will be", bamControlList$bamName[bamControlList$index[i]], "\n")
+	for(i in 1:length(bam_list)) {
+		cat("The control for sample", bam_list[i], "will be", bam_list[control_list[i]], "\n")
 	}
 	cat("The reference for this analysis is", reference, "\n")
 	cat("The capture region file is", captureRegionsBedFile, "\n")
@@ -75,78 +75,78 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 
 	# Create list of .bam files
 	setwd(bamFolder)
-	cat(bamControlList$bamName, "\n", sep = "\n")
+	cat(bam_list, "\n", sep = "\n")
 
 	# Index .bam files
-	ibam <- function(bamControlList) {
-		system(paste("samtools index", bamControlList$bamName))
-		paste("samtools index", bamControlList$bamName)
+	ibam <- function(bam_list) {
+		system(paste("samtools index", bam_list))
+		paste("samtools index", bam_list)
 	}
 	sfInit(parallel=TRUE, cpus = ncpu)
-	toLog <- sfLapply(bamControlList, ibam)
+	toLog <- sfLapply(bam_list, ibam)
 	sfStop()
 	cat(unlist(toLog), "\n", sep = "\n")
 	
 	# Check whether BAMs are paired-end
-	numberpairedendreads <- function(bamControlList) {
-		system(paste0("samtools view -f 1 -c ", bamControlList$bamName), intern = TRUE)
+	numberpairedendreads <- function(bam_list) {
+		system(paste0("samtools view -f 1 -c ", bam_list), intern = TRUE)
 	}
 	sfInit(parallel=TRUE, cpus = ncpu)
-	pairedEnd <- sfLapply(bamControlList, numberpairedendreads)
+	pairedEnd <- sfLapply(bam_list, numberpairedendreads)
 	sfStop()
 	pairedEnd <- ifelse(unlist(pairedEnd) > 0, TRUE, FALSE)
-	for(i in 1:nrow(bamControlList)) {
-		cat("Paired-end sequencing for sample ", bamControlList$bamName[i], ": ", unlist(pairedEnd)[i], "\n", sep = "")
+	for(i in 1:length(bam_list)) {
+		cat("Paired-end sequencing for sample ", bam_list[i], ": ", unlist(pairedEnd)[i], "\n", sep = "")
 	}
 	cat("\n\n")
 
 	# Remove anomalous reads and reads with Phred < 37
-	i <- c(1:nrow(bamControlList))
-	properreads <- function(i, bamControlList, destinationFolder, pairedEnd) {
+	i <- c(1:length(bam_list))
+	properreads <- function(i, bam_list, destinationFolder, pairedEnd) {
 		if(pairedEnd[i]) {
-			system(paste0("samtools view -b -f 2 -q 37 ", bamControlList$bamName[i], " > ", destinationFolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bamControlList$bamName[i])))
-			paste0("samtools view -b -f 2 -q 37 ", bamControlList$bamName[i], " > ", destinationFolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bamControlList$bamName[i]))
+			system(paste0("samtools view -b -f 2 -q 37 ", bam_list[i], " > ", destinationFolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list[i])))
+			paste0("samtools view -b -f 2 -q 37 ", bam_list[i], " > ", destinationFolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list[i]))
 		}
 		else {
-			system(paste0("samtools view -b -q 37 ", bamControlList$bamName[i], " > ", destinationFolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bamControlList$bamName[i])))
-			paste0("samtools view -b -q 37 ", bamControlList$bamName[i], " > ", destinationFolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bamControlList$bamName[i]))
+			system(paste0("samtools view -b -q 37 ", bam_list[i], " > ", destinationFolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list[i])))
+			paste0("samtools view -b -q 37 ", bam_list[i], " > ", destinationFolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list[i]))
 		}
 	}
 	sfInit(parallel=TRUE, cpus = ncpu)
-	toLog <- sfLapply(i, properreads, bamControlList, destinationFolder, pairedEnd)
+	toLog <- sfLapply(i, properreads, bam_list, destinationFolder, pairedEnd)
 	sfStop()
 	cat(unlist(toLog), "\n", sep = "\n")
 
 	################
-	statistics <- matrix(nrow = nrow(bamControlList$bamName), ncol = 7, dimnames = list(paste(bamControlList$bamName), c("Total", "Total properpair", "Unmapable", "Mitochondrion", "All chromosomes", "Rest", "In peaks")))
-	i <- c(1:nrow(bamControlList))
-	stats <- function(i, bamControlList) {
-		as.numeric(system(paste0("samtools view -c ", bamControlList$bamName[i]), intern = TRUE))
+	statistics <- matrix(nrow = length(bam_list), ncol = 7, dimnames = list(paste(bam_list), c("Total", "Total properpair", "Unmapable", "Mitochondrion", "All chromosomes", "Rest", "In peaks")))
+	i <- c(1:length(bam_list))
+	stats <- function(i, bam_list) {
+		as.numeric(system(paste0("samtools view -c ", bam_list[i]), intern = TRUE))
 	}
 	sfInit(parallel=TRUE, cpus = ncpu)
-	res <- sfSapply(i, stats, bamControlList)
+	res <- sfSapply(i, stats, bam_list)
 	sfStop()
 	statistics[,1] <- res
 	################
 	
 	# Create new .bam list
 	setwd(paste0(destinationFolder, "CNAprofiles/BamBaiMacsFiles/"))
-	bamControlList$bamName <- gsub(".bam$", "_properreads.bam$", bamControlList$bamName)
-	cat(bamControlList$bamName, "\n", sep = "\n")
+	bam_list <- gsub(".bam$", "_properreads.bam", bam_list)
+	cat(bam_list, "\n", sep = "\n")
 
 	# Index _properreads.bam files
-	iproperreads <- function(bamControlList) {
-		system(paste("samtools index", bamControlList$bamName))
-		paste("samtools index", bamControlList$bamName)
+	iproperreads <- function(bam_list) {
+		system(paste("samtools index", bam_list))
+		paste("samtools index", bam_list)
 	}
 	sfInit(parallel=TRUE, cpus = ncpu)
-	toLog <- sfLapply(bamControlList, iproperreads)
+	toLog <- sfLapply(bam_list, iproperreads)
 	sfStop()
 	cat(unlist(toLog), "\n", sep = "\n")
 
 	################
-	for (i in 1:length(bamControlList$bamName)) {
-		table <- as.matrix(system(paste0("samtools idxstats ", bamControlList$bamName[i]), intern = TRUE), nrow = 26, ncol = 4)
+	for (i in 1:length(bam_list)) {
+		table <- as.matrix(system(paste0("samtools idxstats ", bam_list[i]), intern = TRUE), nrow = 26, ncol = 4)
 		table <- strsplit(table, "\t")
 		table <- do.call(rbind, table)
 		MIT <- as.integer(table[grep("M", table[,1]),3])
@@ -160,45 +160,45 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	################
 	
 	# Create list with numbers of controls
-	controlNumbers <- unique(bamControlList$index) #####
+	controlNumbers <- unique(control_list) #####
 	
 	# Call peaks in .bam file of control sample
-	macs14 <- function(controlNumbers , bamControlList) {
-		system(paste0("macs14 -t " , bamControlList$bamName[controlNumbers], " -n MACS", controlNumbers, " -g hs --nolambda"))
-		paste0("macs14 -t " , bamControlList$bamName[controlNumbers], " -n MACS", controlNumbers, " -g hs --nolambda")
+	macs14 <- function(controlNumbers , bam_list) {
+		system(paste0("macs14 -t " , bam_list[controlNumbers], " -n MACS", controlNumbers, " -g hs --nolambda"))
+		paste0("macs14 -t " , bam_list[controlNumbers], " -n MACS", controlNumbers, " -g hs --nolambda")
 	}
 	sfInit(parallel=TRUE, cpus = min(length(controlNumbers), ncpu))
-	toLog <- sfLapply(controlNumbers, macs14, bamControlList)
+	toLog <- sfLapply(controlNumbers, macs14, bam_list)
 	sfStop()
 	cat(unlist(toLog), "\n", sep = "\n")
 	
 	# Remove peak-regions from .bam files
-	peakrm <- function(bamControlList) {
-		system(paste0("bedtools intersect -abam ", bamControlList$bamName, " -b MACS", bamControlList$index, "_peaks.bed -v > ", gsub(".bam$", "_peakrm.bam", bamControlList$bamName)))
-		paste0("bedtools intersect -abam ", bamControlList$bamName, " -b MACS", bamControlList$index, "_peaks.bed -v > ", gsub(".bam$", "_peakrm.bam", bamControlList$bamName))
+	peakrm <- function(bam_list, control_list) {
+		system(paste0("bedtools intersect -abam ", bam_list, " -b MACS", control_list, "_peaks.bed -v > ", gsub(".bam$", "_peakrm.bam", bam_list)))
+		paste0("bedtools intersect -abam ", bam_list, " -b MACS", control_list, "_peaks.bed -v > ", gsub(".bam$", "_peakrm.bam", bam_list))
 	}
 	sfInit(parallel=TRUE, cpus = ncpu)
-	toLog <- sfSapply(bamControlList, peakrm)
+	toLog <- sfSapply(bam_list, peakrm, control_list)
 	sfStop()
 	cat(unlist(toLog), "\n", sep = "\n")
 
 	# Create new .bam list
-	bamControlList$bamName <- gsub(".bam$", "_peakrm.bam")
-	cat(bamControlList$bamName, "\n", sep = "\n")
+	bam_list <- gsub(".bam$", "_peakrm.bam", bam_list)
+	cat(bam_list, "\n", sep = "\n")
 
 	# Index _peakrm.bam files
-	ipeakrm <- function(bamControlList) {
-		system(paste("samtools index", bamControlList$bamName))
-		paste("samtools index", bamControlList$bamName)
+	ipeakrm <- function(bam_list) {
+		system(paste("samtools index", bam_list))
+		paste("samtools index", bam_list)
 	}
 	sfInit(parallel=TRUE, cpus = ncpu)
-	toLog <- sfSapply(bamControlList, ipeakrm)
+	toLog <- sfSapply(bam_list, ipeakrm)
 	sfStop()
 	cat(unlist(toLog), "\n", sep = "\n")
 
 	################
-	for (i in 1:nrow(bamControlList)) {
-		table <- as.matrix(system(paste0("samtools idxstats ", bamControlList$bamName), intern = TRUE), nrow = 26, ncol = 4)
+	for (i in 1:length(bam_list)) {
+		table <- as.matrix(system(paste0("samtools idxstats ", bam_list), intern = TRUE), nrow = 26, ncol = 4)
 		table <- strsplit(table, "\t")
 		table <- do.call(rbind, table)
 		MIT <- as.integer(table[grep("M", table[,1]),3])
@@ -220,21 +220,21 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	read_count[,4] <- paste(bed[,3])
 
 	# Calculate the number of reads per bin
-	scanbam <- function(bamControlList, bed) {
+	scanbam <- function(bam_list, bed) {
 		library(Rsamtools)
 		which <- RangedData(space = bed[,1], IRanges(bed[,2], bed[,3]))
 		param <- ScanBamParam(which = which, what = c("pos"))
-		bamreads <- scanBam(file = paste(bamControlList$bamName), param = param)
+		bamreads <- scanBam(file = paste(bam_list), param = param)
 		readmap <- matrix(data = 0, ncol = 1, nrow = nrow(bed))
 		for (j in 1:length(bamreads)) {
 			readmap[j] <- length(unlist(bamreads[j]))
 		}
-		return(list(readmap, paste0("Rsamtools finished calculating reads per bin in sample ", i, " out of ", length(bamControlList$bamName), "; number of bins = ", length(bamreads))))
+		return(list(readmap, paste0("Rsamtools finished calculating reads per bin in sample ", bam_list, "; number of bins = ", length(bamreads))))
 	}
 	sfInit(parallel=TRUE, cpus = ncpu)
-	res <- sfSapply(bamControlList, scanbam, bed)
+	res <- sfSapply(bam_list, scanbam, bed)
 	sfStop()
-	for(i in seq(1,2*nrow(bamControlList),2)) {
+	for(i in seq(1,2*length(bam_list),2)) {
 		read_count <- cbind(read_count, res[[i]])
 	}
 	cat(unlist(res[2,]), "\n", sep = "\n")
@@ -263,10 +263,10 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 		controlFor <- grep(controlNumber, whichControl)
 		if(all(read_count[,2] == intersection[,1] & read_count[,3] == intersection[,2] & read_count[,4] == intersection[,3])) {
 			fraction_of_bin <- (binSize-as.numeric(intersection[,4])) / binSize
-			read_count[,(4 + 2 * nrow(bamControlList) + controlFor)] <- fraction_of_bin
+			read_count[,(4 + 2 * length(bam_list) + controlFor)] <- fraction_of_bin
 			for (i in 1:nrow(read_count)) {
 				if(fraction_of_bin[i] != 0) {
-					read_count[i,(4 + controlFor)] <- as.numeric(read_count[i,(4 + nrow(bamControlList) + controlFor)]) / fraction_of_bin[i]
+					read_count[i,(4 + controlFor)] <- as.numeric(read_count[i,(4 + length(bam_list) + controlFor)]) / fraction_of_bin[i]
 				}
 				else {
 					read_count[i,(4 + controlFor)] <- 0
@@ -278,17 +278,17 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 		}
 	}
 	
-	colnames(read_count) <- c("BinID", "Chromosome", "StartPos", "StopPos", sub(pattern = "$", ".compensated", paste(bamControlList$bamName)),
-		paste(bamControlList$bamName), sub(pattern = "$", ".fractionOfBin", paste(bamControlList$bamName)))
+	colnames(read_count) <- c("BinID", "Chromosome", "StartPos", "StopPos", sub(pattern = "$", ".compensated", paste(bam_list)),
+		paste(bam_list), sub(pattern = "$", ".fractionOfBin", paste(bam_list)))
 
 	# Create output file
 	write.table(read_count, file = paste0(destinationFolder, "CNAprofiles/", "read_counts_compensated.txt"), row.names = FALSE, col.names = TRUE, sep = "\t")
 
 	# Create histograms of fraction_of_bin (fraction of length in bins (after peak region removal)
 	dir.create(paste0(destinationFolder, "CNAprofiles/qc/"))
-	for(i in 1:nrow(bamControlList)) {
+	for(i in 1:length(bam_list)) {
 		pdf(paste0(destinationFolder, "CNAprofiles/qc/fraction_of_bin_", i, ".pdf"), width=7, height=7)
-		plot(ecdf(as.numeric(read_count[,4+(2*nrow(bamControlList))+i])), verticals = TRUE, ylab = "Fraction of bins",
+		plot(ecdf(as.numeric(read_count[,4+(2*length(bam_list))+i])), verticals = TRUE, ylab = "Fraction of bins",
 			xlab = "Remaining fraction of bin after peak removal", main = "Cumulative distribution of remaining bin fraction")
 		dev.off()
 	}
@@ -297,7 +297,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	## Normalize for GC-content and mapability ##
 	#############################################
 
-	read_count <- read_count[,1:(4 + nrow(bamControlList))]
+	read_count <- read_count[,1:(4 + length(bam_list))]
 	for(i in 5:ncol(read_count)) {
 		write.table(read_count[,c(2,3,4,i)], colnames(read_count)[i], quote = FALSE, sep = "\t", row.names = FALSE, col.names = FALSE)
 	}
@@ -330,7 +330,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	
 	sink(file = paste0(destinationFolder, "CNAprofiles/log.txt"), append = TRUE, type = c("output", "message"))
 	rd2 <- rd
-	for(i in 1:nrow(bamControlList)) {
+	for(i in 1:length(bam_list)) {
 		rd2$ratios[,i] <- rd$ratios[,i] - rd$ratios[,whichControl[i]]
 		cat("Relative log2-values are calculated for sample", colnames(rd2$ratios)[i], "with control", colnames(rd2$ratios)[whichControl[i]], "\n")
 	}
@@ -376,7 +376,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 			}
 			intersection <- intersection[-vec,]
 			
-			cat("Number of exons covered by peaks in sample ", bamControlList$bamName[controlNumber], ": ", sum(intersection[,4] != "0"), "\n")
+			cat("Number of exons covered by peaks in sample ", bam_list[controlNumber], ": ", sum(intersection[,4] != "0"), "\n")
 		
 			intersection <- system(paste0("bedtools intersect -a ", destinationFolder, "CNAprofiles/BamBaiMacsFiles/MACS", controlNumber, "_peaks.bed -b ", captureRegionsBedFile, " -wao"), intern = TRUE)
 			intersection <- strsplit(intersection, "\t")
@@ -391,9 +391,9 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 			}
 			intersection <- intersection[-vec,]
 			
-			cat("Number of peaks covered by exons in sample", bamControlList$bamName[controlNumber], ": ", sum(intersection[,4] != "0"), "\n")
-			cat("Total number of exons in sample", bamControlList$bamName[controlNumber], ": ", nrow(read.table(captureRegionsBedFile, sep = "\t")), "\n")
-			cat("Total number of peaks", bamControlList$bamName[controlNumber], ":", nrow(read.table(paste0(destinationFolder, "CNAprofiles/BamBaiMacsFiles/MACS", controlNumber, "_peaks.bed"), sep = "\t")), "\n\n")	
+			cat("Number of peaks covered by exons in sample", bam_list[controlNumber], ": ", sum(intersection[,4] != "0"), "\n")
+			cat("Total number of exons in sample", bam_list[controlNumber], ": ", nrow(read.table(captureRegionsBedFile, sep = "\t")), "\n")
+			cat("Total number of peaks", bam_list[controlNumber], ":", nrow(read.table(paste0(destinationFolder, "CNAprofiles/BamBaiMacsFiles/MACS", controlNumber, "_peaks.bed"), sep = "\t")), "\n\n")	
 		}
 	}
 	
