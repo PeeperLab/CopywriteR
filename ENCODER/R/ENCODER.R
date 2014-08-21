@@ -163,22 +163,23 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	controlNumbers <- unique(control_list) #####
 	
 	# Call peaks in .bam file of control sample
-	macs14 <- function(controlNumbers , bam_list) {
+	macs14 <- function(controlNumbers, bam_list) {
 		system(paste0("macs14 -t " , bam_list[controlNumbers], " -n MACS", controlNumbers, " -g hs --nolambda"))
 		paste0("macs14 -t " , bam_list[controlNumbers], " -n MACS", controlNumbers, " -g hs --nolambda")
 	}
-	sfInit(parallel=TRUE, cpus = min(length(controlNumbers), ncpu))
-	toLog <- sfLapply(controlNumbers, macs14, bam_list)
+	sfInit(parallel=TRUE, cpus = min(length(controlNumbers), inputStructure$ncpu))
+	toLog <- sfLapply(controlNumbers , macs14, bam_list)
 	sfStop()
 	cat(unlist(toLog), "\n", sep = "\n")
 	
 	# Remove peak-regions from .bam files
-	peakrm <- function(bam_list, control_list) {
-		system(paste0("bedtools intersect -abam ", bam_list, " -b MACS", control_list, "_peaks.bed -v > ", gsub(".bam$", "_peakrm.bam", bam_list)))
-		paste0("bedtools intersect -abam ", bam_list, " -b MACS", control_list, "_peaks.bed -v > ", gsub(".bam$", "_peakrm.bam", bam_list))
+	i <- 1:length(bam_list)
+	peakrm <- function(i, bam_list, control_list) {
+		system(paste0("bedtools intersect -abam ", bam_list[i], " -b MACS", control_list[i], "_peaks.bed -v > ", gsub(".bam$", "_peakrm.bam", bam_list[i])))
+		paste0("bedtools intersect -abam ", bam_list[i], " -b MACS", control_list[i], "_peaks.bed -v > ", gsub(".bam$", "_peakrm.bam", bam_list[i]))
 	}
 	sfInit(parallel=TRUE, cpus = ncpu)
-	toLog <- sfSapply(bam_list, peakrm, control_list)
+	toLog <- sfSapply(i, peakrm, bam_list, control_list)
 	sfStop()
 	cat(unlist(toLog), "\n", sep = "\n")
 
