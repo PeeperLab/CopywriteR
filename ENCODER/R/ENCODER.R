@@ -167,7 +167,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 		system(paste0("macs14 -t " , bam_list[controlNumbers], " -n MACS", controlNumbers, " -g hs --nolambda"))
 		paste0("macs14 -t " , bam_list[controlNumbers], " -n MACS", controlNumbers, " -g hs --nolambda")
 	}
-	sfInit(parallel=TRUE, cpus = min(length(controlNumbers), inputStructure$ncpu))
+	sfInit(parallel=TRUE, cpus = min(length(controlNumbers), ncpu))
 	toLog <- sfLapply(controlNumbers , macs14, bam_list)
 	sfStop()
 	cat(unlist(toLog), "\n", sep = "\n")
@@ -323,7 +323,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	sfInit(parallel=TRUE, cpus = ncpu)
 	ratios <- sfLapply(i, normalizeRC, data, .tng, usepoints, destinationFolder)
 	sfStop()
-	ratios <- matrix(unlist(ratios), ncol = 2)
+	ratios <- matrix(unlist(ratios), ncol = length(bam_list))
 	
 	colnames(ratios) <- sampnames
 	
