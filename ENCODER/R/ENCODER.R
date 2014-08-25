@@ -163,22 +163,23 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	controlNumbers <- unique(control_list) #####
 	
 	# Call peaks in .bam file of control sample
-	macs14 <- function(controlNumbers , bam_list) {
+	macs14 <- function(controlNumbers, bam_list) {
 		system(paste0("macs14 -t " , bam_list[controlNumbers], " -n MACS", controlNumbers, " -g hs --nolambda"))
 		paste0("macs14 -t " , bam_list[controlNumbers], " -n MACS", controlNumbers, " -g hs --nolambda")
 	}
 	sfInit(parallel=TRUE, cpus = min(length(controlNumbers), ncpu))
-	toLog <- sfLapply(controlNumbers, macs14, bam_list)
+	toLog <- sfLapply(controlNumbers , macs14, bam_list)
 	sfStop()
 	cat(unlist(toLog), "\n", sep = "\n")
 	
 	# Remove peak-regions from .bam files
-	peakrm <- function(bam_list, control_list) {
-		system(paste0("bedtools intersect -abam ", bam_list, " -b MACS", control_list, "_peaks.bed -v > ", gsub(".bam$", "_peakrm.bam", bam_list)))
-		paste0("bedtools intersect -abam ", bam_list, " -b MACS", control_list, "_peaks.bed -v > ", gsub(".bam$", "_peakrm.bam", bam_list))
+	i <- 1:length(bam_list)
+	peakrm <- function(i, bam_list, control_list) {
+		system(paste0("bedtools intersect -abam ", bam_list[i], " -b MACS", control_list[i], "_peaks.bed -v > ", gsub(".bam$", "_peakrm.bam", bam_list[i])))
+		paste0("bedtools intersect -abam ", bam_list[i], " -b MACS", control_list[i], "_peaks.bed -v > ", gsub(".bam$", "_peakrm.bam", bam_list[i]))
 	}
 	sfInit(parallel=TRUE, cpus = ncpu)
-	toLog <- sfSapply(bam_list, peakrm, control_list)
+	toLog <- sfSapply(i, peakrm, bam_list, control_list)
 	sfStop()
 	cat(unlist(toLog), "\n", sep = "\n")
 
@@ -198,7 +199,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 
 	################
 	for (i in 1:length(bam_list)) {
-		table <- as.matrix(system(paste0("samtools idxstats ", bam_list), intern = TRUE), nrow = 26, ncol = 4)
+		table <- as.matrix(system(paste0("samtools idxstats ", bam_list[i]), intern = TRUE), nrow = 26, ncol = 4)
 		table <- strsplit(table, "\t")
 		table <- do.call(rbind, table)
 		MIT <- as.integer(table[grep("M", table[,1]),3])
@@ -322,7 +323,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	sfInit(parallel=TRUE, cpus = ncpu)
 	ratios <- sfLapply(i, normalizeRC, data, .tng, usepoints, destinationFolder)
 	sfStop()
-	ratios <- matrix(unlist(ratios), ncol = 2)
+	ratios <- matrix(unlist(ratios), ncol = length(bam_list))
 	
 	colnames(ratios) <- sampnames
 	
