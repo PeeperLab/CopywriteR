@@ -199,7 +199,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 
 	################
 	for (i in 1:length(bam_list)) {
-		table <- as.matrix(system(paste0("samtools idxstats ", bam_list), intern = TRUE), nrow = 26, ncol = 4)
+		table <- as.matrix(system(paste0("samtools idxstats ", bam_list[i]), intern = TRUE), nrow = 26, ncol = 4)
 		table <- strsplit(table, "\t")
 		table <- do.call(rbind, table)
 		MIT <- as.integer(table[grep("M", table[,1]),3])

@@ -1,5 +1,9 @@
-plotCNA <- function(destinationFolder) {
+plotCNA <- function(destinationFolder, set.nchrom = "determined.from.reference") {
 	load(paste0(destinationFolder, "CNAprofiles/input.Rdata"), .GlobalEnv)
+	
+	if(set.nchrom != "determined.from.reference" & is.integer(set.nchrom)) {
+		inputStructure$nchrom <- set.nchrom
+	}
 
 	# Read data
 	read_count <- read.table(file = paste0(inputStructure$destinationFolder, "CNAprofiles/log2ratio_compensated_corrected.txt"), sep = "\t", header = TRUE, check.names = FALSE)
