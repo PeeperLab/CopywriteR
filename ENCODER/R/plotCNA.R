@@ -1,7 +1,7 @@
 plotCNA <- function(destinationFolder, set.nchrom = "determined.from.reference") {
 	load(paste0(destinationFolder, "CNAprofiles/input.Rdata"), .GlobalEnv)
 	
-	if(set.nchrom != "determined.from.reference" & is.integer(set.nchrom)) {
+	if(set.nchrom != "determined.from.reference") {
 		inputStructure$nchrom <- set.nchrom
 	}
 

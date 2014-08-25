@@ -57,16 +57,16 @@ ENCODER will generate separate tables with compensated read counts and normalize
 
     ENCODER(bamFolder, destinationFolder, referenceFolder, whichControl, ncpu, captureRegionsBedFile)
 
-CNAprofile performs segmentation, calling and plotting of copy number profiles using the CGHcall package.
+plotCNA performs segmentation, calling and plotting of copy number profiles using the CGHcall package.
 
-    CNAprofile(destinationFolder)
+    plotCNA(destinationFolder)
 
 For more details see R-package manual.
 Alternatively, one of the following commands can be used to show help files for the corresponding function:
 
     > ?preENCODER
     > ?ENCODER
-    > ?CNAprofile
+    > ?plotCNA
 
 ## Contact
 
