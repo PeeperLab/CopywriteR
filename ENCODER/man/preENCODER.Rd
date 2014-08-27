@@ -25,8 +25,8 @@ Annotation files can only be generated with binSize that are a multiplication of
 \value{
 \item{folder}{folder with generated annotation files with desired binSize}
 \item{input.Rdata}{R object with all generated data}
-
 }
+
 \references{
 ENCODER: DNA copy number detection from off-target sequence data. Thomas Kuilman, Arno Velds, Kristel Kemper, Marco Ranzani, Lorenzo Bombardelli, Guotai Xu, Julian de Ruiter, Bauke Ylstra, Jos Jonkers, Sven Rottenberg, Lodewyk F. Wessels, David J. Adams, Daniel S. Peeper, Oscar Krijgsman Submitted for publication. 
 }
