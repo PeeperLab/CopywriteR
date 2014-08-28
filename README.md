@@ -92,6 +92,7 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 - [ ] Remove requirement for a trailing `/` in folder path names
 - [ ] Support for relative path names
 - [ ] Extract binSize from bins.bed file
+- [ ] Check warning message "Setting LC_CTYPE failed, using C" with some installations of R 
 - [ ] Implement different input structure to indicate which bam files should be used as references
 - [ ] Change from MACS 1.4 to other ChIP seq tool available in R (chipseq from bioconductor?)
 - [ ] Change from Samtools to Rsamtools
