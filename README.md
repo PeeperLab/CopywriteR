@@ -38,7 +38,7 @@ The remaining R-packages are available through CRAN:
 After installing the required tools as described above you can download the pre-compiled ENCODER R-package and annotation files.
 The package can be installed from the command line using the following command:
 
-    $ R CMD INSTALL ENCODER.tar.gz
+    $ R CMD INSTALL ENCODER*.tar.gz
 
 ## ENCODER usage:
 
@@ -48,8 +48,11 @@ Load the ENCODER package in R using:
 
 ENCODER contains three main functions:
 
-preENCODER will generate reference files for mapability, GC-content and bin files.
-This function should be run for each combination of reference (e.g. hg19, mm10) and binSize.
+preENCODER will generate mapability and GC-content files for a specified bin size and reference genome.
+For every combination of reference genome and bin size, a new set of mapability and GC-content files needs to be created.
+preENCODER takes pre-assembled 1kb bin mapability and GC-content files as input.
+These can be downloaded from the release section.
+Available reference genomes are hg19, mm9 and mm10.
 
     preENCODER(MAPA_GC_location, outputFolder, binSize, reference)
 
@@ -95,6 +98,8 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 - [ ] Remove all unix specific functions and commands
 - [ ] Clean up code
 - [ ] Compile into bioConductor package
+- [ ] Add 1kb mapability and GC-content files
+- [ ] Make names consistent and apply Rlint to code
 - [x] Make captureRegionsBedFile optional
 - [x] Allow processing of single-end sequences
 - [x] Increase speed for generating bins in `preENCODER`
