@@ -2,6 +2,11 @@
 
 preENCODER<-function(blackGCMapaFolder, outputFolder, binSize, reference){
 	
+	## Make folder path absolute
+	bamFolder <- tools:::file_path_as_absolute(bamFolder)
+	destinationFolder <- tools:::file_path_as_absolute(destinationFolder)
+	referenceFolder <- tools:::file_path_as_absolute(referenceFolder)
+
 	## Make folder path independent of trailing /
 	blackGCMapaFolder <- paste(unlist(strsplit(gsub("/$", "", blackGCMapaFolder), "/")), "", sep = "/", collapse = "")
 	outputFolder <- paste(unlist(strsplit(gsub("/$", "", outputFolder), "/")), "", sep = "/", collapse = "")
