@@ -89,6 +89,7 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 ## Changes and additions we are currently working on
 
+- [ ] Support alternative chromosome names (i.e., "chr1" instead of "1")
 - [ ] Remove requirement for a trailing `/` in folder path names
 - [ ] Support for relative path names
 - [ ] Extract binSize from bins.bed file
@@ -99,8 +100,8 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 - [ ] Remove all unix specific functions and commands
 - [ ] Clean up code
 - [ ] Compile into bioConductor package
-- [ ] Add 1kb mapability and GC-content files
 - [ ] Make names consistent and apply Rlint to code
+- [x] Add 1kb mapability and GC-content files for mouse mm9 and mm10 genomes
 - [x] Make captureRegionsBedFile optional
 - [x] Allow processing of single-end sequences
 - [x] Increase speed for generating bins in `preENCODER`

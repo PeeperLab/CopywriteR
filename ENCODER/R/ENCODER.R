@@ -1,6 +1,10 @@
 ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl, ncpu, captureRegionsBedFile) {
 	
 	start_time <- Sys.time()
+
+	bamFolder <- paste(unlist(strsplit(gsub("/$", "", bamFolder), "/")), "", sep = "/", collapse = "")
+	destinationFolder <- paste(unlist(strsplit(gsub("/$", "", destinationFolder), "/")), "", sep = "/", collapse = "")
+	referenceFolder <- paste(unlist(strsplit(gsub("/$", "", referenceFolder), "/")), "", sep = "/", collapse = "")
 	
 	if(missing(captureRegionsBedFile)) {
 		captureRegionsBedFile <- "not specified"
