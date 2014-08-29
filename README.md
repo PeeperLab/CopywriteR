@@ -90,7 +90,6 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 ## Changes and additions we are currently working on
 
 - [ ] Support alternative chromosome names (i.e., "chr1" instead of "1")
-- [ ] Remove requirement for a trailing `/` in folder path names
 - [ ] Support for relative path names
 - [ ] Extract binSize from bins.bed file
 - [ ] Check warning message "Setting LC_CTYPE failed, using C" with some installations of R 
@@ -101,6 +100,7 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 - [ ] Clean up code
 - [ ] Compile into bioConductor package
 - [ ] Make names consistent and apply Rlint to code
+- [ ] Remove requirement for a trailing `/` in folder path names (implemented in source code)
 - [x] Add 1kb mapability and GC-content files for mouse mm9 and mm10 genomes
 - [x] Make captureRegionsBedFile optional
 - [x] Allow processing of single-end sequences
