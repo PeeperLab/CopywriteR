@@ -89,6 +89,7 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 ## Changes and additions we are currently working on
 
+- [ ] Make keeping intermediate .bam and MACS files optional
 - [ ] Support alternative chromosome names (i.e., "chr1" instead of "1")
 - [ ] Extract binSize from bins.bed file
 - [ ] Check warning message "Setting LC_CTYPE failed, using C" with some installations of R 
