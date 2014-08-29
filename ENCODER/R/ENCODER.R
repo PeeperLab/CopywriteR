@@ -37,24 +37,26 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 		stop("The captureRegionsBedFile could not be found. Please change your captureRegionsBedFile path.")
 	}
 	
-	perFolder<-strsplit(paste(referenceFolder), "/")
-	ref_bin_info<-unlist(strsplit(perFolder[[1]][length(perFolder[[1]])], "_"))
-	
-	reference <- ref_bin_info[1] 
-	binSize <- as.numeric(gsub("kb","",ref_bin_info[2]))*1000
+	windowBedFile <- paste0(referenceFolder, "bins.bed")
+	blacklistBedFile <- paste0(referenceFolder, "blacklist.bed")
+	gcContentBedFile <- paste0(referenceFolder, "GC_content.bed")
+	mappabilityBedFile <- paste0(referenceFolder, "mapability.bed")
+
+	bed <- read.table(file = windowBedFile, as.is = TRUE, sep = "\t")
+	nchrom <- length(unique(bed$V1))
+	binSize <- bed$V3[1]
 	
 	# List all input files and write to log
 	dir.create(paste0(destinationFolder, "/CNAprofiles/"))
 	
 	# Create data.frame with bam-files and corresponding reference and index of reference
 	bam_list <- list.files(path = bamFolder, pattern = ".bam$")
-	control_list <- whichControl #####
+	control_list <- whichControl
 	
 	sink(file = paste0(destinationFolder, "CNAprofiles/log.txt"), type = c("output", "message"))
 	for(i in 1:length(bam_list)) {
 		cat("The control for sample", bam_list[i], "will be", bam_list[control_list[i]], "\n") #####
 	}
-	cat("The reference for this analysis is", reference, "\n")
 	cat("The binSize for this analysis is", binSize, "\n")
 	cat("The capture region file is", captureRegionsBedFile, "\n")
 	cat("This analysis will be run on", ncpu, "cpus", "\n\n\n")
@@ -62,18 +64,9 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	for(i in 1:length(bam_list)) {
 		cat("The control for sample", bam_list[i], "will be", bam_list[control_list[i]], "\n")
 	}
-	cat("The reference for this analysis is", reference, "\n")
 	cat("The capture region file is", captureRegionsBedFile, "\n")
 	cat("This analysis will be run on", ncpu, "cpus", "\n\n\n")
 
-	windowBedFile <- paste0(referenceFolder, "bins.bed")
-	blacklistBedFile <- paste0(referenceFolder, "blacklist.bed")
-	gcContentBedFile <- paste0(referenceFolder, "GC_content.bed")
-	mappabilityBedFile <- paste0(referenceFolder, "mapability.bed")
-
-	bed <- read.table(file = windowBedFile, sep = "\t") ######
-	nchrom <- length(unique(bed$V1))
-	
 	sink(file = paste0(destinationFolder, "CNAprofiles/log.txt"), append = TRUE, type = c("output", "message"))
 	options(width = 150)
 	

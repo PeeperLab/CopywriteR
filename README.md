@@ -91,7 +91,6 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 - [ ] Make keeping intermediate .bam and MACS files optional
 - [ ] Support alternative chromosome names (i.e., "chr1" instead of "1")
-- [ ] Extract binSize from bins.bed file
 - [ ] Check warning message "Setting LC_CTYPE failed, using C" with some installations of R 
 - [ ] Implement different input structure to indicate which bam files should be used as references
 - [ ] Change from MACS 1.4 to other ChIP seq tool available in R (chipseq from bioconductor?)
@@ -100,6 +99,7 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 - [ ] Clean up code
 - [ ] Compile into bioConductor package
 - [ ] Make names consistent and apply Rlint to code
+- [ ] Extract binSize from bins.bed file (implemented in source code)
 - [ ] Support for relative path names (implemented in source code)
 - [ ] Remove requirement for a trailing `/` in folder path names (implemented in source code)
 - [x] Add 1kb mapability and GC-content files for mouse mm9 and mm10 genomes
