@@ -71,14 +71,14 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 						prefixes <- vector(mode = "character")
 						for(bam in bam_list) {
 							header <- scanBamHeader(paste0(bamFolder, bam))
-							prefixes <- append(prefixes, names(header[[1]]$targets)[1])
+							chr.names <- names(header[[1]]$targets)[1]
+							prefixes <- append(prefixes, gsub("[[:digit:]]|X|Y", "", chr.names)[1])
 						}
 						if(!all(prefixes == prefixes[1])) {
 							stop("The bam files have different chromosome names. Please adjust the bam-files accordingly.")
 						} else {
 							prefix <- prefixes[1]
 						}
-						## Add match checks for bin, mappability, GC-content, blacklist and capture regions .bed files
 					
 	sink(file = paste0(destinationFolder, "CNAprofiles/log.txt"), append = TRUE, type = c("output", "message"))
 	options(width = 150)

@@ -47,8 +47,8 @@ Load the ENCODER package in R using:
 
 ENCODER contains three main functions:
 
-preENCODER will generate bin, mapability, GC-content, blacklist and capture regions .bed files for any specified bin size.
-For every combination of reference genome and bin size, a separate set of mapability and GC-content files needs to be created.
+preENCODER will generate bin, mapability, GC-content, blacklist and capture regions .bed files for any specified bin size and for available reference genomes.
+For every combination of reference genome and bin size, a separate set of such files needs to be created.
 preENCODER takes pre-assembled 1kb bin mapability, GC-content and blacklist .bed files as input.
 Available reference genomes are hg19, mm9 and mm10.
 These can be downloaded from the release section.
@@ -76,12 +76,13 @@ There are a number of requirements for your ENCODER analysis to run successfully
 
 ### Chromosome names
 
-ENCODER assumes by default that the chromosome names in .bam files are "1" through "20", "X", and "Y".
-However, the bin, mapability, GC-content, blacklist and capture regions .bed files can be adjusted to match the notation in the .bam files, and ENCODER will also work.
-ENCODER checks whether the same set of chromosome names have been used throughout all .bam files that are to be analyzed.
-If they don't match, an error will be displayed and ENCODER aborts the analysis.
-A similar error will be displayed if the chromosome names do not match those of the bin, mappability, GC-content, blacklist and capture regions .bed files.
-Chromosome names in .bam files can be changed to the above-mentioned chromosome notation using bedtools as follows (UNIX only):
+ENCODER by default assumes that the chromosome names in .bam files are "1", "2", ... "X", and "Y".
+These chromosome names are incorporated in the bin, mapability, GC-content, blacklist and capture regions .bed files by preENCODER.
+ENCODER can also be applied to .bam files with different chromosome names.
+In this case, the supporting .bed files need to have the same chromosome notation.
+In case of non-matching chromosome notations, an error message will be displayed and the analysis will be aborted.
+Non-matching chromosome names between .bam and supporting .bed files can be adjusted by changing the supporting .bed files.
+Alternatively, chromosome names in .bam files can be adjusted using bedtools as follows (UNIX only):
 
     $ samtools view -H in.bam | awk 'BEGIN { FS = OFS = "\t"; } {if ($1 == "@SQ") { gsub("SN:chr", "SN:", $2); print $1, $2, $3; } else print; }' | samtools reheader - in.bam > out.bam
 
@@ -116,9 +117,9 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 - [ ] Compile into bioConductor package
 - [ ] Make names consistent and apply Rlint to code
 - [ ] Support alternative chromosome names (i.e., "chr1" instead of "1"; implemented in source code)
-- [ ] Extract binSize from bins.bed file (implemented in source code)
-- [ ] Support for relative path names (implemented in source code)
-- [ ] Remove requirement for a trailing `/` in folder path names (implemented in source code)
+- [x] Extract binSize from bins.bed file
+- [x] Support for relative path names
+- [x] Remove requirement for a trailing `/` in folder path names
 - [x] Add 1kb mapability and GC-content files for mouse mm9 and mm10 genomes
 - [x] Make captureRegionsBedFile optional
 - [x] Allow processing of single-end sequences
