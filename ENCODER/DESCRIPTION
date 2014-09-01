@@ -1,6 +1,6 @@
 Package: ENCODER
 Title: DNA copy number profiles from whole exome sequencing
-Version: 1.1
+Version: 1.2
 Date: 2014-08-19
 Author: Thomas Kuilman
 Maintainer: Thomas Kuilman <t.kuilman@nki.nl>
