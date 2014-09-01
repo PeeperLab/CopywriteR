@@ -37,5 +37,5 @@ Thomas Kuilman (t.kuilman@nki.nl)
 
 \examples{
 ## 
-\dontrun{preENCODER("./annotation/", "./", 20000, "hg19")}
+\dontrun{preENCODER("./PATH_TO_HG19_1KB_FOLDER/", "./", 20000, "hg19")}
 }
