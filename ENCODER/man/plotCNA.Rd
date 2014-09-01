@@ -7,10 +7,11 @@ plotCNA segments and plots the copy number files generated with ENCODER.
 ENCODER output is analysed by the segmentation algorithm CBS and plots each sample for each sample the chromosomes seperately. 
 }
 \usage{
-plotCNA(destinationFolder)
+plotCNA(destinationFolder, set.nchrom)
 }
 \arguments{
   \item{destinationFolder}{Path to the output folder of ENCODER}
+  \item{set.nchrom}{Number of chromosomes that are included in analysis}
 }
 
 \value{
