@@ -67,18 +67,33 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	cat("The capture region file is", captureRegionsBedFile, "\n")
 	cat("This analysis will be run on", ncpu, "cpus", "\n\n\n")
 	
-						# Test for compatibilty chromosome names
-						prefixes <- vector(mode = "character")
-						for(bam in bam_list) {
-							header <- scanBamHeader(paste0(bamFolder, bam))
-							chr.names <- names(header[[1]]$targets)[1]
-							prefixes <- append(prefixes, gsub("[[:digit:]]|X|Y", "", chr.names)[1])
-						}
-						if(!all(prefixes == prefixes[1])) {
-							stop("The bam files have different chromosome names. Please adjust the bam-files accordingly.")
-						} else {
-							prefix <- prefixes[1]
-						}
+	# Test for compatibilty chromosome names
+	prefixes <- vector(mode = "character")
+	for(bam in bam_list) {
+		header <- scanBamHeader(paste0(bamFolder, bam))
+		chr.names <- names(header[[1]]$targets)[1]
+		prefixes <- append(prefixes, gsub("[[:digit:]]|X|Y", "", chr.names)[1])
+	}
+	if(!all(prefixes == prefixes[1])) {
+		stop("The bam files have different chromosome names. Please adjust the .bam files such that they contain the same chromosome notation.")
+	} else {
+		prefixes <- prefixes[1]
+		chr.names <- unlist(strsplit(readLines(windowBedFile, n = 1), "\t"))[1]
+		prefixes[2] <- gsub("[[:digit:]]|X|Y", "", chr.names)
+		unlink(windowBedFile)
+		chr.names <- unlist(strsplit(readLines(blacklistBedFile, n = 1), "\t"))[1]
+		prefixes[3] <- gsub("[[:digit:]]|X|Y", "", chr.names)
+		unlink(blacklistBedFile)
+		chr.names <- unlist(strsplit(readLines(gcContentBedFile, n = 1), "\t"))[1]
+		prefixes[4] <- gsub("[[:digit:]]|X|Y", "", chr.names)
+		unlink(gcContentBedFile)
+		chr.names <- unlist(strsplit(readLines(mappabilityBedFile, n = 1), "\t"))[1]
+		prefixes[5] <- gsub("[[:digit:]]|X|Y", "", chr.names)
+		unlink(mappabilityBedFile)
+		if(!all(prefixes == prefixes[1])) {
+			stop("The bam files and supporting .bed files have different chromosome names. Please adjust the input files such that they contain the same chromosome notation.")
+		}
+	}
 					
 	sink(file = paste0(destinationFolder, "CNAprofiles/log.txt"), append = TRUE, type = c("output", "message"))
 	options(width = 150)
