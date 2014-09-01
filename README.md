@@ -81,7 +81,7 @@ These chromosome names are incorporated in the bin, mapability, GC-content, blac
 ENCODER can also be applied to .bam files with different chromosome names.
 In this case, the supporting .bed files need to have the same chromosome notation.
 In case of non-matching chromosome notations, an error message will be displayed and the analysis will be aborted.
-Non-matching chromosome names between .bam and supporting .bed files can be adjusted by changing the supporting .bed files.
+Non-matching chromosome names between .bam and supporting .bed files can be matched by changing the supporting .bed files.
 Alternatively, chromosome names in .bam files can be adjusted using bedtools as follows (UNIX only):
 
     $ samtools view -H in.bam | awk 'BEGIN { FS = OFS = "\t"; } {if ($1 == "@SQ") { gsub("SN:chr", "SN:", $2); print $1, $2, $3; } else print; }' | samtools reheader - in.bam > out.bam
