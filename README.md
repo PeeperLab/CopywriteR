@@ -34,7 +34,7 @@ The remaining R-packages are available through CRAN:
 
 ## Installation R-package:
 
-After installing the required tools as described above you can download the pre-compiled ENCODER R-package and annotation files.
+After installing the required tools as described above you can download the pre-compiled ENCODER R-package.
 The package can be installed from the command line using the following command:
 
     $ R CMD INSTALL ENCODER*.tar.gz
@@ -47,11 +47,11 @@ Load the ENCODER package in R using:
 
 ENCODER contains three main functions:
 
-preENCODER will generate mapability and GC-content files for a specified bin size and reference genome.
-For every combination of reference genome and bin size, a new set of mapability and GC-content files needs to be created.
-preENCODER takes pre-assembled 1kb bin mapability and GC-content files as input.
-These can be downloaded from the release section.
+preENCODER will generate bin, mapability, GC-content, blacklist and capture regions .bed files for any specified bin size.
+For every combination of reference genome and bin size, a separate set of mapability and GC-content files needs to be created.
+preENCODER takes pre-assembled 1kb bin mapability, GC-content and blacklist .bed files as input.
 Available reference genomes are hg19, mm9 and mm10.
+These can be downloaded from the release section.
 
     preENCODER(MAPA_GC_location, outputFolder, binSize, reference)
 
@@ -77,7 +77,7 @@ There are a number of requirements for your ENCODER analysis to run successfully
 ### Chromosome names
 
 ENCODER assumes by default that the chromosome names in .bam files are "1" through "20", "X", and "Y".
-However, the bin, mappability, GC-content, blacklist and capture regions .bed files can be adjusted to match the notation in the .bam files, and ENCODER will also work.
+However, the bin, mapability, GC-content, blacklist and capture regions .bed files can be adjusted to match the notation in the .bam files, and ENCODER will also work.
 ENCODER checks whether the same set of chromosome names have been used throughout all .bam files that are to be analyzed.
 If they don't match, an error will be displayed and ENCODER aborts the analysis.
 A similar error will be displayed if the chromosome names do not match those of the bin, mappability, GC-content, blacklist and capture regions .bed files.
