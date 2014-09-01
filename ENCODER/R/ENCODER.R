@@ -66,7 +66,20 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	}
 	cat("The capture region file is", captureRegionsBedFile, "\n")
 	cat("This analysis will be run on", ncpu, "cpus", "\n\n\n")
-
+	
+						# Test for compatibilty chromosome names
+						prefixes <- vector(mode = "character")
+						for(bam in bam_list) {
+							header <- scanBamHeader(paste0(bamFolder, bam))
+							prefixes <- append(prefixes, names(header[[1]]$targets)[1])
+						}
+						if(!all(prefixes == prefixes[1])) {
+							stop("The bam files have different chromosome names. Please adjust the bam-files accordingly.")
+						} else {
+							prefix <- prefixes[1]
+						}
+						## Add match checks for bin, mappability, GC-content, blacklist and capture regions .bed files
+					
 	sink(file = paste0(destinationFolder, "CNAprofiles/log.txt"), append = TRUE, type = c("output", "message"))
 	options(width = 150)
 	
@@ -216,7 +229,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	
 	# Create read_count matrix
 	
-	bed <- read.table(file = windowBedFile, sep = "\t") ######
+	bed <- read.table(file = windowBedFile, sep = "\t")
 	read_count <- matrix(data = 0, ncol = 4, nrow = nrow(bed))
 	read_count[,1] <- paste(bed[,1], paste(bed[,2], bed[,3], sep = "-"), sep = ":")
 	read_count[,2] <- gsub("chr", "", paste(bed[,1]))

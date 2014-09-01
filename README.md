@@ -5,7 +5,6 @@ Accurate CNA determination is complicated by the uneven distribution of exons th
 Therefore, we have developed ENCODER (ENhanced COpy number Detection from Exome Reads), which eludes these problems by exploiting the ‘off-target’ sequence reads.
 ENCODER allows the extraction of uniformly distributed copy number information, and outperforms methods based on exonic sequence read counts, particularly on samples of low quality.
 
-
 ## Requirements:
 
 ENCODER was developed for UNIX based systems (including OSX) and requires the following command line tools:
@@ -71,6 +70,24 @@ Alternatively, one of the following commands can be used to show help files for 
     > ?ENCODER
     > ?plotCNA
 
+## Troubleshooting
+
+There are a number of requirements for your ENCODER analysis to run successfully. These are discussed below.
+
+### Chromosome names
+
+ENCODER assumes by default that the chromosome names in .bam files are "1" through "20", "X", and "Y".
+However, the bin, mappability, GC-content, blacklist and capture regions .bed files can be adjusted to match the notation in the .bam files, and ENCODER will also work.
+ENCODER checks whether the same set of chromosome names have been used throughout all .bam files that are to be analyzed.
+If they don't match, an error will be displayed and ENCODER aborts the analysis.
+A similar error will be displayed if the chromosome names do not match those of the bin, mappability, GC-content, blacklist and capture regions .bed files.
+Chromosome names in .bam files can be changed to the above-mentioned chromosome notation using bedtools as follows (UNIX only):
+
+    $ samtools view -H in.bam | awk 'BEGIN { FS = OFS = "\t"; } {if ($1 == "@SQ") { gsub("SN:chr", "SN:", $2); print $1, $2, $3; } else print; }' | samtools reheader - in.bam > out.bam
+
+Please note that gsub in awk works similar to the gsub command in R.
+Also, changing the chromosome names in the .bam header is sufficient as the chromosome names in the body of the file are in fact references to the chromosome names in the header.
+
 ## Contact
 
 We have tried to make the ENCODER code readable and its use as easy as possible. If any questions arise regarding the package, or if you want to report any bugs, please do not hesitate and contact:
@@ -90,7 +107,6 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 ## Changes and additions we are currently working on
 
 - [ ] Make keeping intermediate .bam and MACS files optional
-- [ ] Support alternative chromosome names (i.e., "chr1" instead of "1")
 - [ ] Check warning message "Setting LC_CTYPE failed, using C" with some installations of R 
 - [ ] Implement different input structure to indicate which bam files should be used as references
 - [ ] Change from MACS 1.4 to other ChIP seq tool available in R (chipseq from bioconductor?)
@@ -99,6 +115,7 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 - [ ] Clean up code
 - [ ] Compile into bioConductor package
 - [ ] Make names consistent and apply Rlint to code
+- [ ] Support alternative chromosome names (i.e., "chr1" instead of "1"; implemented in source code)
 - [ ] Extract binSize from bins.bed file (implemented in source code)
 - [ ] Support for relative path names (implemented in source code)
 - [ ] Remove requirement for a trailing `/` in folder path names (implemented in source code)
