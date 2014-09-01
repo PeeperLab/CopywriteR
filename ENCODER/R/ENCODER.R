@@ -3,9 +3,9 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	start_time <- Sys.time()
 
 	## Make folder path absolute
-	bamFolder <- tools:::file_path_as_absolute(bamFolder)
-	destinationFolder <- tools:::file_path_as_absolute(destinationFolder)
-	referenceFolder <- tools:::file_path_as_absolute(referenceFolder)
+	bamFolder <- tools::file_path_as_absolute(bamFolder)
+	destinationFolder <- tools::file_path_as_absolute(destinationFolder)
+	referenceFolder <- tools::file_path_as_absolute(referenceFolder)
 	
 	## Make folder path independent of trailing /
 	bamFolder <- paste(unlist(strsplit(gsub("/$", "", bamFolder), "/")), "", sep = "/", collapse = "")

@@ -53,7 +53,7 @@ preENCODER takes pre-assembled 1kb bin mapability, GC-content and blacklist .bed
 Available reference genomes are hg19, mm9 and mm10.
 These can be downloaded from the release section.
 
-    preENCODER(MAPA_GC_location, outputFolder, binSize, reference)
+    preENCODER(blackGCMapaFolder, outputFolder, binSize, reference)
 
 ENCODER will generate separate tables with compensated read counts and normalized compensated read counts (after correction for GC-content, mapability and removal of blacklisted regions).
 
@@ -61,7 +61,7 @@ ENCODER will generate separate tables with compensated read counts and normalize
 
 plotCNA performs segmentation, calling and plotting of copy number profiles using the CGHcall package.
 
-    plotCNA(destinationFolder)
+    plotCNA(destinationFolder, set.nchrom)
 
 For more details see R-package manual.
 Alternatively, one of the following commands can be used to show help files for the corresponding function:

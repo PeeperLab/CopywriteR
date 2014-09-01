@@ -1,4 +1,16 @@
 plotCNA <- function(destinationFolder, set.nchrom = "determined.from.reference") {
+
+	## Make folder path absolute
+	destinationFolder <- tools::file_path_as_absolute(destinationFolder)
+
+	## Make folder path independent of trailing /
+	destinationFolder <- paste(unlist(strsplit(gsub("/$", "", destinationFolder), "/")), "", sep = "/", collapse = "")
+	
+	# Check all folders
+	if(!file.exists(destinationFolder)){
+		stop("The destination folder could not be found. Please change your destinationFolder path.")
+	}
+
 	load(paste0(destinationFolder, "CNAprofiles/input.Rdata"), .GlobalEnv)
 	
 	if(set.nchrom != "determined.from.reference") {

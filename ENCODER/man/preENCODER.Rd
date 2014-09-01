@@ -8,10 +8,10 @@ In ENCODER genome-wide annotation files with mappability, GC_content and blackli
 For each reference genome and binSize this function has to be executed once. 
 }
 \usage{
-preENCODER(MAPA_GC_location, outputFolder, binSize, reference)
+preENCODER(blackGCMapaFolder, outputFolder, binSize, reference)
 }
 \arguments{
-  \item{MAPA_GC_location}{path to the 1kb annotation files}
+  \item{blackGCMapaFolder}{path to the 1kb annotation files}
   \item{outputFolder}{path to the output folder}
   \item{binSize}{desired bin length (in bp) for which annotation files should be generated}
   \item{reference}{reference, e.g. hg19 or mm10}
@@ -37,5 +37,5 @@ Thomas Kuilman (t.kuilman@nki.nl)
 
 \examples{
 ## 
-\dontrun{preENCODER("./annotation/", "./", 20000, "hg19")}
+\dontrun{preENCODER("./PATH_TO_HG19_1KB_FOLDER/", "./", 20000, "hg19")}
 }
