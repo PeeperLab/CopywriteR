@@ -2,20 +2,21 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	
 	start_time <- Sys.time()
 
+	if(missing(captureRegionsBedFile)) {
+		captureRegionsBedFile <- "not specified"
+	}
+
 	## Make folder path absolute
 	bamFolder <- tools::file_path_as_absolute(bamFolder)
 	destinationFolder <- tools::file_path_as_absolute(destinationFolder)
 	referenceFolder <- tools::file_path_as_absolute(referenceFolder)
+	captureRegionsBedFile <- tools::file_path_as_absolute(captureRegionsBedFile)
 	
 	## Make folder path independent of trailing /
 	bamFolder <- paste(unlist(strsplit(gsub("/$", "", bamFolder), "/")), "", sep = "/", collapse = "")
 	destinationFolder <- paste(unlist(strsplit(gsub("/$", "", destinationFolder), "/")), "", sep = "/", collapse = "")
 	referenceFolder <- paste(unlist(strsplit(gsub("/$", "", referenceFolder), "/")), "", sep = "/", collapse = "")
-	
-	if(missing(captureRegionsBedFile)) {
-		captureRegionsBedFile <- "not specified"
-	}
-	
+		
 	##############################################################
 	## Generate inputStructure to run ENCODER and check folders ##
 	##############################################################
