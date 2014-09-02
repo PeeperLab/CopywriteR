@@ -89,6 +89,10 @@ Alternatively, chromosome names in .bam files can be adjusted using bedtools as 
 Please note that gsub in awk works similar to the gsub command in R.
 Also, changing the chromosome names in the .bam header is sufficient as the chromosome names in the body of the file are in fact references to the chromosome names in the header.
 
+### Number of chromosomes
+
+CGHcall fails to run on the Y-chromosome when it has too few data points. If this occurs, we recommend a re-run of plotCNA with set.nchrom set as the total amount of chromosomes minus 1 (i.e., 23 for the human genome). CGHcall will then ignore the Y-chromosome.
+
 ## Contact
 
 We have tried to make the ENCODER code readable and its use as easy as possible. If any questions arise regarding the package, or if you want to report any bugs, please do not hesitate and contact:
