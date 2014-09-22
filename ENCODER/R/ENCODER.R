@@ -248,7 +248,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	bed <- read.table(file = windowBedFile, sep = "\t")
 	read_count <- matrix(data = 0, ncol = 4, nrow = nrow(bed))
 	read_count[,1] <- paste(bed[,1], paste(bed[,2], bed[,3], sep = "-"), sep = ":")
-	read_count[,2] <- gsub("chr", "", paste(bed[,1]))
+	read_count[,2] <- paste(bed[,1])
 	read_count[,3] <- paste(bed[,2])
 	read_count[,4] <- paste(bed[,3])
 
