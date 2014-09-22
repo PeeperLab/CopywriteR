@@ -2,15 +2,17 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	
 	start_time <- Sys.time()
 
+	## Check for presence captureRegionsBedFile and make path absolute if present
 	if(missing(captureRegionsBedFile)) {
 		captureRegionsBedFile <- "not specified"
+	} else {
+		captureRegionsBedFile <- tools::file_path_as_absolute(captureRegionsBedFile)	
 	}
 
-	## Make folder path absolute
+	## Make folder paths absolute
 	bamFolder <- tools::file_path_as_absolute(bamFolder)
 	destinationFolder <- tools::file_path_as_absolute(destinationFolder)
 	referenceFolder <- tools::file_path_as_absolute(referenceFolder)
-	captureRegionsBedFile <- tools::file_path_as_absolute(captureRegionsBedFile)
 	
 	## Make folder path independent of trailing /
 	bamFolder <- paste(unlist(strsplit(gsub("/$", "", bamFolder), "/")), "", sep = "/", collapse = "")
