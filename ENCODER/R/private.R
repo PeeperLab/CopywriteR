@@ -1,4 +1,3 @@
-
 .is.wholenumber <- function(x, tol = .Machine$double.eps^0.5)  abs(x - round(x)) < tol
 
 .loadCovData <- function(files, gc=NULL, mapa=NULL, black=NULL, excludechr=NULL, datacol=5) {
