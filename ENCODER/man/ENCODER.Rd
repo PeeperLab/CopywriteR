@@ -26,7 +26,9 @@ ENCODER (ENhanced COpy number Detection from Exome Reads) uses the off-target se
 }
 \value{
   \item{BamBaiMacsFiles}{a folder with the .bam, .bai and MACS files that are created during the \code{\link{ENCODER}}() run.}
-  \item{input.Rdata}{.Rdata file that contains information for \code{\link{plotCNA}}().}
+  \item{Call_plots}{a folder that contains all copy number profile images.}
+  \item{calls.Rdata}{an R object that contains all CGHcall call objects.}
+  \item{input.Rdata}{an R object that contains information for \code{\link{plotCNA}}().}
   \item{log.txt}{log file of ENCODER.}
   \item{log2ratio_compensated_corrected.txt}{the file that contains the compenstaed corrected read counts after GC-content and mapability corrections, and after removal of data points in blacklisted regions. Counts are log2-transformed.}
   \item{qc}{a folder with quality control files. The .png files contain the plots and the loesses that are used for GC-content and mapability corrections. The fraction_of-bin .pdf files display the empirical cumulative distribution function for the fraction of bin (the  bin size after removal of peak regions expressed as a fraction of the original size.}
