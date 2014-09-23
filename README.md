@@ -126,7 +126,7 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 - [ ] Clean up code
 - [ ] Compile into bioConductor package
 - [ ] Make names consistent and apply Rlint to code
-- [ ] Support alternative chromosome names (i.e., "chr1" instead of "1"; implemented in source code)
+- [x] Support alternative chromosome names (i.e., "chr1" instead of "1")
 - [x] Extract binSize from bins.bed file
 - [x] Support for relative path names
 - [x] Remove requirement for a trailing `/` in folder path names
