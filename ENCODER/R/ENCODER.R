@@ -289,7 +289,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 		colnames(intersection) <- c("Chromosome", "StartPos", "StopPos", "Overlap")
 		intersection$Overlap <- as.numeric(as.character(intersection$Overlap))
 		
-		# Calculate the cumulative overlap using data.table
+		## Calculate the cumulative overlap using data.table
 		intersection <- data.table(intersection)
 		intersection <- intersection[,lapply(.SD, sum), by = c("Chromosome", "StartPos", "StopPos")]
 		intersection <- as.data.frame(intersection)
@@ -298,14 +298,11 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 		controlFor <- grep(controlNumber, whichControl)
 		if(all(read_count[,2] == intersection[,1] & read_count[,3] == intersection[,2] & read_count[,4] == intersection[,3])) {
 			fraction_of_bin <- (binSize-as.numeric(intersection[,4])) / binSize
-			read_count[,(4 + 2 * length(bam_list) + controlFor)] <- fraction_of_bin
-			for (i in 1:nrow(read_count)) {
-				if(fraction_of_bin[i] != 0) {
-					read_count[i,(4 + controlFor)] <- as.numeric(read_count[i,(4 + length(bam_list) + controlFor)]) / fraction_of_bin[i]
-				}
-				else {
-					read_count[i,(4 + controlFor)] <- 0
-				}
+			read_count[, (4 + 2 * length(bam_list) + controlFor)] <- fraction_of_bin
+			for(control in controlFor) {
+				read_count[, (4 + control)] <- ifelse(fraction_of_bin != 0
+					, as.numeric(read_count[, (4 + length(bam_list) + control)]) / fraction_of_bin
+					, 0)
 			}
 		}
 		else {
