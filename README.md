@@ -117,6 +117,7 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 ## Changes and additions we are currently working on
 
+- [ ] Debug error when using 1kb bin size
 - [ ] Change output format to igv2.0
 - [ ] Make keeping intermediate .bam and MACS files optional
 - [ ] Check warning message "Setting LC_CTYPE failed, using C" with some installations of R 
