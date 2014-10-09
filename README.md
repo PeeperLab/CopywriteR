@@ -117,7 +117,6 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 ## Changes and additions we are currently working on
 
-- [ ] Debug error when using 1kb bin size
 - [ ] Change output format to igv2.0
 - [ ] Make keeping intermediate .bam and MACS files optional
 - [ ] Check warning message "Setting LC_CTYPE failed, using C" with some installations of R 
@@ -128,6 +127,7 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 - [ ] Clean up code
 - [ ] Compile into bioConductor package
 - [ ] Make names consistent and apply Rlint to code
+- [x] Debug error when using 1kb bin size
 - [x] Support alternative chromosome names (i.e., "chr1" instead of "1")
 - [x] Extract binSize from bins.bed file
 - [x] Support for relative path names
