@@ -351,7 +351,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	usepoints <- !(data$anno$chr %in% c("X","Y","MT", "chrX", "chrY", "chrM"))
 	
 	## Perform normalization (in .tng helper function)
-	tng.flag <- tryCatch(
+	tng.flag <- tryCatch({
 		i <- c(1:ncol(data$cov))
 		normalizeRC <- function(i, data, .tng, usepoints, destinationFolder) {	
 			.tng(data.frame(count = data$cov[,i], gc = data$anno$gc, mapa = data$anno$mapa), use = usepoints, correctmapa = TRUE, plot = paste0(destinationFolder, "CNAprofiles/qc/", colnames(data$cov)[i], ".png"))
@@ -360,7 +360,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 		ratios <- sfLapply(i, normalizeRC, data, .tng, usepoints, destinationFolder)
 		sfStop()
 		ratios <- matrix(unlist(ratios), ncol = length(bam_list))
-	, error = function(e) {return(TRUE)})
+	}, error = function(e) {return(TRUE)})
 
 	if(!is.null(result) && result == TRUE) {
 		cat("WARNING: The GC-content and mappability normalization did not work due to a failure to calculate loesses.")
