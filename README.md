@@ -119,6 +119,8 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 - [ ] Change output format to igv2.0
 - [ ] Implement different input structure to indicate which bam files should be used as references
+- [ ] Remove dependency for CGHcall and use only DNAcopy for segmentation
+- [ ] Provide plotting function for DNAcopy output
 - [ ] Remove dependency for MACS 1.4 (use alternative implemented in R)
 - [ ] Remove dependency for Samtools (use Rsamtools instead)
 - [ ] Remove dependency for bedtools (use alternative implemented in R)
