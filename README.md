@@ -118,15 +118,14 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 ## Changes and additions we are currently working on
 
 - [ ] Change output format to igv2.0
-- [ ] Make keeping intermediate .bam and MACS files optional
-- [ ] Check warning message "Setting LC_CTYPE failed, using C" with some installations of R 
 - [ ] Implement different input structure to indicate which bam files should be used as references
-- [ ] Change from MACS 1.4 to other ChIP seq tool available in R (chipseq from bioconductor?)
-- [ ] Change from Samtools to Rsamtools
-- [ ] Remove all unix specific functions and commands
+- [ ] Remove dependency for MACS 1.4 (use alternative implemented in R)
+- [ ] Remove dependency for Samtools (use Rsamtools instead)
+- [ ] Remove dependency for bedtools (use alternative implemented in R)
 - [ ] Clean up code
 - [ ] Compile into bioConductor package
 - [ ] Make names consistent and apply Rlint to code
+- [ ] Make keeping intermediate .bam and MACS files optional (implemented in source code)
 - [x] Debug error when using 1kb bin size
 - [x] Support alternative chromosome names (i.e., "chr1" instead of "1")
 - [x] Extract binSize from bins.bed file

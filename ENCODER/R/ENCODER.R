@@ -3,11 +3,16 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	start_time <- Sys.time()
 
 	## Check for presence captureRegionsBedFile and make path absolute if present
-	if(missing(captureRegionsBedFile)) {
+	if (missing(captureRegionsBedFile)) {
 		captureRegionsBedFile <- "not specified"
 	} else {
 		captureRegionsBedFile <- tools::file_path_as_absolute(captureRegionsBedFile)	
 	}
+	
+	# ## Check for presence keepIntermediairyFiles and set to FALSE by default
+	# if (missing(keepIntermediairyFiles)) {
+	# 	keepIntermediairyFiles <- FALSE
+	# }
 
 	## Make folder paths absolute
 	bamFolder <- tools::file_path_as_absolute(bamFolder)
@@ -24,19 +29,19 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	##############################################################
 	
 	## Check the existence of folders and files
-	if(!file.exists(bamFolder)){
+	if (!file.exists(bamFolder)) {
 		stop("The bamFolder could not be found. Please change your bamFolder path.")
 	}
 	
-	if(!file.exists(destinationFolder)){
+	if (!file.exists(destinationFolder)) {
 		stop("The destinationFolder could not be found. Please change your destinationFolder path.")
 	}
 	
-	if(!file.exists(referenceFolder)){
+	if (!file.exists(referenceFolder)) {
 		stop("The referenceFolder could not be found. Please change your referenceFolder path or run `preENCODER` to generate the required folder with GC-content and mapability files for your desired bin size.")
 	}
 	
-	if(!file.exists(captureRegionsBedFile) & captureRegionsBedFile != "not specified") {
+	if (!file.exists(captureRegionsBedFile) & captureRegionsBedFile != "not specified") {
 		stop("The captureRegionsBedFile could not be found. Please change your captureRegionsBedFile path.")
 	}
 
@@ -80,7 +85,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 		chr.names <- names(header[[1]]$targets)[1]
 		prefixes <- append(prefixes, gsub("[[:digit:]]|X|Y", "", chr.names)[1])
 	}
-	if(!all(prefixes == prefixes[1])) {
+	if (!all(prefixes == prefixes[1])) {
 		stop("The bam files have different chromosome names. Please adjust the .bam files such that they contain the same chromosome notation.")
 	} else {
 		prefixes <- prefixes[1]
@@ -96,7 +101,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 		chr.names <- unlist(strsplit(readLines(con <- file(mappabilityBedFile), n = 1), "\t"))[1]
 		prefixes[5] <- gsub("[[:digit:]]|X|Y", "", chr.names)
 		close(con)
-		if(!all(prefixes == prefixes[1])) {
+		if (!all(prefixes == prefixes[1])) {
 			stop("The bam files and supporting .bed files have different chromosome names. Please adjust the input files such that they contain the same chromosome notation.")
 		}
 	}
@@ -140,7 +145,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	## Remove anomalous reads and reads with Phred < 37
 	i <- c(1:length(bam_list))
 	properreads <- function(i, bam_list, destinationFolder, pairedEnd) {
-		if(pairedEnd[i]) {
+		if (pairedEnd[i]) {
 			system(paste0("samtools view -b -f 2 -q 37 ", bam_list[i], " > ", destinationFolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list[i])))
 			paste0("samtools view -b -f 2 -q 37 ", bam_list[i], " > ", destinationFolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list[i]))
 		}
@@ -220,10 +225,17 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	sfStop()
 	cat(unlist(toLog), "\n", sep = "\n")
 
+	## Remove _properreads.bam(.bai) files
+	# if (!keepIntermediairyFiles) {
+	# 	file.remove(bam_list)
+	#	file.remove(gsub(".bam$", ".bam.bai", bam_list))
+	#	file.remove(list.files(pattern = "MACS"))
+	# }
+
 	## Create new .bam list
 	bam_list <- gsub(".bam$", "_peakrm.bam", bam_list)
 	cat(bam_list, "\n", sep = "\n")
-
+	
 	## Index _peakrm.bam files
 	ipeakrm <- function(bam_list) {
 		system(paste("samtools index", bam_list))
@@ -296,7 +308,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 
 		# Check correspondence bins, calculate fraction of remaining bin length (after peak region removal), and calculate compensated read numbers
 		controlFor <- grep(controlNumber, whichControl)
-		if(all(read_count[,2] == intersection[,1] & read_count[,3] == intersection[,2] & read_count[,4] == intersection[,3])) {
+		if (all(read_count[,2] == intersection[,1] & read_count[,3] == intersection[,2] & read_count[,4] == intersection[,3])) {
 			fraction_of_bin <- (binSize-as.numeric(intersection[,4])) / binSize
 			read_count[, (4 + 2 * length(bam_list) + controlFor)] <- fraction_of_bin
 			for(control in controlFor) {
@@ -361,10 +373,10 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 		sfStop()
 		ratios <- matrix(unlist(ratios), ncol = length(bam_list))
 	}, error = function(e) {return(TRUE)})
-
-	if(!is.null(tng.flag) && tng.flag == TRUE) {
-		cat("WARNING: The GC-content and mappability normalization did not work due to a failure to calculate loesses.")
-		cat("WARNING: This can generally be solved by using larger bin sizes.")
+	
+	if (!is.null(tng.flag) && tng.flag == TRUE) {
+		cat("WARNING: The GC-content and mappability normalization did not work due to a failure to calculate loesses.\n")
+		cat("WARNING: This can generally be solved by using larger bin sizes.\n")
 		stop("Stopping execution of the remaining part of the script...")
 	}
 
@@ -406,7 +418,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	## Calculate overlap with captureRegionsBedFile for quality control purpose ##
 	##############################################################################
 	
-	if(captureRegionsBedFile != "not specified") {
+	if (captureRegionsBedFile != "not specified") {
 		for(controlNumber in controlNumbers) {
 			intersection <- system(paste0("bedtools intersect -a ", captureRegionsBedFile, " -b ", destinationFolder, "CNAprofiles/BamBaiMacsFiles/MACS", controlNumber, "_peaks.bed -wao"), intern = TRUE)
 			intersection <- strsplit(intersection, "\t")
@@ -414,7 +426,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 			intersection <- intersection[,c(1,2,3,9)]
 			vec <- vector()
 			for (i in 2:nrow(intersection)) {
-				if(intersection[i,1] == intersection[i-1,1] && intersection[i,2] == intersection[i-1,2] && intersection[i,3] == intersection[i-1,3] ) {
+				if (intersection[i,1] == intersection[i-1,1] && intersection[i,2] == intersection[i-1,2] && intersection[i,3] == intersection[i-1,3] ) {
 					intersection[i,4] <- as.integer(intersection[i,4]) + as.integer(intersection[i-1,4])
 					vec <- append(vec, i-1)
 				}
@@ -429,7 +441,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 			intersection <- intersection[,c(1,2,3,9)]
 			vec <- vector()
 			for (i in 2:nrow(intersection)) {
-				if(intersection[i,1] == intersection[i-1,1] && intersection[i,2] == intersection[i-1,2] && intersection[i,3] == intersection[i-1,3] ) {
+				if (intersection[i,1] == intersection[i-1,1] && intersection[i,2] == intersection[i-1,2] && intersection[i,3] == intersection[i-1,3] ) {
 					intersection[i,4] <- as.integer(intersection[i,4]) + as.integer(intersection[i-1,4])
 					vec <- append(vec, i-1)
 				}
@@ -443,6 +455,10 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	}
 	
 	sink()
+	## Remove BamBaiMacsFiles folder
+	# if (!keepIntermediairyFiles) {
+	# 	unlink(paste0(destinationFolder, "CNAprofiles/BamBaiMacsFiles/"))
+	# }
 	cat("Total calculation time: ", Sys.time() - start_time, "\n\n")
 	
 	inputStructure <- list(destinationFolder = destinationFolder, ncpu = ncpu, nchrom = nchrom)
