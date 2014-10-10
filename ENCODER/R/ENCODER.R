@@ -362,7 +362,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 		ratios <- matrix(unlist(ratios), ncol = length(bam_list))
 	}, error = function(e) {return(TRUE)})
 
-	if(!is.null(result) && result == TRUE) {
+	if(!is.null(tng.flag) && tng.flag == TRUE) {
 		cat("WARNING: The GC-content and mappability normalization did not work due to a failure to calculate loesses.")
 		cat("WARNING: This can generally be solved by using larger bin sizes.")
 		stop("Stopping execution of the remaining part of the script...")
