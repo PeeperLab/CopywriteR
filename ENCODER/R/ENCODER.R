@@ -130,16 +130,22 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	cat(unlist(toLog), "\n", sep = "\n")
 	
 	## Check whether BAMs are paired-end
-	numberpairedendreads <- function(bam_list) {
-		system(paste0("samtools view -f 1 -c ", bam_list), intern = TRUE)
-	}
-	sfInit(parallel=TRUE, cpus = ncpu)
-	pairedEnd <- sfLapply(bam_list, numberpairedendreads)
-	sfStop()
-	pairedEnd <- ifelse(unlist(pairedEnd) > 0, TRUE, FALSE)
-	for(i in 1:length(bam_list)) {
-		cat("Paired-end sequencing for sample ", bam_list[i], ": ", unlist(pairedEnd)[i], "\n", sep = "")
-	}
+	tryCatch({
+		numberpairedendreads <- function(bam_list) {
+			system(paste0("samtools view -f 1 -c ", bam_list), intern = TRUE)
+		}
+		sfInit(parallel=TRUE, cpus = ncpu)
+		pairedEnd <- sfLapply(bam_list, numberpairedendreads)
+		sfStop()
+		pairedEnd <- ifelse(unlist(pairedEnd) > 0, TRUE, FALSE)
+		for(i in 1:length(bam_list)) {
+			cat("Paired-end sequencing for sample ", bam_list[i], ": ", unlist(pairedEnd)[i], "\n", sep = "")
+		}
+	}, error = function(e) {
+		cat("ERROR: ENCODER failed to determine whether the sequence reads are paired or single end.\n")
+		cat("ERROR: One of the explanations could be that one of your .bam files in corrupt / truncated.\n")
+		stop("Stopping execution of the remaining part of the script...")		
+	})
 	cat("\n\n")
 
 	## Remove anomalous reads and reads with Phred < 37
@@ -373,8 +379,8 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 		sfStop()
 		ratios <- matrix(unlist(ratios), ncol = length(bam_list))
 	}, error = function(e) {
-		cat("WARNING: The GC-content and mappability normalization did not work due to a failure to calculate loesses.\n")
-		cat("WARNING: This can generally be solved by using larger bin sizes.\n")
+		cat("ERROR: The GC-content and mappability normalization did not work due to a failure to calculate loesses.\n")
+		cat("ERROR: This can generally be solved by using larger bin sizes.\n")
 		stop("Stopping execution of the remaining part of the script...")		
 	})
 	
