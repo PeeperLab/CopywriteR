@@ -82,14 +82,14 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	prefixes <- vector(mode = "character")
 
 	tryCatch({
-		for(i in 1:length(bam_list)) {
-			header <- scanBamHeader(paste0(bamFolder, bam_list[i]))
+		for(bam in bam_list) {
+			header <- scanBamHeader(paste0(bamFolder, bam))
 			chr.names <- names(header[[1]]$targets)[1]
 			prefixes <- append(prefixes, gsub("[[:digit:]]|X|Y", "", chr.names)[1])
 		}
 	}, error = function(e) {
-		cat("ERROR: The GC-content and mappability normalization did not work due to a failure to calculate loesses.\n")
-		cat("ERROR: This can generally be solved by using larger bin sizes.\n")
+		cat("ERROR: The BAM file header of file ", bam_list[i], "is corrupted or truncated.\n")
+		cat("ERROR: Please rebuild this BAM file or exclude it from analysis.\n")
 		stop("Stopping execution of the remaining part of the script...")		
 	})
 

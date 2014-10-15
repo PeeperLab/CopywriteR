@@ -127,6 +127,7 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 - [ ] Clean up code
 - [ ] Compile into bioConductor package
 - [ ] Make names consistent and apply Rlint to code
+- [ ] Include a check for integrity of BAM files (implemented in source code)
 - [ ] Make keeping intermediate .bam and MACS files optional (implemented in source code)
 - [x] Debug error when using 1kb bin size
 - [x] Support alternative chromosome names (i.e., "chr1" instead of "1")
