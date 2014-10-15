@@ -88,7 +88,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 			prefixes <- append(prefixes, gsub("[[:digit:]]|X|Y", "", chr.names)[1])
 		}
 	}, error = function(e) {
-		cat("ERROR: The BAM file header of file ", bam_list[i], "is corrupted or truncated.\n")
+		cat("ERROR: The BAM file header of file", bam, "is corrupted or truncated.\n")
 		cat("ERROR: Please rebuild this BAM file or exclude it from analysis.\n")
 		stop("Stopping execution of the remaining part of the script...")		
 	})
