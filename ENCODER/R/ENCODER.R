@@ -80,11 +80,19 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	
 	## Test for compatibilty chromosome names
 	prefixes <- vector(mode = "character")
-	for(bam in bam_list) {
-		header <- scanBamHeader(paste0(bamFolder, bam))
-		chr.names <- names(header[[1]]$targets)[1]
-		prefixes <- append(prefixes, gsub("[[:digit:]]|X|Y", "", chr.names)[1])
-	}
+
+	tryCatch({
+		for(i in 1:length(bam_list)) {
+			header <- scanBamHeader(paste0(bamFolder, bam_list[i]))
+			chr.names <- names(header[[1]]$targets)[1]
+			prefixes <- append(prefixes, gsub("[[:digit:]]|X|Y", "", chr.names)[1])
+		}
+	}, error = function(e) {
+		cat("ERROR: The GC-content and mappability normalization did not work due to a failure to calculate loesses.\n")
+		cat("ERROR: This can generally be solved by using larger bin sizes.\n")
+		stop("Stopping execution of the remaining part of the script...")		
+	})
+
 	if (!all(prefixes == prefixes[1])) {
 		stop("The bam files have different chromosome names. Please adjust the .bam files such that they contain the same chromosome notation.")
 	} else {
@@ -130,22 +138,16 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	cat(unlist(toLog), "\n", sep = "\n")
 	
 	## Check whether BAMs are paired-end
-	tryCatch({
-		numberpairedendreads <- function(bam_list) {
-			system(paste0("samtools view -f 1 -c ", bam_list), intern = TRUE)
-		}
-		sfInit(parallel=TRUE, cpus = ncpu)
-		pairedEnd <- sfLapply(bam_list, numberpairedendreads)
-		sfStop()
-		pairedEnd <- ifelse(unlist(pairedEnd) > 0, TRUE, FALSE)
-		for(i in 1:length(bam_list)) {
-			cat("Paired-end sequencing for sample ", bam_list[i], ": ", unlist(pairedEnd)[i], "\n", sep = "")
-		}
-	}, error = function(e) {
-		cat("ERROR: ENCODER failed to determine whether the sequence reads are paired or single end.\n")
-		cat("ERROR: One of the explanations could be that one of your .bam files in corrupt / truncated.\n")
-		stop("Stopping execution of the remaining part of the script...")		
-	})
+	numberpairedendreads <- function(bam_list) {
+		system(paste0("samtools view -f 1 -c ", bam_list), intern = TRUE)
+	}
+	sfInit(parallel=TRUE, cpus = ncpu)
+	pairedEnd <- sfLapply(bam_list, numberpairedendreads)
+	sfStop()
+	pairedEnd <- ifelse(unlist(pairedEnd) > 0, TRUE, FALSE)
+	for(i in 1:length(bam_list)) {
+		cat("Paired-end sequencing for sample ", bam_list[i], ": ", unlist(pairedEnd)[i], "\n", sep = "")
+	}
 	cat("\n\n")
 
 	## Remove anomalous reads and reads with Phred < 37
