@@ -53,7 +53,8 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 
 	## Retrieve number of chromosomes and bin size from windowBedFile helper file
 	bed <- read.table(file = windowBedFile, as.is = TRUE, sep = "\t")
-	nchrom <- length(unique(bed$V1))
+	chrom <- unique(bed$V1)
+	nchrom <- length(chrom)
 	binSize <- bed$V3[1]
 	
 	## List all input files and write to log
@@ -129,10 +130,11 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 
 	## Index .bam files
 	ibam <- function(bam_list) {
-		system(paste("samtools index", bam_list))
-		paste("samtools index", bam_list)
+		indexBam(bam_list)
+		paste0("indexBam(", bam_list, ")")
 	}
 	sfInit(parallel=TRUE, cpus = ncpu)
+	sfLibrary(Rsamtools)
 	toLog <- sfLapply(bam_list, ibam)
 	sfStop()
 	cat(unlist(toLog), "\n", sep = "\n")
@@ -186,10 +188,11 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 
 	## Index _properreads.bam files
 	iproperreads <- function(bam_list) {
-		system(paste("samtools index", bam_list))
-		paste("samtools index", bam_list)
+		indexBam(bam_list)
+		paste0("indexBam(", bam_list, ")")
 	}
 	sfInit(parallel=TRUE, cpus = ncpu)
+	sfLibrary(Rsamtools)
 	toLog <- sfLapply(bam_list, iproperreads)
 	sfStop()
 	cat(unlist(toLog), "\n", sep = "\n")
@@ -246,11 +249,12 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	
 	## Index _peakrm.bam files
 	ipeakrm <- function(bam_list) {
-		system(paste("samtools index", bam_list))
-		paste("samtools index", bam_list)
+		indexBam(bam_list)
+		paste0("indexBam(", bam_list, ")")
 	}
 	sfInit(parallel=TRUE, cpus = ncpu)
-	toLog <- sfSapply(bam_list, ipeakrm)
+	sfLibrary(Rsamtools)
+	toLog <- sfLapply(bam_list, ipeakrm)
 	sfStop()
 	cat(unlist(toLog), "\n", sep = "\n")
 
