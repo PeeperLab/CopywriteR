@@ -141,14 +141,18 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	
 	## Check whether BAMs are paired-end
 	numberpairedendreads <- function(bam_list) {
-		system(paste0("samtools view -f 1 -c ", bam_list), intern = TRUE)
+		flag <- scanBamFlag(isPaired = TRUE)
+		param <- ScanBamParam(flag = flag)
+		countBam(bam_list, param = param)
 	}
 	sfInit(parallel=TRUE, cpus = ncpu)
+	sfLibrary(Rsamtools)
 	pairedEnd <- sfLapply(bam_list, numberpairedendreads)
 	sfStop()
-	pairedEnd <- ifelse(unlist(pairedEnd) > 0, TRUE, FALSE)
+	pairedEnd <- Reduce(function(x, y) {merge(x, y, all = TRUE)}, pairedEnd)
+	pairedEnd <- ifelse(pairedEnd$records > 0, TRUE, FALSE)
 	for(i in 1:length(bam_list)) {
-		cat("Paired-end sequencing for sample ", bam_list[i], ": ", unlist(pairedEnd)[i], "\n", sep = "")
+		cat("Paired-end sequencing for sample ", bam_list[i], ": ", pairedEnd[i], "\n", sep = "")
 	}
 	cat("\n\n")
 
@@ -156,29 +160,35 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	i <- c(1:length(bam_list))
 	properreads <- function(i, bam_list, destinationFolder, pairedEnd) {
 		if (pairedEnd[i]) {
-			system(paste0("samtools view -b -f 2 -q 37 ", bam_list[i], " > ", destinationFolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list[i])))
-			paste0("samtools view -b -f 2 -q 37 ", bam_list[i], " > ", destinationFolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list[i]))
+			flag <- scanBamFlag(isProperPair = TRUE)
+			param <- ScanBamParam(flag = flag, what = "mapq")
+			filter <- FilterRules(list(isHighQual = function(x) x$mapq >= 37))
+			filterBam(bam_list[i], paste0(destinationFolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list[i])), filter = filter, indexDestination = TRUE, param = param)
+			paste0("filterBam(", bam_list[i], ", ", destinationFolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list[i]), ", filter = filter, indexDestination = TRUE, param = param)")
 		}
 		else {
-			system(paste0("samtools view -b -q 37 ", bam_list[i], " > ", destinationFolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list[i])))
-			paste0("samtools view -b -q 37 ", bam_list[i], " > ", destinationFolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list[i]))
+			param <- ScanBamParam(what = "mapq")
+			filter <- FilterRules(list(isHighQual = function(x) x$mapq >= 37))
+			filterBam(bam_list[i], paste0(destinationFolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list[i])), filter = filter, indexDestination = TRUE, param = param)
+			paste0("filterBam(", bam_list[i], ", ", destinationFolder, "CNAprofiles/BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam_list[i]), ", filter = filter, indexDestination = TRUE, param = param)")
 		}
 	}
 	sfInit(parallel=TRUE, cpus = ncpu)
+	sfLibrary(Rsamtools)
 	toLog <- sfLapply(i, properreads, bam_list, destinationFolder, pairedEnd)
 	sfStop()
 	cat(unlist(toLog), "\n", sep = "\n")
 
 	################
-	statistics <- matrix(nrow = length(bam_list), ncol = 7, dimnames = list(paste(bam_list), c("Total", "Total properpair", "Unmapable", "Mitochondrion", "All chromosomes", "Rest", "In peaks")))
-	i <- c(1:length(bam_list))
-	stats <- function(i, bam_list) {
-		as.numeric(system(paste0("samtools view -c ", bam_list[i]), intern = TRUE))
+	statistics <- matrix(nrow = length(bam_list), ncol = 6, dimnames = list(paste(bam_list), c("Total", "Total properreads", "Unmapable / Mitochondrial", "On chromosomes", "Not in peaks", "In peaks")))
+	stats <- function(bam_list) {
+		countBam(bam_list)
 	}
 	sfInit(parallel=TRUE, cpus = ncpu)
-	res <- sfSapply(i, stats, bam_list)
+	sfLibrary(Rsamtools)
+	res <- sfSapply(bam_list, stats)
 	sfStop()
-	statistics[,1] <- res
+	statistics[,1] <- unlist(data.frame(t(res))$records)
 	################
 	
 	## Create new .bam list
@@ -186,30 +196,23 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	bam_list <- gsub(".bam$", "_properreads.bam", bam_list)
 	cat(bam_list, "\n", sep = "\n")
 
-	## Index _properreads.bam files
-	iproperreads <- function(bam_list) {
-		indexBam(bam_list)
-		paste0("indexBam(", bam_list, ")")
+	################
+	stats <- function(bam_list, chrom) {
+		all.reads <- countBam(bam_list)$records
+		which <- GRanges(seqnames = chrom, ranges = IRanges(start = rep(1, length(chrom)), end = rep(536870912, length(chrom)))) ## 536870912 is the maximum number for 'end'
+		what <- c("pos")
+		param <- ScanBamParam(which = which, what = what)
+		chrom.reads <- countBam(file = bam_list, param = param)
+		chrom.reads <- sum(chrom.reads$records)
+		c(all.reads = all.reads, chrom.reads = chrom.reads)
 	}
 	sfInit(parallel=TRUE, cpus = ncpu)
 	sfLibrary(Rsamtools)
-	toLog <- sfLapply(bam_list, iproperreads)
+	res <- data.frame(t(sfSapply(bam_list, stats, chrom)))
 	sfStop()
-	cat(unlist(toLog), "\n", sep = "\n")
-
-	################
-	for (i in 1:length(bam_list)) {
-		table <- as.matrix(system(paste0("samtools idxstats ", bam_list[i]), intern = TRUE), nrow = 26, ncol = 4)
-		table <- strsplit(table, "\t")
-		table <- do.call(rbind, table)
-		MIT <- as.integer(table[grep("M", table[,1]),3])
-		CHR <- sum(as.integer(table[,3])) - MIT
-		UNMAP <- sum(as.integer(table[,4]))
-		statistics[i,2] <- CHR + MIT + UNMAP
-		statistics[i,3] <- UNMAP
-		statistics[i,4] <- MIT
-		statistics[i,5] <- CHR
-	}
+	statistics[,2] <- res$all.reads
+	statistics[,3] <- res$all.reads - res$chrom.reads
+	statistics[,4] <- res$chrom.reads
 	################
 	
 	## Create list with numbers of controls
@@ -234,7 +237,7 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	sfInit(parallel=TRUE, cpus = ncpu)
 	toLog <- sfSapply(i, peakrm, bam_list, control_list)
 	sfStop()
-	cat(unlist(toLog), "\n", sep = "\n")
+	cat(toLog, "\n", sep = "\n")
 
 	## Remove _properreads.bam(.bai) files
 	# if (!keepIntermediairyFiles) {
@@ -259,16 +262,21 @@ ENCODER <- function(bamFolder, destinationFolder, referenceFolder, whichControl,
 	cat(unlist(toLog), "\n", sep = "\n")
 
 	################
-	for (i in 1:length(bam_list)) {
-		table <- as.matrix(system(paste0("samtools idxstats ", bam_list[i]), intern = TRUE), nrow = 26, ncol = 4)
-		table <- strsplit(table, "\t")
-		table <- do.call(rbind, table)
-		MIT <- as.integer(table[grep("M", table[,1]),3])
-		CHR <- sum(as.integer(table[,3])) - MIT
-		statistics[i,6] <- CHR
-		statistics[i,7] <- as.integer(statistics[i,5]) - CHR
+	stats <- function(bam_list, chrom) {
+		which <- GRanges(seqnames = chrom, ranges = IRanges(start = rep(1, length(chrom)), end = rep(536870912, length(chrom)))) ## 536870912 is the maximum number for 'end'
+		what <- c("pos")
+		param <- ScanBamParam(which = which, what = what)
+		chrom.reads <- countBam(file = bam_list, param = param)
+		c(chrom.reads = sum(chrom.reads$records))
 	}
+	sfInit(parallel=TRUE, cpus = ncpu)
+	sfLibrary(Rsamtools)
+	res <- data.frame(t(data.frame(sfSapply(bam_list, stats, chrom, simplify = FALSE))))
+	sfStop()
+	statistics[, 5] <- res$chrom.reads
+	statistics[, 6] <- statistics[, 4] - res$chrom.reads
 	################
+	
 	print(statistics)
 	cat("\n\n")
 	
