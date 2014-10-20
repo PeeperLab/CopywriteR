@@ -122,11 +122,11 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 - [ ] Remove dependency for CGHcall and use only DNAcopy for segmentation
 - [ ] Provide plotting function for DNAcopy output
 - [ ] Remove dependency for MACS 1.4 (use alternative implemented in R)
-- [ ] Remove dependency for Samtools (use Rsamtools instead)
 - [ ] Remove dependency for bedtools (use alternative implemented in R)
 - [ ] Clean up code
 - [ ] Compile into bioConductor package
 - [ ] Make names consistent and apply Rlint to code
+- [ ] Remove dependency for Samtools (use Rsamtools instead; implemented in source code)
 - [ ] Include a check for integrity of BAM files (implemented in source code)
 - [ ] Make keeping intermediate .bam and MACS files optional (implemented in source code)
 - [x] Debug error when using 1kb bin size

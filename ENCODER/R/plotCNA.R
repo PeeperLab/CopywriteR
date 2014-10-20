@@ -1,24 +1,24 @@
-plotCNA <- function(destinationFolder, set.nchrom = "determined.from.reference") {
+plotCNA <- function(destination.folder, set.nchrom = "determined.from.reference") {
 
 	## Make folder path absolute
-	destinationFolder <- tools::file_path_as_absolute(destinationFolder)
+	destination.folder <- tools::file_path_as_absolute(destination.folder)
 
 	## Make folder path independent of trailing /
-	destinationFolder <- paste(unlist(strsplit(gsub("/$", "", destinationFolder), "/")), "", sep = "/", collapse = "")
+	destination.folder <- paste(unlist(strsplit(gsub("/$", "", destination.folder), "/")), "", sep = "/", collapse = "")
 	
 	# Check all folders
-	if(!file.exists(destinationFolder)){
-		stop("The destination folder could not be found. Please change your destinationFolder path.")
+	if(!file.exists(destination.folder)){
+		stop("The destination folder could not be found. Please change your destination.folder path.")
 	}
 
-	load(paste0(destinationFolder, "CNAprofiles/input.Rdata"), .GlobalEnv)
+	load(paste0(destination.folder, "CNAprofiles/input.Rdata"), .GlobalEnv)
 	
 	if(set.nchrom != "determined.from.reference") {
 		inputStructure$nchrom <- set.nchrom
 	}
 
 	# Read data
-	read_count <- read.table(file = paste0(inputStructure$destinationFolder, "CNAprofiles/log2ratio_compensated_corrected.txt"), sep = "\t", header = TRUE, check.names = FALSE)
+	read_count <- read.table(file = paste0(inputStructure$destination.folder, "CNAprofiles/log2ratio_compensated_corrected.txt"), sep = "\t", header = TRUE, check.names = FALSE)
 
 	# Run CGHcall
 	raw <- make_cghRaw(read_count)
@@ -28,13 +28,13 @@ plotCNA <- function(destinationFolder, set.nchrom = "determined.from.reference")
 	segnorm <- postsegnormalize(seg, inter = c(-1,1))
 	listcalls <- CGHcall(segnorm, nclass = 5, robustsig = "yes", cellularity = 1, ncpus = inputStructure$ncpu)
 	calls <- ExpandCGHcall(listcalls, segnorm, divide = 5, memeff = FALSE)
-	save(calls, file = paste0(inputStructure$destinationFolder, "CNAprofiles/calls.Rdata"))
+	save(calls, file = paste0(inputStructure$destination.folder, "CNAprofiles/calls.Rdata"))
 	
 	# Make whole-genome plots
-	system(paste0("mkdir ", inputStructure$destinationFolder, "CNAprofiles/Call_plots"))
+	system(paste0("mkdir ", inputStructure$destination.folder, "CNAprofiles/Call_plots"))
 	colnames_read_count <- gsub(" ", ".", colnames(read_count)[5:ncol(read_count)])
 	for (i in 1:(ncol(read_count) - 4)) {
-		setwd(paste0(inputStructure$destinationFolder, "CNAprofiles/Call_plots/"))
+		setwd(paste0(inputStructure$destination.folder, "CNAprofiles/Call_plots/"))
 		system(paste0("mkdir ",i, "_", colnames_read_count[i]))
 		setwd(paste0(i, "_", colnames_read_count[i]))
 		png(filename=paste0(i, "_freqonly_", colnames_read_count[i],".png"), width=2*480, height=480)
