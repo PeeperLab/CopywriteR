@@ -1,5 +1,5 @@
-ENCODER <- function(sample.list, destination.folder, reference.folder,
-                    ncpu, capture.regions.file) {
+ENCODER <- function(sample.control, destination.folder,
+                    reference.folder, ncpu, capture.regions.file) {
   
   ##########################
   ## Check and initialize ##
@@ -20,23 +20,28 @@ ENCODER <- function(sample.list, destination.folder, reference.folder,
   # }
 
   ## Make folder paths absolute
-  sample.list <- apply(sample.list, c(1, 2), tools::file_path_as_absolute)
-  sample.list <- data.frame(sample.list)
-  colnames(sample.list) <- c("samples", "controls")
+  sample.control <- apply(sample.control, c(1, 2), function(x) {
+    if (!is.na(x)) {
+      tools::file_path_as_absolute(x)
+    } else {
+      x <- NA	
+    }
+  })
+  sample.control <- data.frame(sample.control, stringsAsFactors = FALSE)
+  colnames(sample.control) <- c("samples", "controls")
   destination.folder <- tools::file_path_as_absolute(destination.folder)
   reference.folder <- tools::file_path_as_absolute(reference.folder)
   
   ## Make folder path independent of trailing /
   destination.folder <- paste0(gsub("/$", "", destination.folder), "/")
   reference.folder <- paste0(gsub("/$", "", reference.folder), "/")
-    
+
   ## Check the existence of folders and files
-  invisible(apply(sample.list, c(1, 2), function(x) {
-    if (!file.exists(x)) {
+  invisible(apply(sample.control, c(1, 2), function(x) {
+    if (!is.na(x) & !file.exists(x)) {
       stop("The file ", x, " could not be found. Please change the path to ",
            "this file.")
     }
-    return()
   }))
   
   if (!file.exists(destination.folder)) {
@@ -58,12 +63,14 @@ ENCODER <- function(sample.list, destination.folder, reference.folder,
   }
 
   ## Create lists with BAM files and index of corresponding control
-  bam.list <- sample.list$samples
-  control.list <- sample.list$controls
-  
-  ## Check that all BAM files in control.list are present in bam.list
-  if (length(union(bam.list, control.list)) != length(bam.list)) {
-    stop("Some of your ")
+  samples.list <- unlist(sample.control)
+  samples.list <- unique(samples.list[!is.na(samples.list)])
+  single.index <- sample.control$samples[is.na(sample.control$controls)]
+  single.index <- match(single.index, samples.list)
+  dual.index <- sample.control[!is.na(sample.control$controls), ]
+  dual.index[, ] <- apply(dual.index, c(1, 2), function(x) {
+    match(x, samples.list)
+  })
 
   ## Create paths to helper files
   bin.file <- paste0(reference.folder, "bins.bed")
@@ -81,31 +88,37 @@ ENCODER <- function(sample.list, destination.folder, reference.folder,
   ## Create folders
   destination.folder <- paste0(destination.folder, "CNAprofiles/")
   tryCatch({
-    dir.create(destination.folder)
+    if (!file.exists(paste0(destination.folder, "BamBaiMacsFiles/"))) {
+      dir.create(paste0(destination.folder, "BamBaiMacsFiles/"),
+                 recursive = TRUE)
+    }
   }, warning = function(e) {
     cat("ERROR: You do not have write permissions in the destination folder.\n")
     stop("Stopping execution of the remaining part of the script...")
   })
-  dir.create(paste0(destination.folder, "BamBaiMacsFiles/"))
   
   ## Provide output for log file
   sink(file = paste0(destination.folder, "log.txt"),
        type = c("output", "message"))
   options(width = 150)
 
-  for(i in 1:length(bam.list)) {
-    cat("The control for sample", bam.list[i], "will be",
-        bam.list[control.list[i]], "\n")
-  }
+  cat("The following samples will be analyzed single-channel:\n")
+  cat(samples.list[single.index], sep = "\n")
+  cat("\nThe following samples will be analyzed dual-channel:\n")
+  cat(paste0("sample: ", samples.list[dual.index$samples],
+             ";\tmatching control: ", samples.list[dual.index$controls]),
+      sep = "\n")
   cat("The bin size for this analysis is", bin.size, "\n")
   cat("The capture region file is", capture.regions.file, "\n")
   cat("This analysis will be run on", ncpu, "cpus", "\n\n\n")
   sink()
   
-  for(i in 1:length(bam.list)) {
-    cat("The control for sample", bam.list[i], "will be",
-        bam.list[control.list[i]], "\n")
-  }
+  cat("The following samples will be analyzed single-channel:\n")
+  cat(samples.list[single.index], sep = "\n")
+  cat("\nThe following samples will be analyzed dual-channel:\n")
+  cat(paste0("sample: ", samples.list[dual.index$samples],
+             ";\tmatching control: ", samples.list[dual.index$controls]),
+      sep = "\n")
   cat("The bin size for this analysis is", bin.size, "\n")
   cat("The capture region file is", capture.regions.file, "\n")
   cat("This analysis will be run on", ncpu, "cpus", "\n\n\n")
@@ -114,14 +127,14 @@ ENCODER <- function(sample.list, destination.folder, reference.folder,
   prefixes <- vector(mode = "character")
 
   tryCatch({
-    for(bam in bam.list) {
-      header <- scanBamHeader(paste0(bam.folder, bam))
+    for(samp in samples.list) {
+      header <- scanBamHeader(samp)
       chr.names <- names(header[[1]]$targets)[1]
       prefixes <- append(prefixes, gsub("[[:digit:]]|X|Y", "", chr.names)[1])
     }
   }, error = function(e) {
-    cat("ERROR: The BAM file header of file", bam, "is corrupted or truncated.",
-        "\n")
+    cat("ERROR: The BAM file header of file", samp, "is corrupted or",
+        "truncated.\n")
     cat("ERROR: Please rebuild this BAM file or exclude it from analysis.\n")
     stop("Stopping execution of the remaining part of the script...")    
   })
@@ -157,8 +170,8 @@ ENCODER <- function(sample.list, destination.folder, reference.folder,
            "names. Please adjust the input files such that they contain the ",
            "same chromosome notation.")
     }
-  }
-          
+  }  ## UP TO HERE
+
   ########################################################
   ## Calculate depth of coverage using off-target reads ##
   ########################################################
@@ -167,106 +180,106 @@ ENCODER <- function(sample.list, destination.folder, reference.folder,
        type = c("output", "message"))
     
   ## Create list of .bam files
-  cat(bam.list, "\n", sep = "\n")
+  cat(samples.list, "\n", sep = "\n")
 
   ## Index .bam files
-  IndexBam <- function(bam.list) {
-    indexBam(bam.list)
-    paste0("indexBam(", bam.list, ")")
+  IndexBam <- function(samples.list) {
+    indexBam(samples.list)
+    paste0("indexBam(", samples.list, ")")
   }
   sfInit(parallel=TRUE, cpus = ncpu)
   sfLibrary(Rsamtools)
-  to.log <- sfSapply(bam.list, IndexBam)
+  to.log <- sfSapply(samples.list, IndexBam)
   sfStop()
   cat(to.log, "\n", sep = "\n")
   
   ## Check whether BAMs are paired-end
-  NumberPairedEndReads <- function(bam.list) {
+  NumberPairedEndReads <- function(samples.list) {
     flag <- scanBamFlag(isPaired = TRUE)
     param <- ScanBamParam(flag = flag)
-    countBam(bam.list, param = param)
+    countBam(samples.list, param = param)
   }
   sfInit(parallel=TRUE, cpus = ncpu)
   sfLibrary(Rsamtools)
-  is.paired.end <- sfLapply(bam.list, NumberPairedEndReads)
+  is.paired.end <- sfLapply(samples.list, NumberPairedEndReads)
   sfStop()
   is.paired.end <- Reduce(function(x, y) {
                             merge(x, y, all = TRUE)
                           }, is.paired.end)
   is.paired.end <- ifelse(is.paired.end$records > 0, TRUE, FALSE)
-  for(i in 1:length(bam.list)) {
-    cat("Paired-end sequencing for sample ", bam.list[i], ": ",
+  for(i in 1:length(samples.list)) {
+    cat("Paired-end sequencing for sample ", samples.list[i], ": ",
         is.paired.end[i], "\n", sep = "")
   }
   cat("\n\n")
 
   ## Remove anomalous reads and reads with Phred < 37
-  i <- c(1:length(bam.list))
-  ProperReads <- function(i, bam.list, destination.folder, is.paired.end) {
+  i <- c(1:length(samples.list))
+  ProperReads <- function(i, samples.list, destination.folder, is.paired.end) {
     if (is.paired.end[i]) {
       flag <- scanBamFlag(isProperPair = TRUE)
       param <- ScanBamParam(flag = flag, what = "mapq")
       filter <- FilterRules(list(isHighQual = function(x) {
                                    x$mapq >= 37
                                  }))
-      filterBam(bam.list[i],
+      filterBam(samples.list[i],
                 paste0(destination.folder, "BamBaiMacsFiles/",
-                       gsub(".bam$", "_properreads.bam", bam.list[i])),
+                       gsub(".bam$", "_properreads.bam", samples.list[i])),
                 filter = filter, indexDestination = TRUE, param = param)
-      paste0("filterBam(", bam.list[i], ", ", destination.folder,
-             "BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam.list[i]),
+      paste0("filterBam(", samples.list[i], ", ", destination.folder,
+             "BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", samples.list[i]),
              ", filter = filter, indexDestination = TRUE, param = param)")
     } else {
       param <- ScanBamParam(what = "mapq")
       filter <- FilterRules(list(isHighQual = function(x) {
                                    x$mapq >= 37
                                  }))
-      filterBam(bam.list[i],
+      filterBam(samples.list[i],
                 paste0(destination.folder, "BamBaiMacsFiles/",
-                       gsub(".bam$", "_properreads.bam", bam.list[i])),
+                       gsub(".bam$", "_properreads.bam", samples.list[i])),
                 filter = filter, indexDestination = TRUE, param = param)
-      paste0("filterBam(", bam.list[i], ", ", destination.folder,
-             "BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", bam.list[i]),
+      paste0("filterBam(", samples.list[i], ", ", destination.folder,
+             "BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam", samples.list[i]),
              ", filter = filter, indexDestination = TRUE, param = param)")
     }
   }
   sfInit(parallel=TRUE, cpus = ncpu)
   sfLibrary(Rsamtools)
-  to.log <- sfSapply(i, ProperReads, bam.list, destination.folder,
+  to.log <- sfSapply(i, ProperReads, samples.list, destination.folder,
                      is.paired.end)
   sfStop()
   cat(to.log, "\n", sep = "\n")
 
   ## Read count statistics
   statistics <- data.frame()
-  Stats <- function(bam.list) {
-    countBam(bam.list)
+  Stats <- function(samples.list) {
+    countBam(samples.list)
   }
   sfInit(parallel=TRUE, cpus = ncpu)
   sfLibrary(Rsamtools)
-  res <- sfSapply(bam.list, Stats)
+  res <- sfSapply(samples.list, Stats)
   sfStop()
   statistics <- within(statistics, total <- unlist(data.frame(t(res))$records))
   
   ## Create new .bam list
   setwd(paste0(destination.folder, "BamBaiMacsFiles/"))
-  bam.list <- gsub(".bam$", "_properreads.bam", bam.list)
-  cat(bam.list, "\n", sep = "\n")
+  samples.list <- gsub(".bam$", "_properreads.bam", samples.list)
+  cat(samples.list, "\n", sep = "\n")
 
   ## Read count statistics
-  Stats <- function(bam.list, bin.bed) {
-    all.reads <- countBam(bam.list)$records
+  Stats <- function(samples.list, bin.bed) {
+    all.reads <- countBam(samples.list)$records
     which <- with(bin.bed, GRanges(seqnames = chr,
                                    ranges = IRanges(start = start, end = end)))
     what <- c("pos")
     param <- ScanBamParam(which = which, what = what)
-    chrom.reads <- countBam(file = bam.list, param = param)
+    chrom.reads <- countBam(file = samples.list, param = param)
     chrom.reads <- sum(chrom.reads$records)
     c(all.reads = all.reads, chrom.reads = chrom.reads)
   }
   sfInit(parallel=TRUE, cpus = ncpu)
   sfLibrary(Rsamtools)
-  res <- data.frame(t(sfSapply(bam.list, Stats, bin.bed)))
+  res <- data.frame(t(sfSapply(samples.list, Stats, bin.bed)))
   sfStop()
   statistics <- within(statistics, {
     total.properreads<- res$all.reads
@@ -278,14 +291,14 @@ ENCODER <- function(sample.list, destination.folder, reference.folder,
   control.numbers <- unique(control.list)
   
   ## Call peaks in .bam file of control sample
-  Macs14 <- function(control.numbers, bam.list) {
-    system(paste0("macs14 -t " , bam.list[control.numbers], " -n MACS",
+  Macs14 <- function(control.numbers, samples.list) {
+    system(paste0("macs14 -t " , samples.list[control.numbers], " -n MACS",
                   control.numbers, " -g hs --nolambda"))
-    paste0("macs14 -t " , bam.list[control.numbers], " -n MACS",
+    paste0("macs14 -t " , samples.list[control.numbers], " -n MACS",
            control.numbers, " -g hs --nolambda")
   }
   sfInit(parallel=TRUE, cpus = min(length(control.numbers), ncpu))
-  to.log <- sfSapply(control.numbers , Macs14, bam.list)
+  to.log <- sfSapply(control.numbers , Macs14, samples.list)
   sfStop()
   cat(to.log, "\n", sep = "\n")
   
@@ -301,60 +314,60 @@ ENCODER <- function(sample.list, destination.folder, reference.folder,
 #     peaks.grange <- with(bed, GRanges(Rle(chr), IRanges(start, end)))
 #     outside.peaks.grange[control] <- setdiff(all.grange, peaks.grange)
 #   }
-#   i <- 1:length(bam.list)
-#   Intersect <- function(i, bam.list, control.list) {
+#   i <- 1:length(samples.list)
+#   Intersect <- function(i, samples.list, control.list) {
 #     bed <- read.table(file = , as.is = TRUE, sep = "\t")
 #   }
   
   ## Remove peak-regions from .bam files
-  i <- 1:length(bam.list)
-  PeakRm <- function(i, bam.list, control.list) {
-    system(paste0("bedtools intersect -abam ", bam.list[i], " -b MACS",
+  i <- 1:length(samples.list)
+  PeakRm <- function(i, samples.list, control.list) {
+    system(paste0("bedtools intersect -abam ", samples.list[i], " -b MACS",
                   control.list[i], "_peaks.bed -v > ",
-                  gsub(".bam$", "_peakrm.bam", bam.list[i])))
-    paste0("bedtools intersect -abam ", bam.list[i], " -b MACS",
+                  gsub(".bam$", "_peakrm.bam", samples.list[i])))
+    paste0("bedtools intersect -abam ", samples.list[i], " -b MACS",
                   control.list[i], "_peaks.bed -v > ",
-                  gsub(".bam$", "_peakrm.bam", bam.list[i]))
+                  gsub(".bam$", "_peakrm.bam", samples.list[i]))
   }
   sfInit(parallel=TRUE, cpus = ncpu)
-  to.log <- sfSapply(i, PeakRm, bam.list, control.list)
+  to.log <- sfSapply(i, PeakRm, samples.list, control.list)
   sfStop()
   cat(to.log, "\n", sep = "\n")
 
   ## Remove _properreads.bam(.bai) files
   # if (!keep.intermediairy.files) {
-  #   file.remove(bam.list)
-  #  file.remove(gsub(".bam$", ".bam.bai", bam.list))
+  #   file.remove(samples.list)
+  #  file.remove(gsub(".bam$", ".bam.bai", samples.list))
   #  file.remove(list.files(pattern = "MACS"))
   # }
 
   ## Create new .bam list
-  bam.list <- gsub(".bam$", "_peakrm.bam", bam.list)
-  cat(bam.list, "\n", sep = "\n")
+  samples.list <- gsub(".bam$", "_peakrm.bam", samples.list)
+  cat(samples.list, "\n", sep = "\n")
   
   ## Index _peakrm.bam files
-  IndexPeakRm <- function(bam.list) {
-    indexBam(bam.list)
-    paste0("indexBam(", bam.list, ")")
+  IndexPeakRm <- function(samples.list) {
+    indexBam(samples.list)
+    paste0("indexBam(", samples.list, ")")
   }
   sfInit(parallel=TRUE, cpus = ncpu)
   sfLibrary(Rsamtools)
-  to.log <- sfSapply(bam.list, IndexPeakRm)
+  to.log <- sfSapply(samples.list, IndexPeakRm)
   sfStop()
   cat(to.log, "\n", sep = "\n")
 
   ## Read count statistics
-  Stats <- function(bam.list, bin.bed) {
+  Stats <- function(samples.list, bin.bed) {
     which <- with(bin.bed, GRanges(seqnames = chr,
                                    ranges = IRanges(start = start, end = end)))
     what <- c("pos")
     param <- ScanBamParam(which = which, what = what)
-    chrom.reads <- countBam(file = bam.list, param = param)
+    chrom.reads <- countBam(file = samples.list, param = param)
     c(chrom.reads = sum(chrom.reads$records))
   }
   sfInit(parallel=TRUE, cpus = ncpu)
   sfLibrary(Rsamtools)
-  res <- data.frame(t(data.frame(sfSapply(bam.list, Stats, bin.bed,
+  res <- data.frame(t(data.frame(sfSapply(samples.list, Stats, bin.bed,
                                           simplify = FALSE))))
   sfStop()
   statistics <- within(statistics, {
@@ -376,23 +389,23 @@ ENCODER <- function(sample.list, destination.folder, reference.folder,
   read.count <- cbind(read.count, bin.bed[, 1:3])
 
   ## Calculate the number of reads per bin
-  CalculateDepthOfCoverage <- function(bam.list, bin.bed) {
+  CalculateDepthOfCoverage <- function(samples.list, bin.bed) {
     library(Rsamtools)
     which <- RangedData(space = bin.bed[,1], IRanges(bin.bed[,2], bin.bed[,3]))
     param <- ScanBamParam(which = which, what = c("pos"))
-    bamreads <- scanBam(file = paste(bam.list), param = param)
+    bamreads <- scanBam(file = paste(samples.list), param = param)
     readmap <- matrix(data = 0, ncol = 1, nrow = nrow(bin.bed))
     for (j in 1:length(bamreads)) {
       readmap[j] <- length(unlist(bamreads[j]))
     }
     return(list(readmap, paste0("Rsamtools finished calculating reads per bin ",
-                                "in sample ", bam.list, "; number of bins = ",
+                                "in sample ", samples.list, "; number of bins = ",
                                 length(bamreads))))
   }
   sfInit(parallel=TRUE, cpus = ncpu)
-  res <- sfSapply(bam.list, CalculateDepthOfCoverage, bin.bed)
+  res <- sfSapply(samples.list, CalculateDepthOfCoverage, bin.bed)
   sfStop()
-  for(i in seq(1, 2 * length(bam.list), 2)) {
+  for(i in seq(1, 2 * length(samples.list), 2)) {
     read.count <- cbind(read.count, res[[i]])
   }
   cat(unlist(res[2, ]), "\n", sep = "\n")
@@ -429,10 +442,10 @@ ENCODER <- function(sample.list, destination.folder, reference.folder,
             read.count[, 3] == intersection[, 2] &
             read.count[, 4] == intersection[, 3])) { ## Make into one check?
       fraction.of.bin <- (bin.size - as.numeric(intersection[, 4])) / bin.size
-      read.count[, (4 + 2 * length(bam.list) + control.for)] <- fraction.of.bin
+      read.count[, (4 + 2 * length(samples.list) + control.for)] <- fraction.of.bin
       for(control in control.for) {
         read.count[, (4 + control)] <- ifelse(fraction.of.bin != 0,
-                                              as.numeric(read.count[, (4 + length(bam.list) + control)]) / fraction.of.bin,
+                                              as.numeric(read.count[, (4 + length(samples.list) + control)]) / fraction.of.bin,
                                               0)
       }
     } else {
@@ -441,10 +454,10 @@ ENCODER <- function(sample.list, destination.folder, reference.folder,
   }
   
   colnames(read.count) <- c("BinID", "Chromosome", "StartPos", "StopPos",
-                            sub(pattern = "$", ".compensated", paste(bam.list)),
-                            paste(bam.list), sub(pattern = "$",
+                            sub(pattern = "$", ".compensated", paste(samples.list)),
+                            paste(samples.list), sub(pattern = "$",
                                                  ".fractionOfBin",
-                                                 paste(bam.list)))
+                                                 paste(samples.list)))
 
   ## Create output file
   output <- read.count
@@ -459,10 +472,10 @@ ENCODER <- function(sample.list, destination.folder, reference.folder,
   ## Create histograms of fraction.of.bin
   ## (fraction of length in bins (after peak region removal)
   dir.create(paste0(destination.folder, "qc/"))
-  for(i in 1:length(bam.list)) {
+  for(i in 1:length(samples.list)) {
     pdf(paste0(destination.folder, "qc/fraction.of.bin_", i,
                ".pdf"), width=7, height=7)
-    plot(ecdf(as.numeric(read.count[,4+(2*length(bam.list))+i])),
+    plot(ecdf(as.numeric(read.count[,4+(2*length(samples.list))+i])),
          verticals = TRUE, ylab = "Fraction of bins", 
          xlab = "Remaining fraction of bin after peak removal",
          main = "Cumulative distribution of remaining bin fraction")
@@ -474,7 +487,7 @@ ENCODER <- function(sample.list, destination.folder, reference.folder,
   #############################################
 
   ## Read files
-  read.count <- read.count[,1:(4 + length(bam.list))]
+  read.count <- read.count[,1:(4 + length(samples.list))]
   for(i in 5:ncol(read.count)) {
     write.table(read.count[,c(2,3,4,i)], colnames(read.count)[i], quote = FALSE,
                 sep = "\t", row.names = FALSE, col.names = FALSE)
@@ -509,7 +522,7 @@ ENCODER <- function(sample.list, destination.folder, reference.folder,
     ratios <- sfLapply(i, NormalizeDOC, data, .tng, usepoints,
                        destination.folder)
     sfStop()
-    ratios <- matrix(unlist(ratios), ncol = length(bam.list))
+    ratios <- matrix(unlist(ratios), ncol = length(samples.list))
   }, error = function(e) {
     cat("ERROR: The GC-content and mapability normalization did not work due",
         "to a failure to calculate loesses.\n")
@@ -527,7 +540,7 @@ ENCODER <- function(sample.list, destination.folder, reference.folder,
   sink(file = paste0(destination.folder, "log.txt"), append = TRUE,
        type = c("output", "message"))
   rd2 <- rd
-  for(i in 1:length(bam.list)) {
+  for(i in 1:length(samples.list)) {
     rd2$ratios[,i] <- rd$ratios[,i] - rd$ratios[,which.control[i]]
     cat("Relative log2-values are calculated for sample",
         colnames(rd2$ratios)[i], "with control",
@@ -586,7 +599,7 @@ ENCODER <- function(sample.list, destination.folder, reference.folder,
       intersection <- intersection[-vec,]
       
       cat("Number of exons covered by peaks in sample ",
-          bam.list[control.number], ": ", sum(intersection[,4] != "0"), "\n")
+          samples.list[control.number], ": ", sum(intersection[,4] != "0"), "\n")
     
       intersection <- system(paste0("bedtools intersect -a ",
                                     destination.folder,
@@ -607,10 +620,10 @@ ENCODER <- function(sample.list, destination.folder, reference.folder,
       intersection <- intersection[-vec,]
       
       cat("Number of peaks covered by exons in sample",
-          bam.list[control.number], ": ", sum(intersection[,4] != "0"), "\n")
-      cat("Total number of exons in sample", bam.list[control.number], ": ",
+          samples.list[control.number], ": ", sum(intersection[,4] != "0"), "\n")
+      cat("Total number of exons in sample", samples.list[control.number], ": ",
           nrow(read.table(capture.regions.file, sep = "\t")), "\n")
-      cat("Total number of peaks", bam.list[control.number], ":",
+      cat("Total number of peaks", samples.list[control.number], ":",
           nrow(read.table(paste0(destination.folder,
                                  "BamBaiMacsFiles/MACS",
                                  control.number, "_peaks.bed"), sep = "\t")),
