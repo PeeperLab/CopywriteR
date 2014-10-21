@@ -310,7 +310,8 @@ ENCODER <- function(sample.control, destination.folder,
                              ranges = IRanges(start = start, end = end)))
   
   i <- c(1:length(sample.files))
-  CountOffTargets <- function(i, sample.files, control.list, bin.grange) {
+  CalculateDepthOfCoverage <- function(i, sample.files, control.list,
+                                       bin.grange, bin.size) {
     # Create GRanges object of peak files
     bed <- read.table(file = paste0("MACS", control.list[i], "_peaks.bed"),
                       as.is = TRUE, sep = "\t")
@@ -331,17 +332,37 @@ ENCODER <- function(sample.control, destination.folder,
     # countBam on remainder of bins
     param <- ScanBamParam(which = outside.peak.grange, what = c("pos"))
     counts <- countBam(sample.files[i], param = param)
+    
+    # Aggregate counts in bins
+    counts <- data.table(counts)
+    counts <- within(counts, {
+      aggregate.factor <- ceiling(end / bin.size)
+      fraction.of.bin <- end - start
+    })
+    counts <- counts[, list(start = min(start),
+                            end = max(end),
+                            records = sum(records),
+                            fraction.of.bin = sum(fraction.of.bin)),
+                     by = c("space", "aggregate.factor")]
+    counts <- data.frame(counts)
+    counts <- within(counts, fraction.of.bin <- fraction.of.bin / (end - start))
+    counts <- counts[, c("space", "start", "end", "records", "fraction.of.bin")]
 
     # Return
     return(list(counts, paste0("Rsamtools finished calculating reads per bin ",
                                "in sample ", sample.files[i], "; number of ",
-                               "bins = ", length(bamreads))))
+                               "bins = ", nrow(counts))))
   }
   sfInit(parallel=TRUE, cpus = ncpu)
   sfLibrary(Rsamtools)
-  res <- sfSapply(i, CountOffTargets, sample.files, dual.index$controls,
-                  bin.grange)
+  sfLibrary(data.table)
+  res <- sfSapply(i, CalculateDepthOfCoverage, sample.files,
+                  dual.index$controls, bin.grange, bin.size)
   sfStop()
+  read.counts <- unlist(res[1, 1])[, c("space", "start", "end")]
+  read.counts[, ] <- cbind(read.counts, Reduce(cbind, res[1, ][, "records"]))
+  cat(unlist(res[2, ]), "\n", sep = "\n")
+  sink()
    
   
   
@@ -424,12 +445,12 @@ ENCODER <- function(sample.control, destination.folder,
   print(statistics)
   cat("\n\n")
   
-  ## Create read.count matrix
-  read.count <- matrix(nrow = nrow(bin.bed))
-  read.count[,1] <- paste(bin.bed[,1],
+  ## Create read.counts matrix
+  read.counts <- matrix(nrow = nrow(bin.bed))
+  read.counts[,1] <- paste(bin.bed[,1],
                           paste(bin.bed[,2], bin.bed[,3], sep = "-"),
                           sep = ":")
-  read.count <- cbind(read.count, bin.bed[, 1:3])
+  read.counts <- cbind(read.counts, bin.bed[, 1:3])
 
   ## Calculate the number of reads per bin
   CalculateDepthOfCoverage <- function(sample.files, bin.bed) {
@@ -449,14 +470,14 @@ ENCODER <- function(sample.control, destination.folder,
   res <- sfSapply(sample.files, CalculateDepthOfCoverage, bin.bed)
   sfStop()
   for(i in seq(1, 2 * length(sample.files), 2)) {
-    read.count <- cbind(read.count, res[[i]])
+    read.counts <- cbind(read.counts, res[[i]])
   }
   cat(unlist(res[2, ]), "\n", sep = "\n")
   sink()
   
   ## Compensate for removal of reads in peak regions
-  read.count <- cbind(read.count, read.count[, -c(1, 2, 3, 4)],
-                      read.count[, -c(1, 2, 3, 4)])
+  read.counts <- cbind(read.counts, read.counts[, -c(1, 2, 3, 4)],
+                      read.counts[, -c(1, 2, 3, 4)])
   
   for(control.number in control.numbers) {
 
@@ -481,14 +502,14 @@ ENCODER <- function(sample.control, destination.folder,
     # Check correspondence bins, calculate fraction of remaining bin length
     # (after peak region removal), and calculate compensated read numbers
     control.for <- grep(control.number, which.control)
-    if (all(read.count[, 2] == intersection[, 1] &
-            read.count[, 3] == intersection[, 2] &
-            read.count[, 4] == intersection[, 3])) { ## Make into one check?
+    if (all(read.counts[, 2] == intersection[, 1] &
+            read.counts[, 3] == intersection[, 2] &
+            read.counts[, 4] == intersection[, 3])) { ## Make into one check?
       fraction.of.bin <- (bin.size - as.numeric(intersection[, 4])) / bin.size
-      read.count[, (4 + 2 * length(sample.files) + control.for)] <- fraction.of.bin
+      read.counts[, (4 + 2 * length(sample.files) + control.for)] <- fraction.of.bin
       for(control in control.for) {
-        read.count[, (4 + control)] <- ifelse(fraction.of.bin != 0,
-                                              as.numeric(read.count[, (4 + length(sample.files) + control)]) / fraction.of.bin,
+        read.counts[, (4 + control)] <- ifelse(fraction.of.bin != 0,
+                                              as.numeric(read.counts[, (4 + length(sample.files) + control)]) / fraction.of.bin,
                                               0)
       }
     } else {
@@ -496,14 +517,14 @@ ENCODER <- function(sample.control, destination.folder,
     }
   }
   
-  colnames(read.count) <- c("BinID", "Chromosome", "StartPos", "StopPos",
+  colnames(read.counts) <- c("BinID", "Chromosome", "StartPos", "StopPos",
                             sub(pattern = "$", ".compensated", paste(sample.files)),
                             paste(sample.files), sub(pattern = "$",
                                                  ".fractionOfBin",
                                                  paste(sample.files)))
 
   ## Create output file
-  output <- read.count
+  output <- read.counts
   output[, 2] <- gsub(prefixes[1], "", output[, 2])
   output[, 2] <- gsub("X", nchrom - 1, output[, 2])
   output[, 2] <- gsub("Y", nchrom, output[, 2])
@@ -518,7 +539,7 @@ ENCODER <- function(sample.control, destination.folder,
   for(i in 1:length(sample.files)) {
     pdf(paste0(destination.folder, "qc/fraction.of.bin_", i,
                ".pdf"), width=7, height=7)
-    plot(ecdf(as.numeric(read.count[,4+(2*length(sample.files))+i])),
+    plot(ecdf(as.numeric(read.counts[,4+(2*length(sample.files))+i])),
          verticals = TRUE, ylab = "Fraction of bins", 
          xlab = "Remaining fraction of bin after peak removal",
          main = "Cumulative distribution of remaining bin fraction")
@@ -530,9 +551,9 @@ ENCODER <- function(sample.control, destination.folder,
   #############################################
 
   ## Read files
-  read.count <- read.count[,1:(4 + length(sample.files))]
-  for(i in 5:ncol(read.count)) {
-    write.table(read.count[,c(2,3,4,i)], colnames(read.count)[i], quote = FALSE,
+  read.counts <- read.counts[,1:(4 + length(sample.files))]
+  for(i in 5:ncol(read.counts)) {
+    write.table(read.counts[,c(2,3,4,i)], colnames(read.counts)[i], quote = FALSE,
                 sep = "\t", row.names = FALSE, col.names = FALSE)
   }
   f <- list.files(pattern = "bam.compensated")
@@ -597,23 +618,23 @@ ENCODER <- function(sample.control, destination.folder,
   ###################
   
   ## Create table with corrected log2 values and write to file
-  read.count <- matrix(nrow = nrow(rd$ratios))
-  read.count <- cbind(read.count, rd$anno[1:3])
-  read.count[,1] <- paste(rd$anno[,1], paste(rd$anno[,2], rd$anno[,3],
+  read.counts <- matrix(nrow = nrow(rd$ratios))
+  read.counts <- cbind(read.counts, rd$anno[1:3])
+  read.counts[,1] <- paste(rd$anno[,1], paste(rd$anno[,2], rd$anno[,3],
                                              sep = "-"), sep = ":")
-  read.count <- cbind(read.count, rd$ratios, rd2$ratios)
-  colnames(read.count) <- c("BinID", "Chromosome", "StartPos", "StopPos",
-                            colnames(read.count[5:nrow(read.count)]))
+  read.counts <- cbind(read.counts, rd$ratios, rd2$ratios)
+  colnames(read.counts) <- c("BinID", "Chromosome", "StartPos", "StopPos",
+                            colnames(read.counts[5:nrow(read.counts)]))
   
-  read.count <- read.count[-which(rowSums(is.na(read.count[, -c(1:4)])) > 0),]
-  read.count[, 2] <- gsub(prefixes[1], "", read.count[, 2])
-  read.count[, 2] <- gsub("X", nchrom - 1, read.count[, 2])
-  read.count[, 2] <- gsub("Y", nchrom, read.count[, 2])
-  read.count[, 2] <- as.integer(read.count[, 2])
-  read.count[read.count == -Inf] <- -.Machine$integer.max/2
-  read.count[read.count == Inf] <- .Machine$integer.max/2
+  read.counts <- read.counts[-which(rowSums(is.na(read.counts[, -c(1:4)])) > 0),]
+  read.counts[, 2] <- gsub(prefixes[1], "", read.counts[, 2])
+  read.counts[, 2] <- gsub("X", nchrom - 1, read.counts[, 2])
+  read.counts[, 2] <- gsub("Y", nchrom, read.counts[, 2])
+  read.counts[, 2] <- as.integer(read.counts[, 2])
+  read.counts[read.counts == -Inf] <- -.Machine$integer.max/2
+  read.counts[read.counts == Inf] <- .Machine$integer.max/2
   
-  write.table(read.count, paste0(destination.folder,
+  write.table(read.counts, paste0(destination.folder,
                                  "log2ratio_compensated_corrected.txt"),
               sep = "\t", row.names = FALSE, quote = FALSE)
 
