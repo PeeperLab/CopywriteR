@@ -345,7 +345,7 @@ ENCODER <- function(sample.control, destination.folder,
                             fraction.of.bin = sum(fraction.of.bin)),
                      by = c("space", "aggregate.factor")]
     counts <- data.frame(counts)
-    counts <- within(counts, fraction.of.bin <- fraction.of.bin / (end - start))
+    counts <- within(counts, fraction.of.bin <- fraction.of.bin / bin.size)
     counts <- counts[, c("space", "start", "end", "records", "fraction.of.bin")]
 
     # Return
