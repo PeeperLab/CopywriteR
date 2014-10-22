@@ -83,10 +83,10 @@ ENCODER <- function(sample.control, destination.folder,
 
   ## Retrieve number of chromosomes and bin size from bin.bed helper file
   bin.bed <- read.table(file = bin.file, as.is = TRUE, sep = "\t")
-  colnames(bin.bed) <- c("chr", "start", "end")
-  chrom <- unique(bin.bed$chr)
+  colnames(bin.bed) <- c("Chromosome", "Start", "End")
+  chrom <- unique(bin.bed$Chromosome)
   nchrom <- length(chrom)
-  bin.size <- bin.bed$end[1]
+  bin.size <- bin.bed$End[1]
   
   ## Create folders
   destination.folder <- paste0(destination.folder, "CNAprofiles/")
@@ -306,8 +306,8 @@ ENCODER <- function(sample.control, destination.folder,
   ## Alternative for bedtools
   # Create GRanges file for bins
   bin.grange <- with(bin.bed,
-                     GRanges(seqnames = chr,
-                             ranges = IRanges(start = start, end = end)))
+                     GRanges(seqnames = Chromosome,
+                             ranges = IRanges(start = Start, end = End)))
   
   i <- c(1:length(sample.files))
   CalculateDepthOfCoverage <- function(i, sample.files, control.list,
@@ -315,9 +315,9 @@ ENCODER <- function(sample.control, destination.folder,
     # Create GRanges object of peak files
     bed <- read.table(file = paste0("MACS", control.list[i], "_peaks.bed"),
                       as.is = TRUE, sep = "\t")
-    colnames(bed) <- c("chr", "start", "end")
-    peak.grange <- with(bed, GRanges(seqnames = chr,
-                        ranges = IRanges(start = start, end = end)))
+    colnames(bed) <- c("Chromosome", "Start", "End")
+    peak.grange <- with(bed, GRanges(seqnames = Chromosome,
+                        ranges = IRanges(start = Start, end = End)))
     
     # Calculate setdiff without reducing ranges
     outside.peak.grange <- split(bin.grange,
@@ -328,25 +328,55 @@ ENCODER <- function(sample.control, destination.folder,
     })
     outside.peak.grange <- c(outside.peak.grange[[1]], outside.peak.grange[[2]])
     outside.peak.grange <- outside.peak.grange[order(outside.peak.grange)]
-
+    
+    # Fix the 1-based coordinate system
+    ranges(outside.peak.grange)@width[1] <- (ranges(outside.peak.grange)@width[1]
+                                             + 1L)
+    ranges(outside.peak.grange)@start[1] <- 0L
+    
     # countBam on remainder of bins
     param <- ScanBamParam(which = outside.peak.grange, what = c("pos"))
     counts <- countBam(sample.files[i], param = param)
+    
+    # Fix MT as levels in factor seqnames (remainder from setdiff operation)
+    counts$space <- as.factor(as.character(counts$space))
     
     # Aggregate counts in bins
     counts <- data.table(counts)
     counts <- within(counts, {
       aggregate.factor <- ceiling(end / bin.size)
-      fraction.of.bin <- end - start
+      range.length <- end - start
     })
     counts <- counts[, list(start = min(start),
                             end = max(end),
                             records = sum(records),
-                            fraction.of.bin = sum(fraction.of.bin)),
+                            range.length = sum(range.length)),
                      by = c("space", "aggregate.factor")]
     counts <- data.frame(counts)
-    counts <- within(counts, fraction.of.bin <- fraction.of.bin / bin.size)
-    counts <- counts[, c("space", "start", "end", "records", "fraction.of.bin")]
+    
+    # Replace bins by real bins & calculate compensated read counts
+    if (all.equal(counts$space, as.factor(seqnames(bin.grange)))) {
+      counts <- within(counts, {
+        space <- as.factor(seqnames(bin.grange))
+        start <- ranges(bin.grange)@start
+        end <- ranges(bin.grange)@start + ranges(bin.grange)@width - 1L
+      })
+    }
+    counts <- within(counts, {
+      Chromosome <- space
+      Start <- start
+      End <- end
+      Feature <- paste0(Chromosome, ":", paste0(Start, "-", End))
+      paste0("read.counts.", sample.files[i]) <- records
+      paste0("fraction.of.bin", sample.files[i]) <- range.length / bin.size
+      paste0("read.counts.compensated", sample.files[i]) <- read.counts /
+                                                            fraction.of.bin
+      rm(space, start, end, records, aggregate.factor, range.length)
+    })
+    counts <- counts[, c("Chromosome", "Start", "End", "Feature",
+                         paste0("read.counts.", sample.files[i]),
+                         paste0("read.counts.compensated", sample.files[i]),
+                         paste0("fraction.of.bin", sample.files[i]))]
 
     # Return
     return(list(counts, paste0("Rsamtools finished calculating reads per bin ",
@@ -359,8 +389,8 @@ ENCODER <- function(sample.control, destination.folder,
   res <- sfSapply(i, CalculateDepthOfCoverage, sample.files,
                   dual.index$controls, bin.grange, bin.size)
   sfStop()
-  read.counts <- unlist(res[1, 1])[, c("space", "start", "end")]
-  read.counts[, ] <- cbind(read.counts, Reduce(cbind, res[1, ][, "records"]))
+  read.counts <- res[1, 1][[1]][, c("Chromosome", "Start", "End")]
+  read.counts[, ] <- cbind(read.counts, Reduce(cbind, res[1, ][5:7]))
   cat(unlist(res[2, ]), "\n", sep = "\n")
   sink()
    
