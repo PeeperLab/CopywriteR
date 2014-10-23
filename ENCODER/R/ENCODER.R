@@ -330,8 +330,8 @@ ENCODER <- function(sample.control, destination.folder,
     outside.peak.grange <- outside.peak.grange[order(outside.peak.grange)]
     
     # Fix the 1-based coordinate system
-    ranges(outside.peak.grange)@width[1] <- (ranges(outside.peak.grange)@width[1]
-                                             + 1L)
+    ranges(outside.peak.grange)@width[1] <-
+      (ranges(outside.peak.grange)@width[1] + 1L)
     ranges(outside.peak.grange)@start[1] <- 0L
     
     # countBam on remainder of bins
@@ -357,31 +357,32 @@ ENCODER <- function(sample.control, destination.folder,
     # Replace bins by real bins & calculate compensated read counts
     if (all.equal(counts$space, as.factor(seqnames(bin.grange)))) {
       counts <- within(counts, {
-        space <- as.factor(seqnames(bin.grange))
-        start <- ranges(bin.grange)@start
-        end <- ranges(bin.grange)@start + ranges(bin.grange)@width - 1L
+        Chromosome <- as.factor(seqnames(bin.grange))
+        Start <- ranges(bin.grange)@start
+        End <- ranges(bin.grange)@start + ranges(bin.grange)@width - 1L
+        Feature <- paste0(Chromosome, ":", paste0(Start, "-", End))
+        assign(paste0("read.counts.", sample.files[i]), records)
+        assign(paste0("read.counts.compensated.", sample.files[i]),
+               records / (range.length / bin.size))
+        assign(paste0("fraction.of.bin.", sample.files[i]),
+               range.length / bin.size)
+        rm(space, start, end, records, aggregate.factor, range.length)
       })
+    } else {
+      stop("Chromosome names do not match between the counts and bin.grange ",
+           "variables. Stopping execution of the remaining part of the ",
+           "script...")
     }
-    counts <- within(counts, {
-      Chromosome <- space
-      Start <- start
-      End <- end
-      Feature <- paste0(Chromosome, ":", paste0(Start, "-", End))
-      paste0("read.counts.", sample.files[i]) <- records
-      paste0("fraction.of.bin", sample.files[i]) <- range.length / bin.size
-      paste0("read.counts.compensated", sample.files[i]) <- read.counts /
-                                                            fraction.of.bin
-      rm(space, start, end, records, aggregate.factor, range.length)
-    })
-    counts <- counts[, c("Chromosome", "Start", "End", "Feature",
-                         paste0("read.counts.", sample.files[i]),
-                         paste0("read.counts.compensated", sample.files[i]),
-                         paste0("fraction.of.bin", sample.files[i]))]
 
     # Return
-    return(list(counts, paste0("Rsamtools finished calculating reads per bin ",
-                               "in sample ", sample.files[i], "; number of ",
-                               "bins = ", nrow(counts))))
+    return(list(counts[, paste0("read.counts.", sample.files[i]), drop = FALSE],
+                counts[, paste0("read.counts.compensated.", sample.files[i]),
+                       drop = FALSE],
+                counts[, paste0("fraction.of.bin.", sample.files[i]),
+                       drop = FALSE],
+                paste0("Rsamtools finished calculating reads per bin in ",
+                       "sample ", sample.files[i], "; number of bins = ",
+                       nrow(counts))))
   }
   sfInit(parallel=TRUE, cpus = ncpu)
   sfLibrary(Rsamtools)
@@ -389,9 +390,15 @@ ENCODER <- function(sample.control, destination.folder,
   res <- sfSapply(i, CalculateDepthOfCoverage, sample.files,
                   dual.index$controls, bin.grange, bin.size)
   sfStop()
-  read.counts <- res[1, 1][[1]][, c("Chromosome", "Start", "End")]
-  read.counts[, ] <- cbind(read.counts, Reduce(cbind, res[1, ][5:7]))
-  cat(unlist(res[2, ]), "\n", sep = "\n")
+  read.counts <- data.frame(Chromosome = as.factor(seqnames(bin.grange)), 
+                            Start = ranges(bin.grange)@start,
+                            End = ranges(bin.grange)@start +
+                              ranges(bin.grange)@width - 1L,
+                            Feature = paste0(Chromosome, ":",
+                                              paste0(Start, "-", End)))
+  read.counts <- cbind(read.counts[, ], Reduce(cbind, res[1, ]),
+                           Reduce(cbind, res[2, ]), Reduce(cbind, res[3, ]))
+  cat(unlist(res[4, ]), "\n", sep = "\n")
   sink()
    
   
