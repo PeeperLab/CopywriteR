@@ -1,5 +1,17 @@
 plotCNA <- function(destination.folder, set.nchrom = "determined.from.reference") {
 
+
+#   read.counts <- read.counts[-which(rowSums(is.na(read.counts[, -c(1:4)])) > 0),]
+#   read.counts[, 2] <- gsub(prefixes[1], "", read.counts[, 2])
+#   read.counts[, 2] <- gsub("X", nchrom - 1, read.counts[, 2])
+#   read.counts[, 2] <- gsub("Y", nchrom, read.counts[, 2])
+#   read.counts[, 2] <- as.integer(read.counts[, 2])
+#   read.counts[read.counts == -Inf] <- -.Machine$integer.max/2
+#   read.counts[read.counts == Inf] <- .Machine$integer.max/2
+# 
+
+
+
 	## Make folder path absolute
 	destination.folder <- tools::file_path_as_absolute(destination.folder)
 

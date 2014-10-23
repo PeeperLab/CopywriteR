@@ -20,25 +20,19 @@ ENCODER <- function(sample.control, destination.folder,
   # }
 
   ## Make folder paths absolute
-  sample.control <- apply(sample.control, c(1, 2), function(x) {
-    if (!is.na(x)) {
-      tools::file_path_as_absolute(x)
-    } else {
-      x <- NA	
-    }
-  })
+  sample.control <- apply(sample.control, c(1, 2), tools::file_path_as_absolute)
   sample.control <- data.frame(sample.control, stringsAsFactors = FALSE)
   colnames(sample.control) <- c("samples", "controls")
   destination.folder <- tools::file_path_as_absolute(destination.folder)
   reference.folder <- tools::file_path_as_absolute(reference.folder)
   
-  ## Make folder path independent of trailing /
-  destination.folder <- paste0(gsub("/$", "", destination.folder), "/")
-  reference.folder <- paste0(gsub("/$", "", reference.folder), "/")
+  ## Add trailing / to folder paths
+  destination.folder <- paste0(destination.folder, "/")
+  reference.folder <- paste0(reference.folder, "/")
 
   ## Check the existence of folders and files
   invisible(apply(sample.control, c(1, 2), function(x) {
-    if (!is.na(x) & !file.exists(x)) {
+    if (!file.exists(x)) {
       stop("The file ", x, " could not be found. Please change the path to ",
            "this file.")
     }
@@ -68,12 +62,7 @@ ENCODER <- function(sample.control, destination.folder,
   sample.files <- unname(sapply(sample.paths, function(x) {
     x <- unlist(strsplit(x, "/"))[length(unlist(strsplit(x, "/")))]
   }))
-  single.index <- sample.control$samples[is.na(sample.control$controls)]
-  single.index <- match(single.index, sample.paths)
-  dual.index <- sample.control[!is.na(sample.control$controls), ]
-  dual.index[, ] <- apply(dual.index, c(1, 2), function(x) {
-    match(x, sample.paths)
-  })
+  control.indices <- match(sample.control$controls, sample.control$samples)
 
   ## Create paths to helper files
   bin.file <- paste0(reference.folder, "bins.bed")
@@ -105,22 +94,18 @@ ENCODER <- function(sample.control, destination.folder,
        type = c("output", "message"))
   options(width = 150)
 
-  cat("The following samples will be analyzed single-channel:\n")
-  cat(sample.files[single.index], sep = "\n")
-  cat("\nThe following samples will be analyzed dual-channel:\n")
-  cat(paste0("sample: ", sample.files[dual.index$samples],
-             ";\tmatching control: ", sample.files[dual.index$controls]),
+  cat("The following samples will be analyzed:\n")
+  cat(paste0("sample: ", sample.files,
+             ";\tmatching control: ", sample.files[control.indices]),
       sep = "\n")
   cat("The bin size for this analysis is", bin.size, "\n")
   cat("The capture region file is", capture.regions.file, "\n")
   cat("This analysis will be run on", ncpu, "cpus", "\n\n\n")
   sink()
   
-  cat("The following samples will be analyzed single-channel:\n")
-  cat(sample.files[single.index], sep = "\n")
-  cat("\nThe following samples will be analyzed dual-channel:\n")
-  cat(paste0("sample: ", sample.files[dual.index$samples],
-             ";\tmatching control: ", sample.files[dual.index$controls]),
+  cat("The following samples will be analyzed:\n")
+  cat(paste0("sample: ", sample.files,
+             ";\tmatching control: ", sample.files[control.indices]),
       sep = "\n")
   cat("The bin size for this analysis is", bin.size, "\n")
   cat("The capture region file is", capture.regions.file, "\n")
@@ -173,7 +158,7 @@ ENCODER <- function(sample.control, destination.folder,
            "names. Please adjust the input files such that they contain the ",
            "same chromosome notation.")
     }
-  }  ## UP TO HERE
+  }
 
   ########################################################
   ## Calculate depth of coverage using off-target reads ##
@@ -289,17 +274,17 @@ ENCODER <- function(sample.control, destination.folder,
   })
   
   ## Create list with numbers of controls
-  control.numbers <- unique(dual.index$controls)
+  control.uniq.indices <- unique(control.indices)
   
   ## Call peaks in .bam file of control sample
-  Macs14 <- function(control.numbers, sample.files) {
-    system(paste0("macs14 -t " , sample.files[control.numbers], " -n MACS",
-                  control.numbers, " -g hs --nolambda"))
-    paste0("macs14 -t " , sample.files[control.numbers], " -n MACS",
-           control.numbers, " -g hs --nolambda")
+  Macs14 <- function(control.uniq.indices, sample.files) {
+    system(paste0("macs14 -t " , sample.files[control.uniq.indices], " -n MACS",
+                  control.uniq.indices, " -g hs --nolambda"))
+    paste0("macs14 -t " , sample.files[control.uniq.indices], " -n MACS",
+           control.uniq.indices, " -g hs --nolambda")
   }
-  sfInit(parallel=TRUE, cpus = min(length(control.numbers), ncpu))
-  to.log <- sfSapply(control.numbers , Macs14, sample.files)
+  sfInit(parallel=TRUE, cpus = min(length(control.uniq.indices), ncpu))
+  to.log <- sfSapply(control.uniq.indices , Macs14, sample.files)
   sfStop()
   cat(to.log, "\n", sep = "\n")
   
@@ -310,10 +295,10 @@ ENCODER <- function(sample.control, destination.folder,
                              ranges = IRanges(start = Start, end = End)))
   
   i <- c(1:length(sample.files))
-  CalculateDepthOfCoverage <- function(i, sample.files, control.list,
+  CalculateDepthOfCoverage <- function(i, sample.files, control.indices,
                                        bin.grange, bin.size) {
     # Create GRanges object of peak files
-    bed <- read.table(file = paste0("MACS", control.list[i], "_peaks.bed"),
+    bed <- read.table(file = paste0("MACS", control.indices[i], "_peaks.bed"),
                       as.is = TRUE, sep = "\t")
     colnames(bed) <- c("Chromosome", "Start", "End")
     peak.grange <- with(bed, GRanges(seqnames = Chromosome,
@@ -355,6 +340,8 @@ ENCODER <- function(sample.control, destination.folder,
     counts <- data.frame(counts)
     
     # Replace bins by real bins & calculate compensated read counts
+    sample.files[i] <- gsub("_properreads.bam$", ".bam", sample.files[i])
+    
     if (all.equal(counts$space, as.factor(seqnames(bin.grange)))) {
       counts <- within(counts, {
         Chromosome <- as.factor(seqnames(bin.grange))
@@ -375,9 +362,9 @@ ENCODER <- function(sample.control, destination.folder,
     }
 
     # Return
-    return(list(counts[, paste0("read.counts.", sample.files[i]), drop = FALSE],
-                counts[, paste0("read.counts.compensated.", sample.files[i]),
+    return(list(counts[, paste0("read.counts.compensated.", sample.files[i]),
                        drop = FALSE],
+                counts[, paste0("read.counts.", sample.files[i]), drop = FALSE],
                 counts[, paste0("fraction.of.bin.", sample.files[i]),
                        drop = FALSE],
                 paste0("Rsamtools finished calculating reads per bin in ",
@@ -388,198 +375,37 @@ ENCODER <- function(sample.control, destination.folder,
   sfLibrary(Rsamtools)
   sfLibrary(data.table)
   res <- sfSapply(i, CalculateDepthOfCoverage, sample.files,
-                  dual.index$controls, bin.grange, bin.size)
+                  control.indices, bin.grange, bin.size)
   sfStop()
   read.counts <- data.frame(Chromosome = as.factor(seqnames(bin.grange)), 
                             Start = ranges(bin.grange)@start,
                             End = ranges(bin.grange)@start +
-                              ranges(bin.grange)@width - 1L,
-                            Feature = paste0(Chromosome, ":",
-                                              paste0(Start, "-", End)))
+                              ranges(bin.grange)@width - 1L)
+  read.counts <- within(read.counts, {
+    Feature = paste0(Chromosome, ":", paste0(Start, "-", End))
+  })
   read.counts <- cbind(read.counts[, ], Reduce(cbind, res[1, ]),
-                           Reduce(cbind, res[2, ]), Reduce(cbind, res[3, ]))
+                       Reduce(cbind, res[2, ]), Reduce(cbind, res[3, ]))
   cat(unlist(res[4, ]), "\n", sep = "\n")
   sink()
    
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  ## Remove peak-regions from .bam files
-  i <- 1:length(sample.files)
-  PeakRm <- function(i, sample.files, control.list) {
-    system(paste0("bedtools intersect -abam ", sample.files[i], " -b MACS",
-                  control.list[i], "_peaks.bed -v > ",
-                  gsub(".bam$", "_peakrm.bam", sample.files[i])))
-    paste0("bedtools intersect -abam ", sample.files[i], " -b MACS",
-                  control.list[i], "_peaks.bed -v > ",
-                  gsub(".bam$", "_peakrm.bam", sample.files[i]))
-  }
-  sfInit(parallel=TRUE, cpus = ncpu)
-  to.log <- sfSapply(i, PeakRm, sample.files, dual.index$controls)
-  sfStop()
-  cat(to.log, "\n", sep = "\n")
-
-  ## Remove _properreads.bam(.bai) files
-  # if (!keep.intermediairy.files) {
-  #   file.remove(sample.files)
-  #  file.remove(gsub(".bam$", ".bam.bai", sample.files))
-  #  file.remove(list.files(pattern = "MACS"))
-  # }
-
-  ## Create new .bam list
-  sample.files <- gsub(".bam$", "_peakrm.bam", sample.files)
-  cat(sample.files, "\n", sep = "\n")
-  
-  ## Index _peakrm.bam files
-  IndexPeakRm <- function(sample.files) {
-    indexBam(sample.files)
-    paste0("indexBam(", sample.files, ")")
-  }
-  sfInit(parallel=TRUE, cpus = ncpu)
-  sfLibrary(Rsamtools)
-  to.log <- sfSapply(sample.files, IndexPeakRm)
-  sfStop()
-  cat(to.log, "\n", sep = "\n")
-
-  ## Read count statistics
-  Stats <- function(sample.files) {
-    countBam(sample.files)$records
-  }
-  sfInit(parallel=TRUE, cpus = ncpu)
-  sfLibrary(Rsamtools)
-  res <- sfSapply(sample.files, Stats)
-  sfStop()
-  statistics <- within(statistics, {
-    not.in.peaks <- res
-    in.peaks <- total.properreads - not.in.peaks
-  })
-  print(statistics)
-  cat("\n\n")
-  
-  ## Create read.counts matrix
-  read.counts <- matrix(nrow = nrow(bin.bed))
-  read.counts[,1] <- paste(bin.bed[,1],
-                          paste(bin.bed[,2], bin.bed[,3], sep = "-"),
-                          sep = ":")
-  read.counts <- cbind(read.counts, bin.bed[, 1:3])
-
-  ## Calculate the number of reads per bin
-  CalculateDepthOfCoverage <- function(sample.files, bin.bed) {
-    library(Rsamtools)
-    which <- RangedData(space = bin.bed[,1], IRanges(bin.bed[,2], bin.bed[,3]))
-    param <- ScanBamParam(which = which, what = c("pos"))
-    bamreads <- scanBam(file = paste(sample.files), param = param)
-    readmap <- matrix(data = 0, ncol = 1, nrow = nrow(bin.bed))
-    for (j in 1:length(bamreads)) {
-      readmap[j] <- length(unlist(bamreads[j]))
-    }
-    return(list(readmap, paste0("Rsamtools finished calculating reads per bin ",
-                                "in sample ", sample.files, "; number of bins = ",
-                                length(bamreads))))
-  }
-  sfInit(parallel=TRUE, cpus = ncpu)
-  res <- sfSapply(sample.files, CalculateDepthOfCoverage, bin.bed)
-  sfStop()
-  for(i in seq(1, 2 * length(sample.files), 2)) {
-    read.counts <- cbind(read.counts, res[[i]])
-  }
-  cat(unlist(res[2, ]), "\n", sep = "\n")
-  sink()
-  
-  ## Compensate for removal of reads in peak regions
-  read.counts <- cbind(read.counts, read.counts[, -c(1, 2, 3, 4)],
-                      read.counts[, -c(1, 2, 3, 4)])
-  
-  for(control.number in control.numbers) {
-
-    # Calculate overlap of peaks with bins using bedtools
-    intersection <- system(paste0("bedtools intersect -a ", bin.file, " -b ",
-                                  destination.folder,
-                                  "BamBaiMacsFiles/MACS",
-                                  control.number, "_peaks.bed -wao"),
-                           intern = TRUE)
-    intersection <- strsplit(intersection, "\t")
-    intersection <- as.data.frame(do.call(rbind, intersection))
-    intersection <- intersection[, c(1, 2, 3, 9)]
-    colnames(intersection) <- c("Chromosome", "StartPos", "StopPos", "Overlap")
-    intersection$Overlap <- as.numeric(as.character(intersection$Overlap))
-    
-    ## Calculate the cumulative overlap using data.table
-    intersection <- data.table(intersection)
-    intersection <- intersection[, lapply(.SD, sum),
-                                 by = c("Chromosome", "StartPos", "StopPos")]
-    intersection <- as.data.frame(intersection)
-
-    # Check correspondence bins, calculate fraction of remaining bin length
-    # (after peak region removal), and calculate compensated read numbers
-    control.for <- grep(control.number, which.control)
-    if (all(read.counts[, 2] == intersection[, 1] &
-            read.counts[, 3] == intersection[, 2] &
-            read.counts[, 4] == intersection[, 3])) { ## Make into one check?
-      fraction.of.bin <- (bin.size - as.numeric(intersection[, 4])) / bin.size
-      read.counts[, (4 + 2 * length(sample.files) + control.for)] <- fraction.of.bin
-      for(control in control.for) {
-        read.counts[, (4 + control)] <- ifelse(fraction.of.bin != 0,
-                                              as.numeric(read.counts[, (4 + length(sample.files) + control)]) / fraction.of.bin,
-                                              0)
-      }
-    } else {
-      stop("Bins do not correspond")
-    }
-  }
-  
-  colnames(read.counts) <- c("BinID", "Chromosome", "StartPos", "StopPos",
-                            sub(pattern = "$", ".compensated", paste(sample.files)),
-                            paste(sample.files), sub(pattern = "$",
-                                                 ".fractionOfBin",
-                                                 paste(sample.files)))
-
-  ## Create output file
-  output <- read.counts
-  output[, 2] <- gsub(prefixes[1], "", output[, 2])
-  output[, 2] <- gsub("X", nchrom - 1, output[, 2])
-  output[, 2] <- gsub("Y", nchrom, output[, 2])
-  write.table(output, file = paste0(destination.folder,
-                                    "read_counts_compensated.txt"),
+  write.table(read.counts, file = paste0(destination.folder,
+                                    "read_counts.txt"),
                                     row.names = FALSE, col.names = TRUE,
                                     sep = "\t")
 
   ## Create histograms of fraction.of.bin
   ## (fraction of length in bins (after peak region removal)
+  sample.files <- gsub("_properreads.bam$", ".bam", sample.files)
+  
   dir.create(paste0(destination.folder, "qc/"))
   for(i in 1:length(sample.files)) {
-    pdf(paste0(destination.folder, "qc/fraction.of.bin_", i,
+    pdf(paste0(destination.folder, "qc/fraction.of.bin.", sample.files[i],
                ".pdf"), width=7, height=7)
-    plot(ecdf(as.numeric(read.counts[,4+(2*length(sample.files))+i])),
-         verticals = TRUE, ylab = "Fraction of bins", 
-         xlab = "Remaining fraction of bin after peak removal",
-         main = "Cumulative distribution of remaining bin fraction")
+      plot(ecdf(as.numeric(read.counts[,4+(2*length(sample.files))+i])),
+           verticals = TRUE, ylab = "Fraction of bins", 
+           xlab = "Remaining fraction of bin after peak removal",
+           main = "Cumulative distribution of remaining bin fraction")
     dev.off()
   }
 
@@ -590,10 +416,10 @@ ENCODER <- function(sample.control, destination.folder,
   ## Read files
   read.counts <- read.counts[,1:(4 + length(sample.files))]
   for(i in 5:ncol(read.counts)) {
-    write.table(read.counts[,c(2,3,4,i)], colnames(read.counts)[i], quote = FALSE,
-                sep = "\t", row.names = FALSE, col.names = FALSE)
+    write.table(read.counts[, c(1, 2, 3, i)], colnames(read.counts)[i],
+                quote = FALSE, sep = "\t", row.names = FALSE, col.names = FALSE)
   }
-  f <- list.files(pattern = "bam.compensated")
+  f <- list.files(pattern = "read.counts.compensated")
   
   gc <- read.delim(gc.content.file)[, c(1, 2, 3, 5)]
   colnames(gc) <- c("chr", "start", "end", "gc")
@@ -623,7 +449,7 @@ ENCODER <- function(sample.control, destination.folder,
     ratios <- sfLapply(i, NormalizeDOC, data, .tng, usepoints,
                        destination.folder)
     sfStop()
-    ratios <- matrix(unlist(ratios), ncol = length(sample.files))
+    log2.read.counts <- matrix(unlist(ratios), ncol = length(sample.files))
   }, error = function(e) {
     cat("ERROR: The GC-content and mapability normalization did not work due",
         "to a failure to calculate loesses.\n")
@@ -631,104 +457,54 @@ ENCODER <- function(sample.control, destination.folder,
     stop("Stopping execution of the remaining part of the script...")    
   })
   
-  colnames(ratios) <- sampnames
+  colnames(log2.read.counts) <- sampnames
   
-  rd <- list(ratios = ratios[!data$anno$black & !is.na(data$anno$mapa) &
-                             data$anno$mapa > .2, ],
-             anno = data$anno[!data$anno$black & !is.na(data$anno$mapa) &
-                              data$anno$mapa > .2, ])
-  
-  sink(file = paste0(destination.folder, "log.txt"), append = TRUE,
-       type = c("output", "message"))
-  rd2 <- rd
-  for(i in 1:length(sample.files)) {
-    rd2$ratios[,i] <- rd$ratios[,i] - rd$ratios[,which.control[i]]
-    cat("Relative log2-values are calculated for sample",
-        colnames(rd2$ratios)[i], "with control",
-        colnames(rd2$ratios)[which.control[i]], "\n")
-  }
-  colnames(rd2$ratios) <- gsub("$", ".rel", colnames(rd2$ratios))
-  cat("\n\n")
-
   ###################
   ## Create output ##
   ###################
+  selection <- !data$anno$black & !is.na(data$anno$mapa) & data$anno$mapa > .2
+  log2.read.counts <- data.frame(data$anno[selection, c("chr", "start", "end")],
+                                 log2.read.counts[selection, ])
   
   ## Create table with corrected log2 values and write to file
-  read.counts <- matrix(nrow = nrow(rd$ratios))
-  read.counts <- cbind(read.counts, rd$anno[1:3])
-  read.counts[,1] <- paste(rd$anno[,1], paste(rd$anno[,2], rd$anno[,3],
-                                             sep = "-"), sep = ":")
-  read.counts <- cbind(read.counts, rd$ratios, rd2$ratios)
-  colnames(read.counts) <- c("BinID", "Chromosome", "StartPos", "StopPos",
-                            colnames(read.counts[5:nrow(read.counts)]))
+  log2.read.counts <- cbind(with(log2.read.counts, cbind(
+    Chromosome = chr,
+    Start = start,
+    End = end,
+    Feature = paste0(chr, ":", paste0(start, "-", end))
+  )), log2.read.counts[, 4:ncol(log2.read.counts)])
   
-  read.counts <- read.counts[-which(rowSums(is.na(read.counts[, -c(1:4)])) > 0),]
-  read.counts[, 2] <- gsub(prefixes[1], "", read.counts[, 2])
-  read.counts[, 2] <- gsub("X", nchrom - 1, read.counts[, 2])
-  read.counts[, 2] <- gsub("Y", nchrom, read.counts[, 2])
-  read.counts[, 2] <- as.integer(read.counts[, 2])
-  read.counts[read.counts == -Inf] <- -.Machine$integer.max/2
-  read.counts[read.counts == Inf] <- .Machine$integer.max/2
-  
-  write.table(read.counts, paste0(destination.folder,
-                                 "log2ratio_compensated_corrected.txt"),
+  write.table(log2.read.counts, paste0(destination.folder,
+                                       "log2_read_counts.txt"),
               sep = "\t", row.names = FALSE, quote = FALSE)
 
-  ##############################################################################
+  #############################################################################
   ## Calculate overlap with capture.regions.file for quality control purpose ##
-  ##############################################################################
+  #############################################################################
   
   if (capture.regions.file != "not specified") {
-    for(control.number in control.numbers) {
-      intersection <- system(paste0("bedtools intersect -a ",
-                                    capture.regions.file, " -b ",
-                                    destination.folder,
-                                    "BamBaiMacsFiles/MACS",
-                                    control.number, "_peaks.bed -wao"),
-                             intern = TRUE)
-      intersection <- strsplit(intersection, "\t")
-      intersection <- do.call(rbind, intersection)
-      intersection <- intersection[,c(1,2,3,9)]
-      vec <- vector()
-      for (i in 2:nrow(intersection)) {
-        if (intersection[i,1] == intersection[i-1,1] && intersection[i,2] == intersection[i-1,2] && intersection[i,3] == intersection[i-1,3] ) { ## Better check!
-          intersection[i,4] <- as.integer(intersection[i,4]) + as.integer(intersection[i-1,4])
-          vec <- append(vec, i-1)
-        }
-      }
-      intersection <- intersection[-vec,]
+    captured.bed <- read.table(capture.regions.file, as.is = TRUE, sep = "\t")
+    colnames(captured.bed) <- c("Chromosome", "Start", "End")
+    captured.grange <- with(captured.bed,
+                            GRanges(seqnames = Chromosome,
+                                    ranges = IRanges(start = Start, end = End)))
+    for (control.index in control.uniq.indices) {
+      peak.bed <- read.table(file = paste0("MACS", control.index, "_peaks.bed"),
+                             as.is = TRUE, sep = "\t")
+      colnames(peak.bed) <- c("Chromosome", "Start", "End")
+      peak.grange <- with(peak.bed, GRanges(seqnames = Chromosome,
+                        ranges = IRanges(start = Start, end = End)))
+
+      overlap <- findOverlaps(captured.grange, peak.grange)
       
-      cat("Number of exons covered by peaks in sample ",
-          sample.files[control.number], ": ", sum(intersection[,4] != "0"), "\n")
-    
-      intersection <- system(paste0("bedtools intersect -a ",
-                                    destination.folder,
-                                    "BamBaiMacsFiles/MACS",
-                                    control.number, "_peaks.bed -b ",
-                                    capture.regions.file, " -wao"),
-                             intern = TRUE)
-      intersection <- strsplit(intersection, "\t")
-      intersection <- do.call(rbind, intersection)
-      intersection <- intersection[,c(1,2,3,9)]
-      vec <- vector()
-      for (i in 2:nrow(intersection)) {
-        if (intersection[i, 1] == intersection[i - 1, 1] && intersection[i, 2] == intersection[i - 1, 2] && intersection[i, 3] == intersection[i - 1, 3] ) { ## Better check!
-          intersection[i,4] <- as.integer(intersection[i,4]) + as.integer(intersection[i-1,4])
-          vec <- append(vec, i-1)
-        }
-      }
-      intersection <- intersection[-vec,]
-      
-      cat("Number of peaks covered by exons in sample",
-          sample.files[control.number], ": ", sum(intersection[,4] != "0"), "\n")
-      cat("Total number of exons in sample", sample.files[control.number], ": ",
-          nrow(read.table(capture.regions.file, sep = "\t")), "\n")
-      cat("Total number of peaks", sample.files[control.number], ":",
-          nrow(read.table(paste0(destination.folder,
-                                 "BamBaiMacsFiles/MACS",
-                                 control.number, "_peaks.bed"), sep = "\t")),
-          "\n\n")  
+      cat("Number of capture regions covered by peaks in sample",
+          length(unique(queryHits(overlap))), "\n")
+      cat("Number of peaks covered by capture regions in sample",
+          length(unique(subjectHits(overlap))), "\n")          
+      cat("Total number of capture regions in sample",
+          sample.files[control.index], ": ", length(captured.grange), "\n")
+      cat("Total number of peaks", sample.files[control.index], ":",
+          length(peak.grange), "\n\n")
     }
   }
   
@@ -739,7 +515,9 @@ ENCODER <- function(sample.control, destination.folder,
   # }
   cat("Total calculation time: ", Sys.time() - start.time, "\n\n")
   
-  inputStructure <- list(destination.folder = destination.folder, ncpu = ncpu,
+  inputStructure <- list(sample.control = sample.control,
+                         destination.folder = destination.folder,
+                         ncpu = ncpu,
                          nchrom = nchrom)
   save(inputStructure, file = paste0(destination.folder, "input.Rdata"))
 
