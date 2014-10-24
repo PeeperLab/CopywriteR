@@ -257,6 +257,7 @@ ENCODER <- function(sample.control, destination.folder,
     total <- records
     rm(records)
   })
+  cat("\n\n")
   
   ## Create new .bam list
   setwd(paste0(destination.folder, "BamBaiMacsFiles/"))
@@ -274,11 +275,10 @@ ENCODER <- function(sample.control, destination.folder,
   statistics <- within(statistics, {
     total.properreads <- res
   })
-  print(statistics)
-	cat("\n\n")
+  cat("\n\n")
 
   ## Garbage collection
-  rm(statistics, Stats, is.paired.end, sample.paths, ProperReads,
+  rm(Stats, is.paired.end, sample.paths, ProperReads,
      NumberPairedEndReads, IndexBam)
   
   ## Create list with numbers of controls
@@ -295,6 +295,29 @@ ENCODER <- function(sample.control, destination.folder,
   to.log <- sfSapply(control.uniq.indices , Macs14, sample.files)
   sfStop()
   cat(to.log, "\n", sep = "\n")
+  
+  ## Read count statistics
+  Stats <- function(sample.files, bin.bed) {
+    all.reads <- countBam(sample.files)$records
+    which <- with(bin.bed, GRanges(seqnames = Chromosome,
+                                   ranges = IRanges(start = Start, end = End)))
+    what <- c("pos")
+    param <- ScanBamParam(which = which, what = what)
+    chrom.reads <- countBam(file = sample.files, param = param)
+    chrom.reads <- sum(chrom.reads$records)
+    c(all.reads = all.reads, chrom.reads = chrom.reads)
+  }
+  sfInit(parallel=TRUE, cpus = ncpu)
+  sfLibrary(Rsamtools)
+  res <- data.frame(t(sfSapply(sample.files, Stats, bin.bed)))
+  sfStop()
+  statistics <- within(statistics, {
+    total.properreads<- res$all.reads
+    unmapable.or.mitochondrial <- res$all.reads - res$chrom.reads
+    on.chromosomes <- res$chrom.reads
+  })
+  print(statistics)
+  cat("\n\n")
   
   ## Alternative for bedtools
   # Create GRanges file for bins
@@ -350,9 +373,9 @@ ENCODER <- function(sample.control, destination.folder,
     # Replace bins by real bins & calculate compensated read counts
     sample.files[i] <- gsub("_properreads.bam$", ".bam", sample.files[i])
     
-    if (all.equal(counts$space, as.factor(seqnames(bin.grange)))) {
+    if (all.equal(counts$space, as(seqnames(bin.grange), "factor"))) {
       counts <- within(counts, {
-        Chromosome <- as.factor(seqnames(bin.grange))
+        Chromosome <- as(seqnames(bin.grange), "factor")
         Start <- ranges(bin.grange)@start
         End <- ranges(bin.grange)@start + ranges(bin.grange)@width - 1L
         Feature <- paste0(Chromosome, ":", paste0(Start, "-", End))
@@ -385,7 +408,7 @@ ENCODER <- function(sample.control, destination.folder,
   res <- sfSapply(i, CalculateDepthOfCoverage, sample.files,
                   control.indices, bin.grange, bin.size)
   sfStop()
-  read.counts <- data.frame(Chromosome = as.factor(seqnames(bin.grange)), 
+  read.counts <- data.frame(Chromosome = as(seqnames(bin.grange), "factor"),
                             Start = ranges(bin.grange)@start,
                             End = ranges(bin.grange)@start +
                               ranges(bin.grange)@width - 1L)
@@ -395,7 +418,6 @@ ENCODER <- function(sample.control, destination.folder,
   read.counts <- cbind(read.counts[, ], Reduce(cbind, res[1, ]),
                        Reduce(cbind, res[2, ]), Reduce(cbind, res[3, ]))
   cat(unlist(res[4, ]), "\n", sep = "\n")
-  sink()
    
   write.table(read.counts, file = paste0(destination.folder,
                                     "read_counts.txt"),
@@ -418,7 +440,7 @@ ENCODER <- function(sample.control, destination.folder,
   }
   
   ## Garbage collection
-  rm(bin.bed, bin.grange, to.log, res, Macs14, control.indices,
+  rm(statistics, bin.bed, bin.grange, to.log, res, Macs14, control.indices,
      CalculateDepthOfCoverage, bin.size)
 
   #############################################
