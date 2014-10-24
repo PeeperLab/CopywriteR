@@ -30,7 +30,7 @@ plotCNA <- function(destination.folder, set.nchrom = "determined.from.reference"
 	}
 
 	# Read data
-	read_count <- read.table(file = paste0(inputStructure$destination.folder, "log2ratio_compensated_corrected.txt"), sep = "\t", header = TRUE, check.names = FALSE)
+	read_count <- read.table(file = paste0(inputStructure$destination.folder, "log2_read_counts.txt"), sep = "\t", header = TRUE, check.names = FALSE)
 
 	# Run CGHcall
 	raw <- make_cghRaw(read_count)

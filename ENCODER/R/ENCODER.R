@@ -73,8 +73,7 @@ ENCODER <- function(sample.control, destination.folder,
   ## Retrieve number of chromosomes and bin size from bin.bed helper file
   bin.bed <- read.table(file = bin.file, as.is = TRUE, sep = "\t")
   colnames(bin.bed) <- c("Chromosome", "Start", "End")
-  chrom <- unique(bin.bed$Chromosome)
-  nchrom <- length(chrom)
+  nchrom <- length(unique(bin.bed$Chromosome))
   bin.size <- bin.bed$End[1]
   
   ## Create folders
@@ -159,6 +158,9 @@ ENCODER <- function(sample.control, destination.folder,
            "same chromosome notation.")
     }
   }
+  
+  ## Garbage collection
+  rm(samp, header, con, chr.names, bin.file, prefixes, reference.folder)
 
   ########################################################
   ## Calculate depth of coverage using off-target reads ##
@@ -272,6 +274,12 @@ ENCODER <- function(sample.control, destination.folder,
   statistics <- within(statistics, {
     total.properreads <- res
   })
+  print(statistics)
+	cat("\n\n")
+
+  ## Garbage collection
+  rm(statistics, Stats, is.paired.end, sample.paths, ProperReads,
+     NumberPairedEndReads, IndexBam)
   
   ## Create list with numbers of controls
   control.uniq.indices <- unique(control.indices)
@@ -408,6 +416,10 @@ ENCODER <- function(sample.control, destination.folder,
            main = "Cumulative distribution of remaining bin fraction")
     dev.off()
   }
+  
+  ## Garbage collection
+  rm(bin.bed, bin.grange, to.log, res, Macs14, control.indices,
+     CalculateDepthOfCoverage, bin.size)
 
   #############################################
   ## Normalize for GC-content and mapability ##
@@ -477,6 +489,11 @@ ENCODER <- function(sample.control, destination.folder,
   write.table(log2.read.counts, paste0(destination.folder,
                                        "log2_read_counts.txt"),
               sep = "\t", row.names = FALSE, quote = FALSE)
+  
+  ## Garbage collection
+  rm(f, gc, mapa, black, data, sampnames, usepoints, selection, blacklist.file,
+     mapability.file, gc.content.file, read.counts, ratios, NormalizeDOC,
+     log2.read.counts, i)
 
   #############################################################################
   ## Calculate overlap with capture.regions.file for quality control purpose ##
@@ -513,6 +530,11 @@ ENCODER <- function(sample.control, destination.folder,
   # if (!keep.intermediairy.files) {
   #   unlink(paste0(destination.folder, "BamBaiMacsFiles/"))
   # }
+  
+  ## Garbage collection
+  rm(overlap, captured.bed, peak.bed, capture.regions.file, peak.grange,
+     sample.files, control.uniq.indices, control.index, captured.grange)
+  
   cat("Total calculation time: ", Sys.time() - start.time, "\n\n")
   
   inputStructure <- list(sample.control = sample.control,
