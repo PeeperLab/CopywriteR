@@ -117,18 +117,18 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 ## Changes and additions we are currently working on
 
-- [ ] Change output format to igv2.0
-- [ ] Implement different input structure to indicate which bam files should be used as references
 - [ ] Remove dependency for CGHcall and use only DNAcopy for segmentation
 - [ ] Provide plotting function for DNAcopy output
 - [ ] Remove dependency for MACS 1.4 (use alternative implemented in R)
-- [ ] Remove dependency for bedtools (use alternative implemented in R)
-- [ ] Clean up code
 - [ ] Compile into bioConductor package
 - [ ] Make names consistent and apply Rlint to code
-- [ ] Remove dependency for Samtools (use Rsamtools instead; implemented in source code)
-- [ ] Include a check for integrity of BAM files (implemented in source code)
 - [ ] Make keeping intermediate .bam and MACS files optional (implemented in source code)
+- [ ] Change input structure to allow more flexibility (implemented in source code)
+- [ ] Clean up code (implemented in source code)
+- [ ] Remove dependency for bedtools (replaced by GenomicRanges in source code)
+- [ ] Remove dependency for Samtools (replaced by Rsamtools in source code)
+- [ ] Include a check for integrity of BAM files (implemented in source code)
+- [ ] Change output format to igv2.0 (implemented in source code)
 - [x] Debug error when using 1kb bin size
 - [x] Support alternative chromosome names (i.e., "chr1" instead of "1")
 - [x] Extract binSize from bins.bed file

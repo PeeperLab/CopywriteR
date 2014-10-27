@@ -299,8 +299,9 @@ ENCODER <- function(sample.control, destination.folder,
   ## Read count statistics
   Stats <- function(sample.files, bin.bed) {
     all.reads <- countBam(sample.files)$records
-    which <- with(bin.bed, GRanges(seqnames = Chromosome,
-                                   ranges = IRanges(start = Start, end = End)))
+    which <- with(bin.bed,
+                  reduce(GRanges(seqnames = Chromosome,
+                                 ranges = IRanges(start = Start, end = End))))
     what <- c("pos")
     param <- ScanBamParam(which = which, what = what)
     chrom.reads <- countBam(file = sample.files, param = param)
