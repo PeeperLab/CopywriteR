@@ -160,7 +160,7 @@ ENCODER <- function(sample.control, destination.folder,
   }
   
   ## Garbage collection
-  rm(samp, header, con, chr.names, bin.file, prefixes, reference.folder)
+  rm(samp, header, con, chr.names, bin.file, reference.folder)
 
   ########################################################
   ## Calculate depth of coverage using off-target reads ##
@@ -465,9 +465,7 @@ ENCODER <- function(sample.control, destination.folder,
   
   data <- .loadCovData(f, gc = gc, mapa = mapa, black = black,
                        excludechr = "MT", datacol = 4)
-  sampnames <- paste(sub("$", "", f), paste0(round(colSums(data$cov) / 1e6, 1),
-                                             "M"), sep = "_")
-  colnames(data$cov) <- sampnames
+  colnames(data$cov) <- f
   usepoints <- !(data$anno$chr %in% c("X","Y","MT", "chrX", "chrY", "chrM"))
   
   ## Perform normalization (in .tng helper function)
@@ -492,7 +490,8 @@ ENCODER <- function(sample.control, destination.folder,
     stop("Stopping execution of the remaining part of the script...")    
   })
   
-  colnames(log2.read.counts) <- sampnames
+  colnames(log2.read.counts) <- paste0("log2.",
+                                       gsub(".compensated", "", sampnames))
   
   ###################
   ## Create output ##
@@ -514,7 +513,7 @@ ENCODER <- function(sample.control, destination.folder,
               sep = "\t", row.names = FALSE, quote = FALSE)
   
   ## Garbage collection
-  rm(f, gc, mapa, black, data, sampnames, usepoints, selection, blacklist.file,
+  rm(f, gc, mapa, black, data, usepoints, selection, blacklist.file,
      mapability.file, gc.content.file, read.counts, ratios, NormalizeDOC,
      log2.read.counts, i)
 
@@ -561,9 +560,9 @@ ENCODER <- function(sample.control, destination.folder,
   cat("Total calculation time: ", Sys.time() - start.time, "\n\n")
   
   inputStructure <- list(sample.control = sample.control,
-                         destination.folder = destination.folder,
                          ncpu = ncpu,
-                         nchrom = nchrom)
+                         nchrom = nchrom,
+                         prefix = prefixes[1])
   save(inputStructure, file = paste0(destination.folder, "input.Rdata"))
 
 }
