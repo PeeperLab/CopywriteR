@@ -1,5 +1,9 @@
 plotCNA <- function(destination.folder, set.nchrom, sample.plot) {
-
+  
+  ## TO BE INCLUDED:
+  ## Optional arguments for how to run DNAcopy
+  ## e.g. smoothing, 
+  
   ## Make folder path absolute
   destination.folder <- tools::file_path_as_absolute(destination.folder)
 
@@ -27,19 +31,23 @@ plotCNA <- function(destination.folder, set.nchrom, sample.plot) {
   
   ## Set sample.plot
   if (missing(sample.plot)) {
-    all.samples <- unique(unlist(inputStructure$sample.control))
-    sample.plot <- rbind(inputStructure$sample.control,
+    sample.plot <- apply(inputStructure$sample.control, c(1, 2), function(x) {
+      x <- paste0("log2.read.counts.", gsub(".*/", "", x))
+    })
+    all.samples <- unique(as.vector(sample.plot))
+    sample.plot <- rbind(sample.plot,
                          data.frame(samples = all.samples,
                                     controls = rep(NA, length(all.samples))))
+  } else {
+    sample.plot[, ] <- apply(sample.plot, c(1, 2), function(x) {
+      if (!is.na(x)) {
+        x <- paste0("log2.read.counts.",
+                    gsub("_properreads", "", gsub(".*/", "", x)))
+      } else {
+        x <- x
+      }
+    })
   }
-  sample.plot[, ] <- apply(sample.plot, c(1, 2), function(x) {
-    if (!is.na(x)) {
-      x <- paste0("log2.read.counts.",
-                  unlist(strsplit(x, "/"))[length(unlist(strsplit(x, "/")))])
-    } else {
-      x <- x
-    }
-  })
 
   ## Read data
   log2.read.counts <- read.table(file = paste0(destination.folder,
@@ -67,7 +75,23 @@ plotCNA <- function(destination.folder, set.nchrom, sample.plot) {
   })
   
   ## Create table with values to be plotted
-  if (all(vector(sample.plot) %in% colnames(log2.read.counts))) {
+  if (all(na.omit(unlist(sample.plot)) %in% colnames(log2.read.counts))) {
+    plotting.values <- within(log2.read.counts, {
+      # Loop through sample.plot calculating the relevant absolute and relative
+      # log2.read.counts values. Loop used for readability
+      for (i in nrow(sample.plot):1) {
+        if (!is.na(sample.plot$controls[i])) {
+          eval(parse(text = paste0(sample.plot$samples[i], ".vs.",
+                                   sample.plot$controls[i], " <- ",
+                                   sample.plot$samples[i], " - ",
+                                   sample.plot$controls[i])))
+        } else {
+          eval(parse(text = paste0(sample.plot$samples[i], ".vs.none <- ",
+                                   sample.plot$samples[i])))
+        }
+      }
+    rm(list = c("i", colnames(log2.read.counts[5:ncol(log2.read.counts)])))
+    })
   } else {
     stop("One of the samples in sample.plot refers to a BAM file that has not ",
          "been processed in ENCODER. Please make sure that you have provided ",
@@ -75,15 +99,17 @@ plotCNA <- function(destination.folder, set.nchrom, sample.plot) {
   }
   
   ## Apply DNAcopy
-  CNA.object <- CNA(log2.read.counts[, 5:ncol(log2.read.counts)],
-                    log2.read.counts$Chromosome,
-                    rowMeans(log2.read.counts[, c("StartPos", "StopPos")]),
+  CNA.object <- CNA(plotting.values[, 5:ncol(plotting.values)],
+                    plotting.values$Chromosome,
+                    rowMeans(plotting.values[, c("Start", "End")]),
                     data.type = "logratio",
                     sampleid =
-                      colnames(log2.read.counts)[5:ncol(log2.read.counts)])
+                      colnames(plotting.values)[5:ncol(plotting.values)])
  
   smoothed.CNA.object <- smooth.CNA(CNA.object)
   segment.CNA.object <- segment(smoothed.CNA.object, verbose = 1)
+  
+  
   
   
 
