@@ -490,8 +490,7 @@ ENCODER <- function(sample.control, destination.folder,
     stop("Stopping execution of the remaining part of the script...")    
   })
   
-  colnames(log2.read.counts) <- paste0("log2.",
-                                       gsub(".compensated", "", sampnames))
+  colnames(log2.read.counts) <- paste0("log2.", gsub(".compensated", "", f))
   
   ###################
   ## Create output ##
