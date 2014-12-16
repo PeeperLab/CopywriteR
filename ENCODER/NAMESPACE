@@ -1,6 +1,6 @@
 exportPattern("^[[:alpha:]]+")
 
-import(CGHcall)
+import(DNAcopy)
 import(IRanges)
 import(Rsamtools)
 import(gtools)

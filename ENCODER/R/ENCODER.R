@@ -117,7 +117,7 @@ ENCODER <- function(sample.control, destination.folder,
     for(samp in sample.paths) {
       header <- scanBamHeader(samp)
       chr.names <- names(header[[1]]$targets)[1]
-      prefixes <- append(prefixes, gsub("[[:digit:]]|X|Y", "", chr.names)[1])
+      prefixes <- append(prefixes, gsub("[[:digit:]]|X|Y|M|T", "", chr.names)[1])
     }
   }, error = function(e) {
     cat("ERROR: The BAM file header of file", samp, "is corrupted or",
@@ -160,7 +160,7 @@ ENCODER <- function(sample.control, destination.folder,
   }
   
   ## Garbage collection
-  rm(samp, header, con, chr.names, bin.file, reference.folder)
+  rm(samp, header, con, chr.names, reference.folder)
 
   ########################################################
   ## Calculate depth of coverage using off-target reads ##
@@ -561,7 +561,8 @@ ENCODER <- function(sample.control, destination.folder,
   inputStructure <- list(sample.control = sample.control,
                          ncpu = ncpu,
                          nchrom = nchrom,
-                         prefix = prefixes[1])
+                         prefix = prefixes[1],
+                         bin.file = bin.file)
   save(inputStructure, file = paste0(destination.folder, "input.Rdata"))
 
 }

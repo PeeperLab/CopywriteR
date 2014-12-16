@@ -117,6 +117,7 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 ## Changes and additions we are currently working on
 
+- [ ] Remove bug in determining of total chromosome number with missing sex chromosomes
 - [ ] Remove dependency for CGHcall and use only DNAcopy for segmentation
 - [ ] Provide plotting function for DNAcopy output
 - [ ] Remove dependency for MACS 1.4 (use alternative implemented in R)
@@ -129,6 +130,7 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 - [ ] Remove dependency for Samtools (replaced by Rsamtools in source code)
 - [ ] Include a check for integrity of BAM files (implemented in source code)
 - [ ] Change output format to igv2.0 (implemented in source code)
+- [ ] Remove bug in determining chromosome name prefixes (fixed in source code)
 - [x] Debug error when using 1kb bin size
 - [x] Support alternative chromosome names (i.e., "chr1" instead of "1")
 - [x] Extract binSize from bins.bed file

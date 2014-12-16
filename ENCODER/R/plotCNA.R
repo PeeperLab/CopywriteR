@@ -1,8 +1,6 @@
-plotCNA <- function(destination.folder, set.nchrom, sample.plot) {
+plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, ...) {
   
-  ## TO BE INCLUDED:
-  ## Optional arguments for how to run DNAcopy
-  ## e.g. smoothing, 
+  #############Change 20 kb bins
   
   ## Make folder path absolute
   destination.folder <- tools::file_path_as_absolute(destination.folder)
@@ -18,16 +16,11 @@ plotCNA <- function(destination.folder, set.nchrom, sample.plot) {
 
   load(paste0(destination.folder, "input.Rdata"), .GlobalEnv)
   
-  ## Set nchrom
-  if (missing(set.nchrom)) {
-    nchrom <- inputStructure$nchrom
-  } else {
-    nchrom <- set.nchrom
-  }
-  
+  ## Set variables
+  nchrom <- inputStructure$nchrom
   prefix <- inputStructure$prefix
   ncpu <- inputStructure$ncpu
-  
+  bin.file <- inputStructure$bin.file
   
   ## Set sample.plot
   if (missing(sample.plot)) {
@@ -35,20 +28,21 @@ plotCNA <- function(destination.folder, set.nchrom, sample.plot) {
       x <- paste0("log2.read.counts.", gsub(".*/", "", x))
     })
     all.samples <- unique(as.vector(sample.plot))
-    sample.plot <- rbind(sample.plot,
+    sample.plot <- rbind(data.frame(sample.plot, stringsAsFactors = FALSE),
                          data.frame(samples = all.samples,
-                                    controls = rep(NA, length(all.samples))))
+                                    controls = rep(NA, length(all.samples)),
+                                    stringsAsFactors = FALSE))
   } else {
     sample.plot[, ] <- apply(sample.plot, c(1, 2), function(x) {
       if (!is.na(x)) {
         x <- paste0("log2.read.counts.",
                     gsub("_properreads", "", gsub(".*/", "", x)))
       } else {
-        x <- x
+        x <- as.character(x)
       }
     })
   }
-
+  
   ## Read data
   log2.read.counts <- read.table(file = paste0(destination.folder,
                                                "log2_read_counts.txt"),
@@ -62,9 +56,10 @@ plotCNA <- function(destination.folder, set.nchrom, sample.plot) {
   log2.read.counts[, 2] <- gsub("Y", nchrom, log2.read.counts[, 2])
   log2.read.counts[, 2] <- as.integer(log2.read.counts[, 2])
   
-  ## Fix behaviour of DNAcopy with very low values
+  ## Fix behaviour of DNAcopy with 'outlier' values
   log2.read.counts[, 5:ncol(log2.read.counts)] <-
-    apply(log2.read.counts[, 5:ncol(log2.read.counts)], c(1, 2), function(x) {
+    apply(log2.read.counts[, 5:ncol(log2.read.counts), drop = FALSE],
+          c(1, 2), function(x) {
     if (x < -100) {
       x <- -100
     } else if (x > 100) {
@@ -78,16 +73,17 @@ plotCNA <- function(destination.folder, set.nchrom, sample.plot) {
   if (all(na.omit(unlist(sample.plot)) %in% colnames(log2.read.counts))) {
     plotting.values <- within(log2.read.counts, {
       # Loop through sample.plot calculating the relevant absolute and relative
-      # log2.read.counts values. Loop used for readability
+      # log2.read.counts values. Loop used for readability. Loop in reverse
+      # order to get the ordering in data.frame correct
       for (i in nrow(sample.plot):1) {
         if (!is.na(sample.plot$controls[i])) {
-          eval(parse(text = paste0(sample.plot$samples[i], ".vs.",
-                                   sample.plot$controls[i], " <- ",
-                                   sample.plot$samples[i], " - ",
-                                   sample.plot$controls[i])))
+          assign(paste0(sample.plot$samples[i], ".vs.",
+                        sample.plot$controls[i]),
+                 log2.read.counts[, sample.plot$samples[i]] -
+                 log2.read.counts[, sample.plot$controls[i]])
         } else {
-          eval(parse(text = paste0(sample.plot$samples[i], ".vs.none <- ",
-                                   sample.plot$samples[i])))
+          assign(paste0(sample.plot$samples[i], ".vs.none"),
+                 log2.read.counts[, sample.plot$samples[i]])
         }
       }
     rm(list = c("i", colnames(log2.read.counts[5:ncol(log2.read.counts)])))
@@ -105,99 +101,128 @@ plotCNA <- function(destination.folder, set.nchrom, sample.plot) {
                     data.type = "logratio",
                     sampleid =
                       colnames(plotting.values)[5:ncol(plotting.values)])
- 
-  smoothed.CNA.object <- smooth.CNA(CNA.object)
-  segment.CNA.object <- segment(smoothed.CNA.object, verbose = 1)
-  
-  
-  
-  
-
-
-  
-  
-
-
-
-
-
-
-
-
-
-  colnames(log2.read.counts) <- paste0("log2.", gsub(".compensated", "", sampnames))
-
-
-
-
-
-  ## Convert names in sample.plot to the corresponding names in log2.read.counts 
-
-  ## Test whether all sample files have been processed before
-  if (all(vector(sample.plot) %in% colnames(log2.read.counts))) {
-  } else {
-    stop("One of the samples in sample.plot refers to a BAM file that has not ",
-         "been processed in ENCODER. Please make sure that you have provided ",
-         "the correct input files or re-run ENCODER accordingly.")
+  if (smoothed) {
+    CNA.object <- smooth.CNA(CNA.object)  
   }
-
-  # Run CGHcall
-  raw <- make_cghRaw(read_count)
-  prep <- preprocess(raw, maxmiss = 30, nchrom = inputStructure$nchrom)
-  nor <-  normalize(prep, method = "median", smoothOutliers = TRUE)
-  seg <-  segmentData(nor, method = "DNAcopy", nperm = 2000, undo.splits = "sdundo", min.width = 5, undo.SD = 1, clen = 25, relSDlong = 5)
-  segnorm <- postsegnormalize(seg, inter = c(-1,1))
-  listcalls <- CGHcall(segnorm, nclass = 5, robustsig = "yes", cellularity = 1, ncpus = inputStructure$ncpu)
-  calls <- ExpandCGHcall(listcalls, segnorm, divide = 5, memeff = FALSE)
-  save(calls, file = paste0(inputStructure$destination.folder, "calls.Rdata"))
+  segment.CNA.object <- segment(CNA.object, verbose = 1, ...)
+  save(segment.CNA.object, file = paste0(destination.folder, "segment.Rdata"))
   
-  # Make whole-genome plots
-  system(paste0("mkdir ", inputStructure$destination.folder, "Call_plots"))
-  colnames_read_count <- gsub(" ", ".", colnames(read_count)[5:ncol(read_count)])
-  for (i in 1:(ncol(read_count) - 4)) {
-    setwd(paste0(inputStructure$destination.folder, "Call_plots/"))
-    system(paste0("mkdir ",i, "_", colnames_read_count[i]))
-    setwd(paste0(i, "_", colnames_read_count[i]))
-    png(filename=paste0(i, "_freqonly_", colnames_read_count[i],".png"), width=2*480, height=480)
-      plot(nor[,i], dotres = 1)
-    dev.off()  
-    pdf(file=paste0(i, "_freqonly_", colnames_read_count[i],".pdf"), width=2*7, height=7)
-      plot(nor[,i], dotres = 1)
-    dev.off()
-    png(filename=paste0(i, "_", colnames_read_count[i],".png"), width=2*480, height=480)
-      plot(calls[,i], dotres=1)
-    dev.off()
-    pdf(file=paste0(i, "_", colnames_read_count[i],".pdf"), width=2*7, height=7)
-      plot(calls[,i], dotres=1)
-    dev.off()
-    png(filename=paste0(i, "_segmented_", colnames_read_count[i],".png"), width=2*480, height=480)
-      plot(seg[,i], dotres=1)
-    dev.off()
-    pdf(file=paste0(i, "_segmented_", colnames_read_count[i],".pdf"), width=2*7, height=7)
-      plot(seg[,i], dotres=1)
-    dev.off()
+  ## Calculate the chromosome lengths from the bin.bed file
+  bin.bed <- read.table(file = bin.file, as.is = TRUE, sep = "\t")
+  colnames(bin.bed) <- c("Chromosome", "Start", "End")
+  bin.bed$Chromosome <- gsub("X", nchrom - 1, bin.bed$Chromosome)
+  bin.bed$Chromosome <- gsub("Y", nchrom, bin.bed$Chromosome)
+  bin.bed <- with(bin.bed,
+                  reduce(GRanges(seqnames = Chromosome,
+                                 ranges = IRanges(start = Start, end = End))))
+  bin.bed <- bin.bed[order(rankSeqlevels(seqlevels(bin.bed)))]
+  chrom.lengths <- data.frame(Chromosome = 1:length(seqlevels(bin.bed)),
+                              Length = ranges(bin.bed)@width - 1)
+  chrom.lengths <- within(chrom.lengths, {
+    CumSum <- c(0, cumsum(Length)[1:(nrow(chrom.lengths) - 1)])
+  })
+  # save(chrom.lengths, file = paste0(destination.folder, "chrom_lengths.Rdata"))
+
+  ## Create plots
+  segment.CNA.object$output <- within(segment.CNA.object$output, {
+    start.position.chrom <-
+      chrom.lengths$CumSum[match(as.integer(chrom), chrom.lengths$Chromosome)]
+    loc.start <- loc.start + start.position.chrom
+    loc.end <- loc.end + start.position.chrom
+    rm(start.position.chrom)
+  })
+  segment.CNA.object$data <- within(segment.CNA.object$data, {
+    start.position.chrom <-
+      chrom.lengths$CumSum[match(as.integer(chrom), chrom.lengths$Chromosome)]
+    maploc <- maploc + start.position.chrom
+    rm(start.position.chrom)
+  })
+
+  # Get sample names
+  samples <- colnames(segment.CNA.object$data)
+  samples <- samples[3:length(samples)]
+
+  ## Add trailing / to folder paths
+  plot.folder <- paste0(destination.folder, "plots/")
+  dir.create(plot.folder)
+  setwd(plot.folder)
+
+  # Loop through samples using lapply
+  invisible(lapply(samples, function(x) {
+    # Select sample
+    select.sample <- x
+    current.sample <- segment.CNA.object
+    current.sample$data <- current.sample$data[, c("chrom", "maploc",
+                                                   select.sample)]
+    current.sample$output <-
+      current.sample$output[current.sample$output$ID == select.sample, ]
+  
+    # Create and set new directory
+    dir.create(paste0(plot.folder, select.sample))
+    setwd(paste0(plot.folder, select.sample))
+  
+    # Loop through chromosomes using lapply
+    invisible(lapply(c(as.list(1:nchrom), list(1:nchrom)), function(x) {
+      # Select chromosome
+      select.chrom <- x
+      current.sample$data <-
+        current.sample$data[current.sample$data$chrom %in% select.chrom, ]
+      current.sample$output <-
+        current.sample$output[current.sample$output$chrom %in% select.chrom, ]
+  
+      # Set variables
+      genome.position.min <-
+        chrom.lengths$CumSum[match(min(select.chrom), chrom.lengths$Chromosome)]
+      genome.position.max <-
+        chrom.lengths$CumSum[match(max(select.chrom), chrom.lengths$Chromosome)] + 
+        chrom.lengths$Length[match(max(select.chrom), chrom.lengths$Chromosome)]
+      y.min <- -3
+      y.max <- 2
+    
+      ## Plot data
+      if (length(x) > 1) {
+        name.chrom <- "all.chrom"
+      } else {
+        name.chrom <- paste0("chrom.", x)
+      }
+      pdf(file = paste0(name.chrom, ".pdf"), width = 14, height = 7)
+        plot(current.sample$data[, "maploc"],
+             current.sample$data[, select.sample], ylim = c(y.min, y.max),
+             pch = ".", cex = 1,
+             xlim = c(genome.position.min, genome.position.max), xaxs = "i",
+             xlab = "", ylab = "log2 value", xaxt = "n", main = select.sample)
       
-    # Make per-genome plots
-    for (j in 1:inputStructure$nchrom){
-      print(j)
-      png(filename=paste0("chromo_", j, "_", colnames_read_count[i],"_freqonly.png"), width=2*480, height=480)
-        plot(nor[chromosomes(nor) == j,i], dotres=1)
+        points(current.sample$data$maploc[current.sample$data[, select.sample] > y.max],
+               rep.int(y.max, sum(current.sample$data[, select.sample] > y.max)),
+               cex = 0.25, col = "green", pch = 2)
+        points(current.sample$data$maploc[current.sample$data[, select.sample] < y.min],
+               rep.int(y.min, sum(current.sample$data[, select.sample] < y.min)),
+               cex = 0.25, col = "red", pch = 6)
+            
+        invisible(apply(current.sample$output, 1, function(x) {
+          segments(x0 = as.numeric(x["loc.start"]),
+                   y0 = as.numeric(x["seg.mean"]),
+                   x1 = as.numeric(x["loc.end"]),
+                   col = "red", pch = ".", cex = 0.2)
+        }))
+        par(xpd = TRUE)
+        text(x = 0.96 * (genome.position.max - genome.position.min) +
+             genome.position.min,
+             y = 0.075 * (y.max - y.min) + y.max,
+             labels = paste0("mad = ", round(madDiff(current.sample$data[, select.sample]), 3)))
+        text(x = 0.035 * (genome.position.max - genome.position.min) +
+             genome.position.min,
+             y = 0.075 * (y.max - y.min) + y.max,
+             labels = paste0("20", " kb bins"))
+        par(xpd = FALSE)
+        ticks <- (chrom.lengths$CumSum + chrom.lengths$Length / 2)[select.chrom]
+        axis(1, at = ticks, labels = select.chrom)
+        if (length(select.chrom) > 1) {
+          abline(v = chrom.lengths$CumSum[2:nrow(chrom.lengths)],
+                 lty = "dotted")
+        }
+    
       dev.off()
-      pdf(file=paste0("chromo_", j, "_", colnames_read_count[i],"_freqonly.pdf"), width=2*7, height=7)
-        plot(nor[chromosomes(nor) == j,i], dotres=1)
-      dev.off()
-      png(filename=paste0("chromo_", j, "_", colnames_read_count[i],"_seg.png"), width=2*480, height=480)
-        plot(seg[chromosomes(seg) == j,i], dotres=1)
-      dev.off()
-      pdf(file=paste0("chromo_", j, "_", colnames_read_count[i],"_seg.pdf"), width=2*7, height=7)
-        plot(seg[chromosomes(seg) == j,i], dotres=1)
-      dev.off()
-      png(filename=paste0("chromo_", j, "_", colnames_read_count[i],".png"), width=2*480, height=480)
-        plot(calls[chromosomes(calls)==j,i], dotres=1)
-      dev.off()
-      pdf(file=paste0("chromo_", j, "_", colnames_read_count[i],".pdf"), width=2*7, height=7)
-        plot(calls[chromosomes(calls)==j,i], dotres=1)
-      dev.off()
-    }
-  }
+    }))
+  }))
 }
