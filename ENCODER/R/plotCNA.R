@@ -1,4 +1,5 @@
-plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, ...) {
+plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
+                    y.max, ...) {
   
   #############Change 20 kb bins
   
@@ -21,6 +22,7 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, ...) {
   prefix <- inputStructure$prefix
   ncpu <- inputStructure$ncpu
   bin.file <- inputStructure$bin.file
+  bin.size <- inputStructure$bin.size
   
   ## Set sample.plot
   if (missing(sample.plot)) {
@@ -51,19 +53,20 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, ...) {
   ## Remove prefix and convert chromosome names to integers
   log2.read.counts <-
     log2.read.counts[-which(rowSums(is.na(log2.read.counts[, -c(1:4)])) > 0), ]
-  log2.read.counts[, 2] <- gsub(prefix, "", log2.read.counts[, 2])
-  log2.read.counts[, 2] <- gsub("X", nchrom - 1, log2.read.counts[, 2])
-  log2.read.counts[, 2] <- gsub("Y", nchrom, log2.read.counts[, 2])
-  log2.read.counts[, 2] <- as.integer(log2.read.counts[, 2])
+  log2.read.counts$Chromosome <- gsub(prefix, "", log2.read.counts$Chromosome)
+  log2.read.counts$Chromosome <-
+    gsub("X", nchrom - 1, log2.read.counts$Chromosome)
+  log2.read.counts$Chromosome <- gsub("Y", nchrom, log2.read.counts$Chromosome)
+  log2.read.counts$Chromosome <- as.integer(log2.read.counts$Chromosome)
   
   ## Fix behaviour of DNAcopy with 'outlier' values
   log2.read.counts[, 5:ncol(log2.read.counts)] <-
     apply(log2.read.counts[, 5:ncol(log2.read.counts), drop = FALSE],
           c(1, 2), function(x) {
-    if (x < -100) {
-      x <- -100
-    } else if (x > 100) {
-      x <- 100
+    if (x < -5) {
+      x <- -5
+    } else if (x > 10) {
+      x <- 10
     } else {
       x <- x
     }
@@ -110,12 +113,14 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, ...) {
   ## Calculate the chromosome lengths from the bin.bed file
   bin.bed <- read.table(file = bin.file, as.is = TRUE, sep = "\t")
   colnames(bin.bed) <- c("Chromosome", "Start", "End")
+  bin.bed$Chromosome <- gsub(prefix, "", bin.bed$Chromosome)
   bin.bed$Chromosome <- gsub("X", nchrom - 1, bin.bed$Chromosome)
   bin.bed$Chromosome <- gsub("Y", nchrom, bin.bed$Chromosome)
+  bin.bed$Chromosome <- as.integer(bin.bed$Chromosome)
   bin.bed <- with(bin.bed,
                   reduce(GRanges(seqnames = Chromosome,
                                  ranges = IRanges(start = Start, end = End))))
-  bin.bed <- bin.bed[order(rankSeqlevels(seqlevels(bin.bed)))]
+  bin.bed <- bin.bed[order(as.integer(seqlevels(bin.bed)))]
   chrom.lengths <- data.frame(Chromosome = 1:length(seqlevels(bin.bed)),
                               Length = ranges(bin.bed)@width - 1)
   chrom.lengths <- within(chrom.lengths, {
@@ -142,10 +147,18 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, ...) {
   samples <- colnames(segment.CNA.object$data)
   samples <- samples[3:length(samples)]
 
-  ## Add trailing / to folder paths
+  # Add trailing / to folder paths
   plot.folder <- paste0(destination.folder, "plots/")
   dir.create(plot.folder)
   setwd(plot.folder)
+  
+  # Set boundaries plots
+  if (missing(y.min)) {
+    y.min <- -3
+  }
+  if (missing(y.max)) {
+    y.max <- 2
+  }
 
   # Loop through samples using lapply
   invisible(lapply(samples, function(x) {
@@ -176,10 +189,8 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, ...) {
       genome.position.max <-
         chrom.lengths$CumSum[match(max(select.chrom), chrom.lengths$Chromosome)] + 
         chrom.lengths$Length[match(max(select.chrom), chrom.lengths$Chromosome)]
-      y.min <- -3
-      y.max <- 2
     
-      ## Plot data
+      # Plot data
       if (length(x) > 1) {
         name.chrom <- "all.chrom"
       } else {
@@ -213,7 +224,7 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, ...) {
         text(x = 0.035 * (genome.position.max - genome.position.min) +
              genome.position.min,
              y = 0.075 * (y.max - y.min) + y.max,
-             labels = paste0("20", " kb bins"))
+             labels = paste0(bin.size / 1000, " kb bins"))
         par(xpd = FALSE)
         ticks <- (chrom.lengths$CumSum + chrom.lengths$Length / 2)[select.chrom]
         axis(1, at = ticks, labels = select.chrom)
@@ -221,7 +232,6 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, ...) {
           abline(v = chrom.lengths$CumSum[2:nrow(chrom.lengths)],
                  lty = "dotted")
         }
-    
       dev.off()
     }))
   }))

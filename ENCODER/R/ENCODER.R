@@ -442,7 +442,7 @@ ENCODER <- function(sample.control, destination.folder,
   
   ## Garbage collection
   rm(statistics, bin.bed, bin.grange, to.log, res, Macs14, control.indices,
-     CalculateDepthOfCoverage, bin.size)
+     CalculateDepthOfCoverage)
 
   #############################################
   ## Normalize for GC-content and mapability ##
@@ -562,7 +562,8 @@ ENCODER <- function(sample.control, destination.folder,
                          ncpu = ncpu,
                          nchrom = nchrom,
                          prefix = prefixes[1],
-                         bin.file = bin.file)
+                         bin.file = bin.file,
+                         bin.size = bin.size)
   save(inputStructure, file = paste0(destination.folder, "input.Rdata"))
 
 }
