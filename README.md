@@ -1,9 +1,15 @@
 # ENCODER
 
-Current methods for the detection of copy number aberrations (CNAs) from whole-exome sequencing (WES) data use the depth of coverage of captured exons only.
-Accurate CNA determination is complicated by the uneven distribution of exons throughout the genome and by the non-uniform sequence capture.
-Therefore, we have developed ENCODER (ENhanced COpy number Detection from Exome Reads), which eludes these problems by exploiting the ‘off-target’ sequence reads.
-ENCODER allows the extraction of uniformly distributed copy number information, and outperforms methods based on exonic sequence read counts, particularly on samples of low quality.
+Current methods for detection of copy number aberrations (CNA) from targeted
+sequencing data use the depth of coverage of captured exons only. Accurate CNA
+determination is complicated by uneven genomic distribution and non-uniform
+capture efficiency of targeted exons. Here we present a new tool, ENCODER, which
+eludes these problems by exploiting ‘off-target’ sequence reads. ENCODER allows
+for extracting uniformly distributed copy number information, can be used
+without reference and can be applied to sequencing data obtained from various
+techniques including chromatin immunoprecipitation and target enrichment on
+small-size gene panels. ENCODER outperforms existing methods and constitutes a
+widely applicable alternative to available tools.
 
 ## Requirements:
 
