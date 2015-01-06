@@ -73,7 +73,7 @@ ENCODER <- function(sample.control, destination.folder,
   ## Retrieve number of chromosomes and bin size from bin.bed helper file
   bin.bed <- read.table(file = bin.file, as.is = TRUE, sep = "\t")
   colnames(bin.bed) <- c("Chromosome", "Start", "End")
-  nchrom <- length(unique(bin.bed$Chromosome))
+  nchrom <- length(grep("[0-9]", unique(bin.bed$Chromosome)))
   bin.size <- bin.bed$End[1]
   
   ## Create folders

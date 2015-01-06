@@ -55,8 +55,8 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
     log2.read.counts[-which(rowSums(is.na(log2.read.counts[, -c(1:4)])) > 0), ]
   log2.read.counts$Chromosome <- gsub(prefix, "", log2.read.counts$Chromosome)
   log2.read.counts$Chromosome <-
-    gsub("X", nchrom - 1, log2.read.counts$Chromosome)
-  log2.read.counts$Chromosome <- gsub("Y", nchrom, log2.read.counts$Chromosome)
+    gsub("X", nchrom + 1, log2.read.counts$Chromosome)
+  log2.read.counts$Chromosome <- gsub("Y", nchrom + 2, log2.read.counts$Chromosome)
   log2.read.counts$Chromosome <- as.integer(log2.read.counts$Chromosome)
   
   ## Fix behaviour of DNAcopy with 'outlier' values
@@ -114,8 +114,8 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
   bin.bed <- read.table(file = bin.file, as.is = TRUE, sep = "\t")
   colnames(bin.bed) <- c("Chromosome", "Start", "End")
   bin.bed$Chromosome <- gsub(prefix, "", bin.bed$Chromosome)
-  bin.bed$Chromosome <- gsub("X", nchrom - 1, bin.bed$Chromosome)
-  bin.bed$Chromosome <- gsub("Y", nchrom, bin.bed$Chromosome)
+  bin.bed$Chromosome <- gsub("X", nchrom + 1, bin.bed$Chromosome)
+  bin.bed$Chromosome <- gsub("Y", nchrom + 2, bin.bed$Chromosome)
   bin.bed$Chromosome <- as.integer(bin.bed$Chromosome)
   bin.bed <- with(bin.bed,
                   reduce(GRanges(seqnames = Chromosome,
@@ -154,10 +154,10 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
   
   # Set boundaries plots
   if (missing(y.min)) {
-    y.min <- -3
+    y.min <- -2
   }
   if (missing(y.max)) {
-    y.max <- 2
+    y.max <- 5
   }
 
   # Loop through samples using lapply
@@ -175,7 +175,7 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
     setwd(paste0(plot.folder, select.sample))
   
     # Loop through chromosomes using lapply
-    invisible(lapply(c(as.list(1:nchrom), list(1:nchrom)), function(x) {
+    invisible(lapply(c(as.list(1:(nchrom + 2)), list(1:nchrom)), function(x) {
       # Select chromosome
       select.chrom <- x
       current.sample$data <-

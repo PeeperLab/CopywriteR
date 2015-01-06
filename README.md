@@ -123,10 +123,10 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 ## Changes and additions we are currently working on
 
-- [ ] Remove bug in determining the total chromosome number with missing sex chromosomes
 - [ ] Remove dependency for MACS 1.4 (use alternative implemented in R)
 - [ ] Compile into bioConductor package
 - [ ] Make names consistent and apply Rlint to code
+- [ ] Remove bug in determining the total chromosome number with missing sex chromosomes (implemented in source code)
 - [ ] Remove dependency for CGHcall and use only DNAcopy for segmentation (implemented in source code)
 - [ ] Provide plotting function for DNAcopy output (implemented in source code)
 - [ ] Make keeping intermediate .bam and MACS files optional (implemented in source code)
