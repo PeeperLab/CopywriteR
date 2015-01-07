@@ -358,41 +358,40 @@ ENCODER <- function(sample.control, destination.folder,
     # Fix MT as levels in factor seqnames (remainder from setdiff operation)
     counts$space <- as.factor(as.character(counts$space))
     
-    # Aggregate counts in bins
-    counts <- data.table(counts)
-    counts <- within(counts, {
-      aggregate.factor <- ceiling(end / bin.size)
-      range.length <- end - start
-    })
-    counts <- counts[, list(start = min(start),
-                            end = max(end),
-                            records = sum(records),
-                            range.length = sum(range.length)),
-                     by = c("space", "aggregate.factor")]
-    counts <- data.frame(counts)
-    
-    # Replace bins by real bins & calculate compensated read counts
-    sample.files[i] <- gsub("_properreads.bam$", ".bam", sample.files[i])
-    
-    if (all.equal(counts$space, as(seqnames(bin.grange), "factor"))) {
-      counts <- within(counts, {
-        Chromosome <- as(seqnames(bin.grange), "factor")
-        Start <- ranges(bin.grange)@start
-        End <- ranges(bin.grange)@start + ranges(bin.grange)@width - 1L
-        Feature <- paste0(Chromosome, ":", paste0(Start, "-", End))
-        assign(paste0("read.counts.", sample.files[i]), records)
-        assign(paste0("read.counts.compensated.", sample.files[i]),
-               records / (range.length / bin.size))
-        assign(paste0("fraction.of.bin.", sample.files[i]),
-               range.length / bin.size)
-        rm(space, start, end, records, aggregate.factor, range.length)
-      })
-    } else {
-      stop("Chromosome names do not match between the counts and bin.grange ",
-           "variables. Stopping execution of the remaining part of the ",
-           "script...")
-    }
+    # Aggregate counts and total length per bin
+    counts.grange <- GRanges(seqnames = counts$space,
+                             ranges = IRanges(start = counts$start,
+                                              end = counts$end),
+                             records = counts$records)
+    overlaps <- findOverlaps(counts.grange, bin.grange, minoverlap = 2L)
+    index <- subjectHits(overlaps)
+    records <- counts.grange[queryHits(overlaps)]@elementMetadata@listData$records
+    lengths <- ranges(pintersect(counts.grange[queryHits(overlaps)],
+                                 bin.grange[subjectHits(overlaps)]))@width
+    aggregate.data.table <- data.table(index, records, lengths)
+    aggregate.data.table <- aggregate.data.table[, list(records = sum(records),
+                                                         lengths = sum(lengths)),
+                                                 by = c("index")]
+    aggregate.data.table <- aggregate.data.table[match(1:length(bin.grange),
+                                                       aggregate.data.table$index), ]
+    aggregate.data.table$records[which(is.na(aggregate.data.table$index))] <- 0
+    aggregate.data.table$lengths[which(is.na(aggregate.data.table$index))] <- 0
 
+    # Replace bins by real bins & calculate compensated read counts
+    counts <- within(aggregate.data.table, {
+      Chromosome <- as(seqnames(bin.grange), "factor")
+      Start <- ranges(bin.grange)@start
+      End <- ranges(bin.grange)@start + ranges(bin.grange)@width - 1L
+      Feature <- paste0(Chromosome, ":", paste0(Start, "-", End))
+      assign(paste0("read.counts.", sample.files[i]), records)
+      assign(paste0("read.counts.compensated.", sample.files[i]),
+             records / (lengths / (bin.size + 1)))
+      assign(paste0("fraction.of.bin.", sample.files[i]),
+             lengths / (bin.size + 1))
+      rm(index, records, lengths)
+    })
+    counts <- data.frame(counts)
+  
     # Return
     return(list(counts[, paste0("read.counts.compensated.", sample.files[i]),
                        drop = FALSE],
@@ -441,8 +440,8 @@ ENCODER <- function(sample.control, destination.folder,
   }
   
   ## Garbage collection
-  rm(statistics, bin.bed, bin.grange, to.log, res, Macs14, control.indices,
-     CalculateDepthOfCoverage)
+  rm(statistics, bin.bed, bin.grange, counts.grange, to.log, res, Macs14,
+     control.indices, CalculateDepthOfCoverage)
 
   #############################################
   ## Normalize for GC-content and mapability ##

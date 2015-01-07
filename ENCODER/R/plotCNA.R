@@ -1,8 +1,6 @@
 plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
                     y.max, ...) {
   
-  #############Change 20 kb bins
-  
   ## Make folder path absolute
   destination.folder <- tools::file_path_as_absolute(destination.folder)
 
