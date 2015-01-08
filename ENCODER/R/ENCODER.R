@@ -358,6 +358,9 @@ ENCODER <- function(sample.control, destination.folder,
     # Fix MT as levels in factor seqnames (remainder from setdiff operation)
     counts$space <- as.factor(as.character(counts$space))
     
+    # Replace bins by real bins & calculate compensated read counts
+    sample.files[i] <- gsub("_properreads.bam$", ".bam", sample.files[i])
+    
     # Aggregate counts and total length per bin
     counts.grange <- GRanges(seqnames = counts$space,
                              ranges = IRanges(start = counts$start,
@@ -390,7 +393,7 @@ ENCODER <- function(sample.control, destination.folder,
              lengths / (bin.size + 1))
       rm(index, records, lengths)
     })
-    counts <- data.frame(counts)
+    counts <- data.frame(counts, check.names = FALSE)
   
     # Return
     return(list(counts[, paste0("read.counts.compensated.", sample.files[i]),
@@ -496,7 +499,8 @@ ENCODER <- function(sample.control, destination.folder,
   ###################
   selection <- !data$anno$black & !is.na(data$anno$mapa) & data$anno$mapa > .2
   log2.read.counts <- data.frame(data$anno[selection, c("chr", "start", "end")],
-                                 log2.read.counts[selection, ])
+                                 log2.read.counts[selection, ],
+                                 check.names = FALSE)
   
   ## Create table with corrected log2 values and write to file
   log2.read.counts <- cbind(with(log2.read.counts, cbind(
