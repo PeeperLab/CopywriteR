@@ -440,7 +440,7 @@ ENCODER <- function(sample.control, destination.folder,
   }
   
   ## Garbage collection
-  rm(statistics, bin.bed, bin.grange, counts.grange, to.log, res, Macs14,
+  rm(statistics, bin.bed, bin.grange, to.log, res, Macs14,
      control.indices, CalculateDepthOfCoverage)
 
   #############################################
