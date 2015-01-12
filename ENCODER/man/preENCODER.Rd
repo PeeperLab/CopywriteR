@@ -14,7 +14,7 @@ preENCODER(blackGCMapaFolder, outputFolder, binSize, reference)
   \item{blackGCMapaFolder}{path to the 1kb annotation files}
   \item{outputFolder}{path to the output folder}
   \item{binSize}{desired bin length (in bp) for which annotation files should be generated}
-  \item{reference}{reference, e.g. hg19 or mm10}
+  \item{reference}{reference, e.g. hg19, mm9 or mm10}
 }
 \details{
 Currently annotation files can only be generated for  human (hg19). 
