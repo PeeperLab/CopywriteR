@@ -123,7 +123,7 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 ## Changes and additions we are currently working on
 
-- [ ] Remove dependency for MACS 1.4 (use alternative implemented in R)
+- [ ] Remove dependency for MACS 1.4 (use chipseq package)
 - [ ] Compile into bioConductor package
 - [ ] Make names consistent and apply Rlint to code
 - [ ] Remove bug in determining the total chromosome number with missing sex chromosomes (implemented in source code)
