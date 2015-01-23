@@ -123,6 +123,7 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 ## Changes and additions we are currently working on
 
+- [ ] Check rm() function if no capture region file is specified
 - [ ] Include check for presence .bai files
 - [ ] Remove dependency for MACS 1.4 (use chipseq package)
 - [ ] Compile into bioConductor package
