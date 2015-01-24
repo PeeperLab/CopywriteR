@@ -435,7 +435,7 @@ ENCODER <- function(sample.control, destination.folder,
   cat(unlist(res[4, ]), "\n", sep = "\n")
    
   write.table(read.counts, file = paste0(destination.folder,
-                                    "read_counts.igv"),
+                                    "read_counts.txt"),
                                     row.names = FALSE, col.names = TRUE,
                                     sep = "\t")
 
