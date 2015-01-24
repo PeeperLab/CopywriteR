@@ -1,5 +1,5 @@
-ENCODER <- function(sample.control, destination.folder,
-                    reference.folder, ncpu, capture.regions.file) {
+ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
+                    capture.regions.file, keep.intermediairy.files = FALSE) {
   
   ##########################
   ## Check and initialize ##
@@ -14,11 +14,6 @@ ENCODER <- function(sample.control, destination.folder,
     capture.regions.file <- tools::file_path_as_absolute(capture.regions.file)  
   }
   
-  # ## Check for presence keep.intermediairy.files and set to FALSE by default
-  # if (missing(keep.intermediairy.files)) {
-  #   keep.intermediairy.files <- FALSE
-  # }
-
   ## Make folder paths absolute
   sample.control <- apply(sample.control, c(1, 2), tools::file_path_as_absolute)
   sample.control <- data.frame(sample.control, stringsAsFactors = FALSE)
@@ -26,25 +21,21 @@ ENCODER <- function(sample.control, destination.folder,
   destination.folder <- tools::file_path_as_absolute(destination.folder)
   reference.folder <- tools::file_path_as_absolute(reference.folder)
   
-  ## Add trailing / to folder paths
-  destination.folder <- paste0(destination.folder, "/")
-  reference.folder <- paste0(reference.folder, "/")
-
   ## Check the existence of folders and files
   invisible(apply(sample.control, c(1, 2), function(x) {
     if (!file.exists(x)) {
-      stop("The file ", x, " could not be found. Please change the path to ",
+      stop("The file ", x, " could not be found.\nPlease change the path to ",
            "this file.")
     }
   }))
   
   if (!file.exists(destination.folder)) {
-    stop("The destination.folder could not be found. Please change your ",
+    stop("The destination.folder could not be found.\nPlease change your ",
          "destination.folder path.")
   }
   
   if (!file.exists(reference.folder)) {
-    stop("The reference.folder could not be found. Please change your ",
+    stop("The reference.folder could not be found.\nPlease change your ",
          "reference.folder path or run `preENCODER` to generate the required ",
          "folder with GC-content and mapability files for your desired bin ",
          "size.")
@@ -52,8 +43,13 @@ ENCODER <- function(sample.control, destination.folder,
   
   if (!file.exists(capture.regions.file) &
       capture.regions.file != "not specified") {
-    stop("The capture.regions.file could not be found. Please change your ",
+    stop("The capture.regions.file could not be found.\nPlease change your ",
          "capture.regions.file path.")
+  }
+
+  ## Check for write permissions in the destination folder
+  if (file.access(destination.folder, 2) == -1) {
+    stop("You do not have write permission in the destination folder.")
   }
 
   ## Create lists with BAM files and index of corresponding control
@@ -65,10 +61,10 @@ ENCODER <- function(sample.control, destination.folder,
   control.indices <- match(sample.control$controls, sample.control$samples)
 
   ## Create paths to helper files
-  bin.file <- paste0(reference.folder, "bins.bed")
-  blacklist.file <- paste0(reference.folder, "blacklist.bed")
-  gc.content.file <- paste0(reference.folder, "GC_content.bed")
-  mapability.file <- paste0(reference.folder, "mapability.bed")
+  bin.file <- file.path(reference.folder, "bins.bed")
+  blacklist.file <- file.path(reference.folder, "blacklist.bed")
+  gc.content.file <- file.path(reference.folder, "GC_content.bed")
+  mapability.file <- file.path(reference.folder, "mapability.bed")
 
   ## Retrieve number of chromosomes and bin size from bin.bed helper file
   bin.bed <- read.table(file = bin.file, as.is = TRUE, sep = "\t")
@@ -77,19 +73,19 @@ ENCODER <- function(sample.control, destination.folder,
   bin.size <- bin.bed$End[1]
   
   ## Create folders
-  destination.folder <- paste0(destination.folder, "CNAprofiles/")
+  destination.folder <- file.path(destination.folder, "CNAprofiles")
   tryCatch({
-    if (!file.exists(paste0(destination.folder, "BamBaiMacsFiles/"))) {
-      dir.create(paste0(destination.folder, "BamBaiMacsFiles/"),
+    if (!file.exists(file.path(destination.folder, "BamBaiMacsFiles"))) {
+      dir.create(file.path(destination.folder, "BamBaiMacsFiles"),
                  recursive = TRUE)
     }
   }, warning = function(e) {
-    cat("ERROR: You do not have write permissions in the destination folder.\n")
-    stop("Stopping execution of the remaining part of the script...")
+    stop("You do not have write permissions in the destination folder.\n",
+         "Stopping execution of the remaining part of the script...")
   })
   
   ## Provide output for log file
-  sink(file = paste0(destination.folder, "log.txt"),
+  sink(file = file.path(destination.folder, "log.txt"),
        type = c("output", "message"))
   options(width = 150)
 
@@ -120,15 +116,15 @@ ENCODER <- function(sample.control, destination.folder,
       prefixes <- append(prefixes, gsub("[[:digit:]]|X|Y|M|T", "", chr.names)[1])
     }
   }, error = function(e) {
-    cat("ERROR: The BAM file header of file", samp, "is corrupted or",
-        "truncated.\n")
-    cat("ERROR: Please rebuild this BAM file or exclude it from analysis.\n")
-    stop("Stopping execution of the remaining part of the script...")    
+    stop("The BAM file header of file", samp, "is corrupted or truncated.\n",
+         "Please rebuild this BAM file or exclude it from analysis.\n",
+         "Stopping execution of the remaining part of the script...")    
   })
 
   if (!all(prefixes == prefixes[1])) {
-    stop("The bam files have different chromosome names. Please adjust the ",
-         ".bam files such that they contain the same chromosome notation.")
+    stop("The bam files have different chromosome names.\n",
+         "Please adjust the .bam files such that they contain the same ",
+         "chromosome notation.")
   } else {
     prefixes <- prefixes[1]
     
@@ -154,34 +150,46 @@ ENCODER <- function(sample.control, destination.folder,
     
     if (!all(prefixes == prefixes[1])) {
       stop("The bam files and supporting .bed files have different chromosome ",
-           "names. Please adjust the input files such that they contain the ",
-           "same chromosome notation.")
+           "names.\n",
+           "Please adjust the input files such that they contain the same ",
+           "chromosome notation.")
     }
   }
   
   ## Garbage collection
-  rm(samp, header, con, chr.names, reference.folder)
+  rm(chr.names, con, header, reference.folder, samp)
 
   ########################################################
   ## Calculate depth of coverage using off-target reads ##
   ########################################################
 
-  sink(file = paste0(destination.folder, "log.txt"), append = TRUE,
+  sink(file = file.path(destination.folder, "log.txt"), append = TRUE,
        type = c("output", "message"))
     
   ## Create list of .bam files
   cat(sample.files, "\n", sep = "\n")
 
   ## Index .bam files
-  IndexBam <- function(sample.paths) {
-    indexBam(sample.paths)
-    paste0("indexBam(\"", sample.paths, "\")")
+  if (!any(list.files(pattern = ".bam$") ==
+           gsub(".bai$", "", list.files(pattern = ".bai$")))) {
+    if (file.access(".", 2) == -1) {
+      stop("The .bam files are not indexed and you do not have write ",
+           "permission in (one of) the folder(s) where the .bam files ",
+           "are located.")
+    }
+    IndexBam <- function(sample.paths) {
+      indexBam(sample.paths)
+      paste0("indexBam(\"", sample.paths, "\")")
+    }
+    sfInit(parallel=TRUE, cpus = ncpu)
+    sfLibrary(Rsamtools)
+    to.log <- sfSapply(sample.paths, IndexBam)
+    sfStop()
+    cat(to.log, "\n", sep = "\n")
+    
+    ## Garbage collection
+    rm(IndexBam)
   }
-  sfInit(parallel=TRUE, cpus = ncpu)
-  sfLibrary(Rsamtools)
-  to.log <- sfSapply(sample.paths, IndexBam)
-  sfStop()
-  cat(to.log, "\n", sep = "\n")
   
   ## Check whether BAMs are paired-end
   NumberPairedEndReads <- function(sample.paths) {
@@ -214,26 +222,26 @@ ENCODER <- function(sample.control, destination.folder,
                                    x$mapq >= 37
                                  }))
       filterBam(sample.paths[i],
-                paste0(destination.folder, "BamBaiMacsFiles/",
-                       gsub(".bam$", "_properreads.bam", sample.files[i])),
+                file.path(destination.folder, "BamBaiMacsFiles",
+                          gsub(".bam$", "_properreads.bam", sample.files[i])),
                 filter = filter, indexDestination = TRUE, param = param)
-      paste0("filterBam(\"", sample.paths[i], "\", \"", destination.folder,
-             "BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam",
-                                      sample.files[i]), "\", filter = filter, ",
-             "indexDestination = TRUE, param = param)")
+      paste0("filterBam(\"", sample.paths[i], "\", \"",
+             file.path(destination.folder, "BamBaiMacsFiles",
+                       gsub(".bam$", "_properreads.bam", sample.files[i])),
+             "\", filter = filter, ", "indexDestination = TRUE, param = param)")
     } else {
       param <- ScanBamParam(what = "mapq")
       filter <- FilterRules(list(isHighQual = function(x) {
                                    x$mapq >= 37
                                  }))
       filterBam(sample.paths[i],
-                paste0(destination.folder, "BamBaiMacsFiles/",
-                       gsub(".bam$", "_properreads.bam", sample.files[i])),
+                file.path(destination.folder, "BamBaiMacsFiles/",
+                          gsub(".bam$", "_properreads.bam", sample.files[i])),
                 filter = filter, indexDestination = TRUE, param = param)
-      paste0("filterBam(\"", sample.files[i], "\", \"", destination.folder,
-             "BamBaiMacsFiles/", gsub(".bam$", "_properreads.bam",
-                                      sample.files[i]), "\", filter = filter, ",
-             "indexDestination = TRUE, param = param)")
+      paste0("filterBam(\"", sample.paths[i], "\", \"",
+             file.path(destination.folder, "BamBaiMacsFiles",
+                       gsub(".bam$", "_properreads.bam", sample.files[i])),
+             "\", filter = filter, ", "indexDestination = TRUE, param = param)")
     }
   }
   sfInit(parallel=TRUE, cpus = ncpu)
@@ -260,7 +268,7 @@ ENCODER <- function(sample.control, destination.folder,
   cat("\n\n")
   
   ## Create new .bam list
-  setwd(paste0(destination.folder, "BamBaiMacsFiles/"))
+  setwd(file.path(destination.folder, "BamBaiMacsFiles"))
   sample.files <- gsub(".bam$", "_properreads.bam", sample.files)
   cat(sample.files, "\n", sep = "\n")
 
@@ -278,8 +286,7 @@ ENCODER <- function(sample.control, destination.folder,
   cat("\n\n")
 
   ## Garbage collection
-  rm(Stats, is.paired.end, sample.paths, ProperReads,
-     NumberPairedEndReads, IndexBam)
+  rm(is.paired.end, NumberPairedEndReads, ProperReads, sample.paths, Stats)
   
   ## Create list with numbers of controls
   control.uniq.indices <- unique(control.indices)
@@ -391,7 +398,7 @@ ENCODER <- function(sample.control, destination.folder,
              records / (lengths / (bin.size + 1)))
       assign(paste0("fraction.of.bin.", sample.files[i]),
              lengths / (bin.size + 1))
-      rm(index, records, lengths)
+      rm(index, lengths, records)
     })
     counts <- data.frame(counts, check.names = FALSE)
   
@@ -434,7 +441,7 @@ ENCODER <- function(sample.control, destination.folder,
 
   cat(unlist(res[4, ]), "\n", sep = "\n")
    
-  write.table(read.counts, file = paste0(destination.folder,
+  write.table(read.counts, file = file.path(destination.folder,
                                     "read_counts.txt"),
                                     row.names = FALSE, col.names = TRUE,
                                     sep = "\t")
@@ -443,10 +450,11 @@ ENCODER <- function(sample.control, destination.folder,
   ## (fraction of length in bins (after peak region removal)
   sample.files <- gsub("_properreads.bam$", ".bam", sample.files)
   
-  dir.create(paste0(destination.folder, "qc/"))
+  dir.create(file.path(destination.folder, "qc"))
   for(i in 1:length(sample.files)) {
-    pdf(paste0(destination.folder, "qc/fraction.of.bin.", sample.files[i],
-               ".pdf"), width=7, height=7)
+    pdf(file.path(destination.folder, "qc", paste0("fraction.of.bin.",
+                                                sample.files[i], ".pdf")),
+        width=7, height=7)
       plot(ecdf(as.numeric(read.counts[,4+(2*length(sample.files))+i])),
            verticals = TRUE, ylab = "Fraction of bins", 
            xlab = "Remaining fraction of bin after peak removal",
@@ -455,8 +463,8 @@ ENCODER <- function(sample.control, destination.folder,
   }
   
   ## Garbage collection
-  rm(statistics, bin.bed, bin.grange, to.log, res, Macs14,
-     control.indices, CalculateDepthOfCoverage)
+  rm(bin.bed, bin.grange, CalculateDepthOfCoverage, control.indices, Macs14,
+     res, statistics, to.log)
 
   #############################################
   ## Normalize for GC-content and mapability ##
@@ -488,9 +496,9 @@ ENCODER <- function(sample.control, destination.folder,
     NormalizeDOC <- function(i, data, .tng, usepoints, destination.folder) {  
       .tng(data.frame(count = data$cov[,i], gc = data$anno$gc,
                       mapa = data$anno$mapa), use = usepoints,
-           correctmapa = TRUE, plot = paste0(destination.folder,
-                                             "qc/",
-                                             colnames(data$cov)[i], ".png"))
+           correctmapa = TRUE, plot = file.path(destination.folder, "qc",
+                                             paste0(colnames(data$cov)[i],
+                                                    ".png")))
     }
     sfInit(parallel=TRUE, cpus = ncpu)
     ratios <- sfLapply(i, NormalizeDOC, data, .tng, usepoints,
@@ -498,10 +506,10 @@ ENCODER <- function(sample.control, destination.folder,
     sfStop()
     log2.read.counts <- matrix(unlist(ratios), ncol = length(sample.files))
   }, error = function(e) {
-    cat("ERROR: The GC-content and mapability normalization did not work due",
-        "to a failure to calculate loesses.\n")
-    cat("ERROR: This can generally be solved by using larger bin sizes.\n")
-    stop("Stopping execution of the remaining part of the script...")    
+    stop("The GC-content and mapability normalization did not work due to a ",
+        "failure to calculate loesses.\n",
+        "This can generally be solved by using larger bin sizes.\n",
+        "Stopping execution of the remaining part of the script...")
   })
   
   colnames(log2.read.counts) <- paste0("log2.", gsub(".compensated", "", f))
@@ -522,14 +530,14 @@ ENCODER <- function(sample.control, destination.folder,
     Feature = paste0(chr, ":", paste0(start, "-", end))
   )), log2.read.counts[, 4:ncol(log2.read.counts)])
   
-  write.table(log2.read.counts, paste0(destination.folder,
+  write.table(log2.read.counts, file.path(destination.folder,
                                        "log2_read_counts.igv"),
               sep = "\t", row.names = FALSE, quote = FALSE)
   
   ## Garbage collection
-  rm(f, gc, mapa, black, data, usepoints, selection, blacklist.file,
-     mapability.file, gc.content.file, read.counts, ratios, NormalizeDOC,
-     log2.read.counts, i)
+  rm(black, blacklist.file, data, f, gc, gc.content.file, i, log2.read.counts,
+     mapa, mapability.file, NormalizeDOC, ratios, read.counts, selection,
+     usepoints)
 
   #############################################################################
   ## Calculate overlap with capture.regions.file for quality control purpose ##
@@ -559,17 +567,21 @@ ENCODER <- function(sample.control, destination.folder,
       cat("Total number of peaks", sample.files[control.index], ":",
           length(peak.grange), "\n\n")
     }
+    
+    ## Garbage collection
+    rm(captured.bed, captured.grange, capture.regions.file, overlap, peak.bed,
+       peak.grange)
   }
   
   sink()
+  
   ## Remove BamBaiMacsFiles folder
-  # if (!keep.intermediairy.files) {
-  #   unlink(paste0(destination.folder, "BamBaiMacsFiles/"))
-  # }
+  if (!keep.intermediairy.files) {
+    unlink(file.path(destination.folder, "BamBaiMacsFiles"), recursive = TRUE)
+  }
   
   ## Garbage collection
-  rm(overlap, captured.bed, peak.bed, capture.regions.file, peak.grange,
-     sample.files, control.uniq.indices, control.index, captured.grange)
+  rm(control.index, control.uniq.indices, sample.files)
   
   cat("Total calculation time: ", Sys.time() - start.time, "\n\n")
   
@@ -579,6 +591,6 @@ ENCODER <- function(sample.control, destination.folder,
                          prefix = prefixes[1],
                          bin.file = bin.file,
                          bin.size = bin.size)
-  save(inputStructure, file = paste0(destination.folder, "input.Rdata"))
+  save(inputStructure, file = file.path(destination.folder, "input.Rdata"))
 
 }

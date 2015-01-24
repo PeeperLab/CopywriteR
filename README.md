@@ -123,12 +123,16 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 ## Changes and additions we are currently working on
 
-- [ ] Change output format for raw data from .txt to .igv
-- [ ] Check rm() function if no capture region file is specified
-- [ ] Include check for presence .bai files
+- [ ] Provide the amount of sequence reads used by ENCODER
 - [ ] Remove dependency for MACS 1.4 (use chipseq package)
 - [ ] Compile into bioConductor package
 - [ ] Make names consistent and apply Rlint to code
+- [ ] Check rm() function if no capture region file is specified (implemented in source code)
+- [ ] Provide the option to keep intermediary files; remove by default (implemented in source code)
+- [ ] Check writing permissions on bam.folder (implemented in source code)
+- [ ] Include check for presence .bai files (implemented in source code)
+- [ ] Use file.paths for all file paths (implemented in source code)
+- [ ] Change output format for raw data from .txt to .igv (implemented in source code)
 - [ ] Remove bug in determining the total chromosome number with missing sex chromosomes (implemented in source code)
 - [ ] Remove dependency for CGHcall and use only DNAcopy for segmentation (implemented in source code)
 - [ ] Provide plotting function for DNAcopy output (implemented in source code)
