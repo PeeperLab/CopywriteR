@@ -420,10 +420,22 @@ ENCODER <- function(sample.control, destination.folder,
   })
   read.counts <- cbind(read.counts[, ], Reduce(cbind, res[1, ]),
                        Reduce(cbind, res[2, ]), Reduce(cbind, res[3, ]))
+                       
+  ## Remove potential NAs introduced by peaks spanning entire bins
+  read.counts[, 5:ncol(read.counts)] <-
+    apply(read.counts[, 5:ncol(read.counts), drop = FALSE],
+          c(1, 2), function(x) {
+    if (is.na(x)) {
+      x <- 0
+    } else {
+      x <- x
+    }
+  })
+
   cat(unlist(res[4, ]), "\n", sep = "\n")
    
   write.table(read.counts, file = paste0(destination.folder,
-                                    "read_counts.txt"),
+                                    "read_counts.igv"),
                                     row.names = FALSE, col.names = TRUE,
                                     sep = "\t")
 
@@ -511,7 +523,7 @@ ENCODER <- function(sample.control, destination.folder,
   )), log2.read.counts[, 4:ncol(log2.read.counts)])
   
   write.table(log2.read.counts, paste0(destination.folder,
-                                       "log2_read_counts.txt"),
+                                       "log2_read_counts.igv"),
               sep = "\t", row.names = FALSE, quote = FALSE)
   
   ## Garbage collection

@@ -45,7 +45,7 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
   
   ## Read data
   log2.read.counts <- read.table(file = paste0(destination.folder,
-                                               "log2_read_counts.txt"),
+                                               "log2_read_counts.igv"),
                                  sep = "\t", header = TRUE, check.names = FALSE)
 
   ## Remove prefix and convert chromosome names to integers
