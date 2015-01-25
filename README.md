@@ -123,10 +123,10 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 ## Changes and additions we are currently working on
 
-- [ ] Provide the amount of sequence reads used by ENCODER
 - [ ] Remove dependency for MACS 1.4 (use chipseq package)
 - [ ] Compile into bioConductor package
 - [ ] Make names consistent and apply Rlint to code
+- [ ] Provide the amount of sequence reads used by ENCODER (implemented in source code)
 - [ ] Check rm() function if no capture region file is specified (implemented in source code)
 - [ ] Provide the option to keep intermediary files; remove by default (implemented in source code)
 - [ ] Check writing permissions on bam.folder (implemented in source code)

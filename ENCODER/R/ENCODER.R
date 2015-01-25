@@ -265,7 +265,6 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
     total <- records
     rm(records)
   })
-  cat("\n\n")
   
   ## Create new .bam list
   setwd(file.path(destination.folder, "BamBaiMacsFiles"))
@@ -283,7 +282,6 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
   statistics <- within(statistics, {
     total.properreads <- res
   })
-  cat("\n\n")
 
   ## Garbage collection
   rm(is.paired.end, NumberPairedEndReads, ProperReads, sample.paths, Stats)
@@ -324,8 +322,6 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
     unmapable.or.mitochondrial <- res$all.reads - res$chrom.reads
     on.chromosomes <- res$chrom.reads
   })
-  print(statistics)
-  cat("\n\n")
   
   ## Alternative for bedtools
   # Create GRanges file for bins
@@ -361,6 +357,11 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
     # countBam on remainder of bins
     param <- ScanBamParam(which = outside.peak.grange, what = c("pos"))
     counts <- countBam(sample.files[i], param = param)
+ 
+    # countBam on remainder of bins
+    param <- ScanBamParam(which = reduce(outside.peak.grange), what = c("pos"))
+    counts.ENCODER <- countBam(sample.files[i], param = param)
+    counts.ENCODER <- sum(counts.ENCODER$records)
     
     # Fix MT as levels in factor seqnames (remainder from setdiff operation)
     counts$space <- as.factor(as.character(counts$space))
@@ -410,7 +411,8 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
                        drop = FALSE],
                 paste0("Rsamtools finished calculating reads per bin in ",
                        "sample ", sample.files[i], "; number of bins = ",
-                       nrow(counts))))
+                       nrow(counts)),
+                counts.ENCODER))
   }
   sfInit(parallel=TRUE, cpus = ncpu)
   sfLibrary(Rsamtools)
@@ -440,6 +442,16 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
   })
 
   cat(unlist(res[4, ]), "\n", sep = "\n")
+  
+  statistics <- within(statistics, {
+    off.target <- unlist(res[5, ])
+    on.target <- on.chromosomes - off.target
+    rm(on.chromosomes)
+  })
+  print(statistics)
+  cat("\n\n")
+
+  ## Add counts.ENCODER
    
   write.table(read.counts, file = file.path(destination.folder,
                                     "read_counts.txt"),
