@@ -123,6 +123,7 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 ## Changes and additions we are currently working on
 
+- [ ] Change -Inf in log2-table to small value for visualization in IGV
 - [ ] Remove dependency for MACS 1.4 (use chipseq package)
 - [ ] Compile into bioConductor package
 - [ ] Make names consistent and apply Rlint to code
