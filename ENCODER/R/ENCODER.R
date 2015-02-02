@@ -55,9 +55,7 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
   ## Create lists with BAM files and index of corresponding control
   sample.paths <- unlist(sample.control)
   sample.paths <- unique(sample.paths[!is.na(sample.paths)])
-  sample.files <- unname(sapply(sample.paths, function(x) {
-    x <- unlist(strsplit(x, "/"))[length(unlist(strsplit(x, "/")))]
-  }))
+  sample.paths <- basename(sample.paths)
   control.indices <- match(sample.control$controls, sample.control$samples)
 
   ## Create paths to helper files
@@ -65,6 +63,9 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
   blacklist.file <- file.path(reference.folder, "blacklist.bed")
   gc.content.file <- file.path(reference.folder, "GC_content.bed")
   mapability.file <- file.path(reference.folder, "mapability.bed")
+  
+  ## Cap the number of cpus to be used to the number of samples
+  ncpu <- if (ncpu < nrow(sample.control)) ncpu else nrow(sample.control)
 
   ## Retrieve number of chromosomes and bin size from bin.bed helper file
   bin.bed <- read.table(file = bin.file, as.is = TRUE, sep = "\t")
@@ -75,8 +76,8 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
   ## Create folders
   destination.folder <- file.path(destination.folder, "CNAprofiles")
   tryCatch({
-    if (!file.exists(file.path(destination.folder, "BamBaiMacsFiles"))) {
-      dir.create(file.path(destination.folder, "BamBaiMacsFiles"),
+    if (!file.exists(file.path(destination.folder, "BamBaiPeaksFiles"))) {
+      dir.create(file.path(destination.folder, "BamBaiPeaksFiles"),
                  recursive = TRUE)
     }
   }, warning = function(e) {
@@ -108,12 +109,16 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
   
   ## Test for compatibilty chromosome names
   prefixes <- vector(mode = "character")
+  chr.names <- NULL
+  chr.lengths <- NULL
 
   tryCatch({
     for(samp in sample.paths) {
       header <- scanBamHeader(samp)
-      chr.names <- names(header[[1]]$targets)[1]
-      prefixes <- append(prefixes, gsub("[[:digit:]]|X|Y|M|T", "", chr.names)[1])
+      current.chr.names <- names(header[[1]]$targets)
+      chr.names <- c(chr.names, current.chr.names)
+      chr.lengths <- c(chr.lengths, header[[1]]$targets)
+      prefixes <- append(prefixes, gsub("[[:digit:]]|X|Y|M|T", "", chr.names[1])[1])
     }
   }, error = function(e) {
     stop("The BAM file header of file", samp, "is corrupted or truncated.\n",
@@ -122,6 +127,14 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
   })
 
   if (!all(prefixes == prefixes[1])) {
+    stop("The bam files have different chromosome name prefixes.\n",
+         "Please adjust the .bam files such that they contain the same ",
+         "chromosome notation.")
+  } else if (!length(unique(chr.names)) * length(sample.paths) == length(chr.names)) {
+    stop("The bam files have been mapped to different reference genomes.\n",
+         "Please run only .bam files mapped to the same reference genome ",
+         "together.")  
+  } else if (!length(unique(chr.lengths)) * length(sample.paths) == length(chr.lengths)) {
     stop("The bam files have different chromosome names.\n",
          "Please adjust the .bam files such that they contain the same ",
          "chromosome notation.")
@@ -222,11 +235,11 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
                                    x$mapq >= 37
                                  }))
       filterBam(sample.paths[i],
-                file.path(destination.folder, "BamBaiMacsFiles",
+                file.path(destination.folder, "BamBaiPeaksFiles",
                           gsub(".bam$", "_properreads.bam", sample.files[i])),
                 filter = filter, indexDestination = TRUE, param = param)
       paste0("filterBam(\"", sample.paths[i], "\", \"",
-             file.path(destination.folder, "BamBaiMacsFiles",
+             file.path(destination.folder, "BamBaiPeaksFiles",
                        gsub(".bam$", "_properreads.bam", sample.files[i])),
              "\", filter = filter, ", "indexDestination = TRUE, param = param)")
     } else {
@@ -235,11 +248,11 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
                                    x$mapq >= 37
                                  }))
       filterBam(sample.paths[i],
-                file.path(destination.folder, "BamBaiMacsFiles/",
+                file.path(destination.folder, "BamBaiPeaksFiles",
                           gsub(".bam$", "_properreads.bam", sample.files[i])),
                 filter = filter, indexDestination = TRUE, param = param)
       paste0("filterBam(\"", sample.paths[i], "\", \"",
-             file.path(destination.folder, "BamBaiMacsFiles",
+             file.path(destination.folder, "BamBaiPeaksFiles",
                        gsub(".bam$", "_properreads.bam", sample.files[i])),
              "\", filter = filter, ", "indexDestination = TRUE, param = param)")
     }
@@ -267,7 +280,7 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
   })
   
   ## Create new .bam list
-  setwd(file.path(destination.folder, "BamBaiMacsFiles"))
+  setwd(file.path(destination.folder, "BamBaiPeaksFiles"))
   sample.files <- gsub(".bam$", "_properreads.bam", sample.files)
   cat(sample.files, "\n", sep = "\n")
 
@@ -290,16 +303,179 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
   control.uniq.indices <- unique(control.indices)
   
   ## Call peaks in .bam file of control sample
-  Macs14 <- function(control.uniq.indices, sample.files) {
-    system(paste0("macs14 -t " , sample.files[control.uniq.indices], " -n MACS",
-                  control.uniq.indices, " -g hs --nolambda"))
-    paste0("macs14 -t " , sample.files[control.uniq.indices], " -n MACS",
-           control.uniq.indices, " -g hs --nolambda")
-  }
-  sfInit(parallel=TRUE, cpus = min(length(control.uniq.indices), ncpu))
-  to.log <- sfSapply(control.uniq.indices , Macs14, sample.files)
-  sfStop()
-  cat(to.log, "\n", sep = "\n")
+	DetectPeaks <- function(control.uniq.indices, sample.files, prefix,
+													.peakCutoff, destination.folder) {
+	
+		## j represents the minimal peak width
+		j <- 100
+	
+		## resolution is the resolution at which peaks are determined
+		resolution <- 20000
+	
+		## Initialize
+		merged.bed <- NULL
+		chromosomes <- scanBamHeader(sample.files[control.uniq.indices])[[1]][["targets"]]
+		stripped.chromosome.names <- gsub(prefix, "", names(chromosomes))
+		suppressWarnings(chromosomes <- chromosomes[stripped.chromosome.names %in% c("X", "Y") |
+																								!is.na(as.integer(stripped.chromosome.names))])
+																								
+		for (selection in 1:length(chromosomes)) {
+	
+			## Read bam file per chromosome and calculate coverage
+			which <- GRanges(names(chromosomes)[selection],
+											 IRanges(1, unname(chromosomes)[selection]))
+			what <- c("rname", "pos", "strand", "qwidth")
+			param <- ScanBamParam(which = which, what = what)
+			bam <- readGAlignments(sample.files[control.uniq.indices], param = param)
+			cov.chr <- coverage(bam)
+			cov.chr <- cov.chr@listData[names(chromosomes)[selection]][[1]]
+			cov.chr <- as.vector(cov.chr) # Makes subsetting faster
+
+			## Calculate peak detection and extension cutoffs per bin
+			peak.detection.cutoff <- vector(length = length(cov.chr)%/%resolution)
+			cov.chr.subsets <- NULL
+			for (i in 1:(length(cov.chr)%/%resolution)) {
+				cov.chr.subsets[[i]] <- cov.chr[(((i - 1) * resolution)):(i * resolution)]
+				peak.detection.cutoff[i] <- ceiling(.peakCutoff(cov.chr.subsets[[i]]))
+			}
+		
+			## Fill in missing values (zeroes and NAs) in peak.detection.cutoffs
+			peak.detection.cutoff[which(peak.detection.cutoff == 0)] <- NA
+			no.values.cutoffs <- which(is.na(peak.detection.cutoff))
+			no.values.replacements <- vector(length = length(no.values.cutoffs))
+			for (i in 1:length(no.values.cutoffs)) {
+				index <- no.values.cutoffs[i]
+				while (is.na(peak.detection.cutoff[index]) & index > 1) {
+					index = index - 1
+				}
+				lower.value <- peak.detection.cutoff[index]
+				index <- no.values.cutoffs[i]
+				while (is.na(peak.detection.cutoff[index])
+							 & index < length(peak.detection.cutoff)) {
+					index = index + 1
+				}
+				upper.value <- peak.detection.cutoff[index]
+				no.values.replacements[i] <- ceiling(mean(c(lower.value, upper.value),
+																						 na.rm = TRUE))
+			}
+			peak.detection.cutoff[no.values.cutoffs] <- no.values.replacements
+		
+			## Create islands and concatenate; select islands that are bigger than certain width (j)
+			# Use mapply for simultaneously iterating lists and vectors
+			peak.ranges <- mapply(function(x, z) {
+				x <- slice(x, lower = peak.detection.cutoff[z])
+				shift(x@ranges, resolution * (z - 1))
+			}, cov.chr.subsets, 1:length(peak.detection.cutoff))
+			peak.ranges <- Reduce(function(x, y) {
+				c(x, y)
+			}, peak.ranges)
+			peak.ranges <- reduce(peak.ranges)
+			peak.ranges <- peak.ranges[width(peak.ranges) > j, ]
+			peak.ranges <- peak.ranges[end(peak.ranges) < chromosomes[selection]%/%resolution * resolution, ]
+		
+			## Create RleViews object and calculate peakSummary
+			peaks.ranges.rleviews <- Views(Rle(cov.chr), peak.ranges)
+			peaks <- peakSummary(peaks.ranges.rleviews)
+
+			if (nrow(peaks) > 0) {
+				test <- data.frame(seqnames = names(chromosomes)[selection],
+													 start = start(peaks), end = end(peaks))
+			
+				## Reiterate over peaks to check for for large differences in peak detection cutoffs
+				retest.peak.ranges <- apply(test, 1, function(x) {
+					print(x)
+					left.lower.boundary <- max(0, (as.integer(x["start"]) - (resolution + 1)))
+					left.higher.boundary <- max(0, (as.integer(x["start"]) - 1))
+					right.lower.boundary <- min(chromosomes[selection],
+																			(as.integer(x["end"]) + 1))
+					right.higher.boundary <- min(chromosomes[selection],
+																			 (as.integer(x["end"]) + (resolution + 1)))
+					left.peakCutoff <- ceiling(.peakCutoff(cov.chr[left.lower.boundary:left.higher.boundary]))
+					right.peakCutoff <- ceiling(.peakCutoff(cov.chr[right.lower.boundary:right.higher.boundary]))
+					max.peakCutoff <- max(left.peakCutoff, right.peakCutoff)
+					tmp <- slice(cov.chr[as.integer(x["start"]):as.integer(x["end"])],
+											 lower = max.peakCutoff)
+					shift(tmp@ranges, as.integer(x["start"]) - 1)
+				})
+
+				retest.peak.ranges <- Reduce(function(x, y) {
+					c(x, y)
+				}, retest.peak.ranges)
+				retest.peak.ranges <- reduce(retest.peak.ranges)
+
+				## Select all with width of more than 100 and within bin regions
+				retest.peak.ranges <- retest.peak.ranges[width(retest.peak.ranges) > j, ]
+				retest.peak.ranges <- retest.peak.ranges[end(retest.peak.ranges) < chromosomes[selection]%/%resolution * resolution, ]
+		
+				## Create RleViews object and calculate peakSummary
+				retest.peaks.ranges.rleviews <- Views(Rle(cov.chr), retest.peak.ranges)
+				retest.peaks <- peakSummary(retest.peaks.ranges.rleviews)
+
+				test <- cbind(start(retest.peaks), end(retest.peaks))
+				colnames(test) <- c("start", "end")
+
+				if (nrow(test) > 0) {
+					## Calculate extension cutoff for every peak
+					lower.cutoff.peaks <- apply(test, 1, function(x) {
+						left.lower.boundary <- max(0, (as.integer(x["start"]) - (resolution + 1)))
+						left.higher.boundary <- max(0, (as.integer(x["start"]) - 1))
+						right.lower.boundary <- min(chromosomes[selection],
+																				(as.integer(x["end"]) + 1))
+						right.higher.boundary <- min(chromosomes[selection],
+																				 (as.integer(x["end"]) + (resolution + 1)))
+						left.peakCutoff <- floor(.peakCutoff(cov.chr[left.lower.boundary:left.higher.boundary],
+																									 fdr.cutoff = 0.1))
+						right.peakCutoff <- floor(.peakCutoff(cov.chr[right.lower.boundary:right.higher.boundary],
+																										fdr.cutoff = 0.1))
+						min(left.peakCutoff, right.peakCutoff)
+					})
+					lower.cutoff.peaks <- unlist(lower.cutoff.peaks)
+			
+					read.length <- qwidth(bam)[1]
+					if (nrow(test) > 0) {
+						for (i in 1:nrow(test)) {
+							index <- test[i, "start"]
+							while (cov.chr[index] > lower.cutoff.peaks[i]) {
+								index = index - 1
+							}
+							test[i, "start"] <- index - read.length
+							index <- test[i, "end"]
+							while (cov.chr[index] > lower.cutoff.peaks[i]) {
+								index = index + 1
+							}
+							test[i, "end"] <- index + read.length
+						}
+						test <- as(data.frame(seqnames = names(chromosomes)[selection], test),
+											 "GRanges")
+						test <- test[order(test)]
+						test <- reduce(test)
+						test <- as(test, "data.frame")
+						test <- within(test, {
+							rm(width, strand)
+						})
+						merged.bed <- rbind(merged.bed, test)
+					}
+				}
+			}
+		}
+
+		## Write data
+		write.table(merged.bed,
+								file = file.path(destination.folder, "BamBaiPeaksFiles",
+																 paste0("peaks", control.uniq.indices, ".bed")),
+								sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+								
+    paste0("Analysis of peaks in sample " , sample.files[control.uniq.indices],
+           " is done; output file: peaks", control.uniq.indices, ".bed")
+	}
+	sfInit(parallel = TRUE, cpus = min(length(control.uniq.indices), ncpu))
+	sfLibrary(Rsamtools)
+	sfLibrary(chipseq)
+	sfLibrary(GenomicRanges)
+	sfLibrary(GenomicAlignments)
+	sfSapply(control.uniq.indices, DetectPeaks, sample.files, prefixes[1],
+					 .peakCutoff, destination.folder)
+	sfStop()
   
   ## Read count statistics
   Stats <- function(sample.files, bin.bed) {
@@ -333,7 +509,7 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
   CalculateDepthOfCoverage <- function(i, sample.files, control.indices,
                                        bin.grange, bin.size) {
     # Create GRanges object of peak files
-    bed <- read.table(file = paste0("MACS", control.indices[i], "_peaks.bed"),
+    bed <- read.table(file = paste0("peaks", control.indices[i], ".bed"),
                       as.is = TRUE, sep = "\t")
     colnames(bed) <- c("Chromosome", "Start", "End")
     peak.grange <- with(bed, GRanges(seqnames = Chromosome,
@@ -443,6 +619,7 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
 
   cat(unlist(res[4, ]), "\n", sep = "\n")
   
+  ## Read count statistics
   statistics <- within(statistics, {
     off.target <- unlist(res[5, ])
     on.target <- on.chromosomes - off.target
@@ -451,8 +628,6 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
   print(statistics)
   cat("\n\n")
 
-  ## Add counts.ENCODER
-   
   write.table(read.counts, file = file.path(destination.folder,
                                     "read_counts.txt"),
                                     row.names = FALSE, col.names = TRUE,
@@ -475,7 +650,7 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
   }
   
   ## Garbage collection
-  rm(bin.bed, bin.grange, CalculateDepthOfCoverage, control.indices, Macs14,
+  rm(bin.bed, bin.grange, CalculateDepthOfCoverage, control.indices,
      res, statistics, to.log)
 
   #############################################
@@ -509,8 +684,8 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
       .tng(data.frame(count = data$cov[,i], gc = data$anno$gc,
                       mapa = data$anno$mapa), use = usepoints,
            correctmapa = TRUE, plot = file.path(destination.folder, "qc",
-                                             paste0(colnames(data$cov)[i],
-                                                    ".png")))
+                                                paste0(colnames(data$cov)[i],
+                                                       ".png")))
     }
     sfInit(parallel=TRUE, cpus = ncpu)
     ratios <- sfLapply(i, NormalizeDOC, data, .tng, usepoints,
@@ -542,6 +717,10 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
     Feature = paste0(chr, ":", paste0(start, "-", end))
   )), log2.read.counts[, 4:ncol(log2.read.counts)])
   
+  ## Replace -/+Inf values to -/+large values for compatibility with IGV browser
+  log2.read.counts[log2.read.counts == -Inf] <- -.Machine$integer.max/2
+  log2.read.counts[log2.read.counts == Inf] <- .Machine$integer.max/2
+  
   write.table(log2.read.counts, file.path(destination.folder,
                                        "log2_read_counts.igv"),
               sep = "\t", row.names = FALSE, quote = FALSE)
@@ -555,6 +734,7 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
   ## Calculate overlap with capture.regions.file for quality control purpose ##
   #############################################################################
   
+  ## Calculate overlap with capture regions
   if (capture.regions.file != "not specified") {
     captured.bed <- read.table(capture.regions.file, as.is = TRUE, sep = "\t")
     colnames(captured.bed) <- c("Chromosome", "Start", "End")
@@ -562,7 +742,7 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
                             GRanges(seqnames = Chromosome,
                                     ranges = IRanges(start = Start, end = End)))
     for (control.index in control.uniq.indices) {
-      peak.bed <- read.table(file = paste0("MACS", control.index, "_peaks.bed"),
+      peak.bed <- read.table(file = paste0("peaks", control.index, ".bed"),
                              as.is = TRUE, sep = "\t")
       colnames(peak.bed) <- c("Chromosome", "Start", "End")
       peak.grange <- with(peak.bed, GRanges(seqnames = Chromosome,
@@ -587,9 +767,9 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
   
   sink()
   
-  ## Remove BamBaiMacsFiles folder
+  ## Remove BamBaiPeaksFiles folder
   if (!keep.intermediairy.files) {
-    unlink(file.path(destination.folder, "BamBaiMacsFiles"), recursive = TRUE)
+    unlink(file.path(destination.folder, "BamBaiPeaksFiles"), recursive = TRUE)
   }
   
   ## Garbage collection

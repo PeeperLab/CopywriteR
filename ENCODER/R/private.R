@@ -43,7 +43,7 @@
   list(cov = cov, anno = anno)
 }
 
-.peakCutoff.dynamic <- function(cov, fdr.cutoff = 0.0001, k = 2:150) {
+.peakCutoff <- function(cov, fdr.cutoff = 0.0001, k = 2:150) {
 	length.y <- length(cov)
 	y <- tabulate(cov)
 	y <- append(y, length.y - sum(y), 0)
@@ -56,16 +56,28 @@
 	}
 	n <- exp(log(y[1] + 1) - dpois(1, lambda, log = TRUE)) # 1 Added to y[1]; otherwise if y[1] = 0 outcome is 0
 	exp.fd <- n * ppois(k - 1, lambda, lower.tail = FALSE)
-	obs.d <- integer(length(k))
+	obs.d <- rep(0, length(k))
+	names.y <- as.integer(names(y))
 	for (i in seq_along(k)) {
-		obs.d[i] <- sum(y[as.integer(names(y)) >= k[i]])
+		tmp <- sum(y[names.y >= k[i]])
+		if (tmp != 0) {
+			obs.d[i] <- tmp
+		} else {
+			break
+		}
 	}
 	FDR <- ifelse(obs.d == 0, 0, exp.fd/obs.d)
 	fdr.ok <- which(FDR < fdr.cutoff)
-	if (length(fdr.ok) < 1) 
-		stop("No cutoff with low enough FDR found")
+	if (length(fdr.ok) < 1) {
+		return(0) ## Return 0 is there are no cutoffs low enough
+	}
 	fdr.chosen <- fdr.ok[1]
-	k[fdr.chosen - 1] + (FDR[fdr.chosen - 1] - fdr.cutoff)/(FDR[fdr.chosen - 1] - FDR[fdr.chosen])
+	tmp <- k[fdr.chosen - 1] + (FDR[fdr.chosen - 1] - fdr.cutoff) / (FDR[fdr.chosen - 1] - FDR[fdr.chosen])
+	if (length(tmp) > 0) { ## Always give output 0 if tmp is numeric(0)
+	  tmp
+	} else {
+	  0
+	}
 }
 
 .removeCommonFix <- function(names, distance = 1) {

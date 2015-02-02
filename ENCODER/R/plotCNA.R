@@ -1,11 +1,9 @@
 plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
                     y.max, ...) {
   
-  ## Make folder path absolute
+  ## Make destination folder path absolute
   destination.folder <- tools::file_path_as_absolute(destination.folder)
-
-  ## Add trailing / to folder paths
-  destination.folder <- paste0(destination.folder, "/CNAprofiles/")
+  destination.folder <- file.path(destination.folder, "CNAprofiles")
 
   ## Check the existence of folders and files
   if (!file.exists(destination.folder)) {
@@ -13,7 +11,7 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
          "destination.folder path.")
   }
 
-  load(paste0(destination.folder, "input.Rdata"), .GlobalEnv)
+  load(file.path(destination.folder, "input.Rdata"), .GlobalEnv)
   
   ## Set variables
   nchrom <- inputStructure$nchrom
@@ -25,7 +23,7 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
   ## Set sample.plot
   if (missing(sample.plot)) {
     sample.plot <- apply(inputStructure$sample.control, c(1, 2), function(x) {
-      x <- paste0("log2.read.counts.", gsub(".*/", "", x))
+      x <- paste0("log2.read.counts.", basename(x))
     })
     all.samples <- unique(as.vector(sample.plot))
     sample.plot <- rbind(data.frame(sample.plot, stringsAsFactors = FALSE),
@@ -33,10 +31,10 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
                                     controls = rep(NA, length(all.samples)),
                                     stringsAsFactors = FALSE))
   } else {
+    colnames(sample.plot) <- c("samples", "controls")
     sample.plot[, ] <- apply(sample.plot, c(1, 2), function(x) {
       if (!is.na(x)) {
-        x <- paste0("log2.read.counts.",
-                    gsub("_properreads", "", gsub(".*/", "", x)))
+        x <- paste0("log2.read.counts.", gsub("_properreads", "", basename(x)))
       } else {
         x <- as.character(x)
       }
@@ -44,8 +42,8 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
   }
   
   ## Read data
-  log2.read.counts <- read.table(file = paste0(destination.folder,
-                                               "log2_read_counts.igv"),
+  log2.read.counts <- read.table(file = file.path(destination.folder,
+                                                  "log2_read_counts.igv"),
                                  sep = "\t", header = TRUE, check.names = FALSE)
 
   ## Remove prefix and convert chromosome names to integers
@@ -54,7 +52,8 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
   log2.read.counts$Chromosome <- gsub(prefix, "", log2.read.counts$Chromosome)
   log2.read.counts$Chromosome <-
     gsub("X", nchrom + 1, log2.read.counts$Chromosome)
-  log2.read.counts$Chromosome <- gsub("Y", nchrom + 2, log2.read.counts$Chromosome)
+  log2.read.counts$Chromosome <- gsub("Y", nchrom + 2,
+                                      log2.read.counts$Chromosome)
   log2.read.counts$Chromosome <- as.integer(log2.read.counts$Chromosome)
   
   ## Fix behaviour of DNAcopy with 'outlier' values
@@ -106,25 +105,21 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
     CNA.object <- smooth.CNA(CNA.object)  
   }
   segment.CNA.object <- segment(CNA.object, verbose = 1, ...)
-  save(segment.CNA.object, file = paste0(destination.folder, "segment.Rdata"))
+  save(segment.CNA.object, file = file.path(destination.folder,
+                                            "segment.Rdata"))
   
   ## Calculate the chromosome lengths from the bin.bed file
-  bin.bed <- read.table(file = bin.file, as.is = TRUE, sep = "\t")
-  colnames(bin.bed) <- c("Chromosome", "Start", "End")
-  bin.bed$Chromosome <- gsub(prefix, "", bin.bed$Chromosome)
-  bin.bed$Chromosome <- gsub("X", nchrom + 1, bin.bed$Chromosome)
-  bin.bed$Chromosome <- gsub("Y", nchrom + 2, bin.bed$Chromosome)
-  bin.bed$Chromosome <- as.integer(bin.bed$Chromosome)
-  bin.bed <- with(bin.bed,
-                  reduce(GRanges(seqnames = Chromosome,
-                                 ranges = IRanges(start = Start, end = End))))
-  bin.bed <- bin.bed[order(as.integer(seqlevels(bin.bed)))]
-  chrom.lengths <- data.frame(Chromosome = 1:length(seqlevels(bin.bed)),
-                              Length = ranges(bin.bed)@width - 1)
+  chrom.lengths <- scanBamHeader(inputStructure$sample.control$samples[1])[[1]]$targets
+  chrom.lengths <- data.frame(Chromosome = names(chrom.lengths),
+                            Length = chrom.lengths)
+	stripped.chromosome.names <- gsub(prefix, "", chrom.lengths$Chromosome)
+	suppressWarnings(chrom.lengths <- chrom.lengths[stripped.chromosome.names %in% c("X", "Y") |
+																							    !is.na(as.integer(stripped.chromosome.names)), ])
+  chrom.lengths <- chrom.lengths[mixedorder(chrom.lengths$Chromosome),]
   chrom.lengths <- within(chrom.lengths, {
-    CumSum <- c(0, cumsum(Length)[1:(nrow(chrom.lengths) - 1)])
+    Chromosome <- 1:nrow(chrom.lengths)
+    CumSum <- c(0, cumsum(as.numeric(Length))[1:(nrow(chrom.lengths) - 1)])
   })
-  # save(chrom.lengths, file = paste0(destination.folder, "chrom_lengths.Rdata"))
 
   ## Create plots
   segment.CNA.object$output <- within(segment.CNA.object$output, {
@@ -145,8 +140,8 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
   samples <- colnames(segment.CNA.object$data)
   samples <- samples[3:length(samples)]
 
-  # Add trailing / to folder paths
-  plot.folder <- paste0(destination.folder, "plots/")
+  # Create plots folder
+  plot.folder <- file.path(destination.folder, "plots")
   dir.create(plot.folder)
   setwd(plot.folder)
   
@@ -169,8 +164,8 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
       current.sample$output[current.sample$output$ID == select.sample, ]
   
     # Create and set new directory
-    dir.create(paste0(plot.folder, select.sample))
-    setwd(paste0(plot.folder, select.sample))
+    dir.create(file.path(plot.folder, select.sample))
+    setwd(file.path(plot.folder, select.sample))
   
     # Loop through chromosomes using lapply
     invisible(lapply(c(as.list(1:(nchrom + 2)), list(1:nchrom)), function(x) {

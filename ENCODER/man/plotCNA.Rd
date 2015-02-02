@@ -1,38 +1,76 @@
 \name{plotCNA}
 \alias{plotCNA}
 \title{
-plotCNA segments and plots the copy number files generated with ENCODER.
+ENCODER: ENhanced COpy number Detection from Exome Reads
 }
 \description{
-ENCODER output is analysed by the segmentation algorithm CBS and creates both whole-genome and per-chromosome plots.
+plotCNA analyses ENCODER output using the segmentation algorithm CBS and creates
+both whole-genome and per-chromosome plots.
 }
 \usage{
-plotCNA(destinationFolder, set.nchrom)
+plotCNA(destination.folder, smoothed = TRUE, sample.plot, y.min, y.max, ...)
 }
 \arguments{
-  \item{destinationFolder}{Path to the output folder of ENCODER}
-  \item{set.nchrom}{Number of chromosomes that are included in analysis. Use this option if CGHcall/plotCNA fail due to insufficient data points on the Y-chromosome.}
+\item{destination.folder}{
+the path to the output folder of ENCODER.
 }
-
+\item{smoothed}{
+logical that determines whether DNAcopy smoothens copy number information before
+segmentation. Defaults to TRUE.
+}
+\item{sample.plot}{
+optional; a data.frame or matrix that contains the locations of sample and
+control BAM files. The column names should be "samples" and "controls",
+respectively. The file locations in a row represent a sample and its
+corresponding control, which is used for plotting of relative copy number
+values. Every sample is plotted both without a reference and with a reference.
+Defaults to sample.controls as used for running ENCODER.
+}
+\item{y.min}{
+determines lower boundary of the plotting range.
+}
+\item{y.max}{
+determines upper boundary of the plotting range.
+}
+\item{...}{
+takes additional arguments that will be passed on to DNAcopy.
+}
+}
 \value{
-\item{Plots}{PNG and or PDF figures of the DNA copy number files}
-\item{calls.RData}{S4 object with results generated with CGHcall}
+\item{segment.Rdata}{
+an R object of the DNAcopy class, which contains the segmentation values for
+all analysed samples.
+}
+\item{plots}{
+a folder that contains all copy number profiles in portable document file
+(pdf) file format. Both profiles per chromosome, as well as a genome-wide
+profile are provided for every sample.
+}
 }
 \references{
-ENCODER: DNA copy number detection from off-target sequence data. Thomas Kuilman, Arno Velds, Kristel Kemper, Marco Ranzani, Lorenzo Bombardelli, Guotai Xu, Julian de Ruiter, Bauke Ylstra, Jos Jonkers, Sven Rottenberg, Lodewyk F. Wessels, David J. Adams, Daniel S. Peeper, Oscar Krijgsman. Submitted for publication. 
+ENCODER: DNA copy number detection from off-target sequence data. Thomas
+Kuilman, Arno Velds, Kristel Kemper, Marco Ranzani, Lorenzo Bombardelli,
+Marlous Hoogstraat, Ekaterina Nevedomskaya, Guotai Xu, Julian de Ruiter,
+Martijn P. Lolkema, Bauke Ylstra, Jos Jonkers, Sven Rottenberg, Lodewyk F.
+Wessels, David J. Adams, Daniel S. Peeper, Oscar Krijgsman. Submitted for
+publication. 
 }
 \author{
 Thomas Kuilman (t.kuilman@nki.nl)
-Oscar Krijgsman (o.krijgsman@nki.nl)
 }
-
 \seealso{
 \code{\link{ENCODER}}
 }
 \examples{
-## plot DNA copy number profiles from \code{\link{ENCODER}} output.
-  \dontrun{plotCNA("./PATH_TO_DESTINATIONFOLDER/")}
-  \dontrun{plotCNA("./PATH_TO_DESTINATIONFOLDER/", set.nchrom = 23)} ## Use the total chromosome count minus 1 (i.e., 23 for the human genome) when CGHcall fails
-  }
+\dontrun{
+setwd("/PATH/TO/BAMFILES/")
+samples <- list.files(pattern = ".bam$", full.names = TRUE)
+controls <- samples[rep(1, length(samples))] ## Use the first .bam file as a reference for plotting every sample
+sample.plot <- data.frame(samples, controls)
+
+plotCNA("./PATH/TO/DESTINATIONFOLDER/", sample.plot = sample.plot, y.min = -3,
+        y.max = 3)
+}
+}
 
   

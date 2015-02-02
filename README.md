@@ -123,10 +123,16 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 ## Changes and additions we are currently working on
 
-- [ ] Change -Inf in log2-table to small value for visualization in IGV
-- [ ] Remove dependency for MACS 1.4 (use chipseq package)
+- [ ] Check log.txt output file
+- [ ] Remove potential to overwrite existing folders and files
 - [ ] Compile into bioConductor package
 - [ ] Make names consistent and apply Rlint to code
+- [ ] Check that all chromosomes have same length (implemented in source code)
+- [ ] Remove possibility for error when allowing more cpus than samples (implemented in source code)
+- [ ] Check for platform-compatibility when handling sample.files variable (implemented in source code)
+- [ ] Check potential plotting error when running on custom bin files (implemented in source code)
+- [ ] Remove dependency for MACS 1.4 and use chipseq package instead (implemented in source code)
+- [ ] Change -Inf in log2-table to small value for visualization in IGV (implemented in source code)
 - [ ] Provide the amount of sequence reads used by ENCODER (implemented in source code)
 - [ ] Check rm() function if no capture region file is specified (implemented in source code)
 - [ ] Provide the option to keep intermediary files; remove by default (implemented in source code)
