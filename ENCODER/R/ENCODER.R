@@ -55,7 +55,7 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
   ## Create lists with BAM files and index of corresponding control
   sample.paths <- unlist(sample.control)
   sample.paths <- unique(sample.paths[!is.na(sample.paths)])
-  sample.paths <- basename(sample.paths)
+  sample.files <- basename(sample.paths)
   control.indices <- match(sample.control$controls, sample.control$samples)
 
   ## Create paths to helper files
@@ -473,10 +473,11 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
 	sfLibrary(chipseq)
 	sfLibrary(GenomicRanges)
 	sfLibrary(GenomicAlignments)
-	sfSapply(control.uniq.indices, DetectPeaks, sample.files, prefixes[1],
-					 .peakCutoff, destination.folder)
+	to.log <- sfSapply(control.uniq.indices, DetectPeaks, sample.files,
+	                   prefixes[1], .peakCutoff, destination.folder)
 	sfStop()
-  
+  cat(to.log, "\n", sep = "\n")
+
   ## Read count statistics
   Stats <- function(sample.files, bin.bed) {
     all.reads <- countBam(sample.files)$records
