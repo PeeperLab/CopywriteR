@@ -123,10 +123,12 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 ## Changes and additions we are currently working on
 
-- [ ] Check log.txt output file
+- [ ] Change ENCODER to allow custom bins?
+- [ ] Add track line to .igv output file (#track viewLimits=-3:3 graphType=heatmap color=255,0,0)
 - [ ] Remove potential to overwrite existing folders and files
 - [ ] Compile into bioConductor package
 - [ ] Make names consistent and apply Rlint to code
+- [ ] Check log.txt output file (implemented in source code)
 - [ ] Check that all chromosomes have same length (implemented in source code)
 - [ ] Remove possibility for error when allowing more cpus than samples (implemented in source code)
 - [ ] Check for platform-compatibility when handling sample.files variable (implemented in source code)

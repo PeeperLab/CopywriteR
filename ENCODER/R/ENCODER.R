@@ -303,179 +303,179 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
   control.uniq.indices <- unique(control.indices)
   
   ## Call peaks in .bam file of control sample
-	DetectPeaks <- function(control.uniq.indices, sample.files, prefix,
-													.peakCutoff, destination.folder) {
-	
-		## j represents the minimal peak width
-		j <- 100
-	
-		## resolution is the resolution at which peaks are determined
-		resolution <- 20000
-	
-		## Initialize
-		merged.bed <- NULL
-		chromosomes <- scanBamHeader(sample.files[control.uniq.indices])[[1]][["targets"]]
-		stripped.chromosome.names <- gsub(prefix, "", names(chromosomes))
-		suppressWarnings(chromosomes <- chromosomes[stripped.chromosome.names %in% c("X", "Y") |
-																								!is.na(as.integer(stripped.chromosome.names))])
-																								
-		for (selection in 1:length(chromosomes)) {
-	
-			## Read bam file per chromosome and calculate coverage
-			which <- GRanges(names(chromosomes)[selection],
-											 IRanges(1, unname(chromosomes)[selection]))
-			what <- c("rname", "pos", "strand", "qwidth")
-			param <- ScanBamParam(which = which, what = what)
-			bam <- readGAlignments(sample.files[control.uniq.indices], param = param)
-			cov.chr <- coverage(bam)
-			cov.chr <- cov.chr@listData[names(chromosomes)[selection]][[1]]
-			cov.chr <- as.vector(cov.chr) # Makes subsetting faster
+  DetectPeaks <- function(control.uniq.indices, sample.files, prefix,
+                          .peakCutoff, destination.folder) {
+  
+    ## j represents the minimal peak width
+    j <- 100
+  
+    ## resolution is the resolution at which peaks are determined
+    resolution <- 20000
+  
+    ## Initialize
+    merged.bed <- NULL
+    chromosomes <- scanBamHeader(sample.files[control.uniq.indices])[[1]][["targets"]]
+    stripped.chromosome.names <- gsub(prefix, "", names(chromosomes))
+    suppressWarnings(chromosomes <- chromosomes[stripped.chromosome.names %in% c("X", "Y") |
+                                                !is.na(as.integer(stripped.chromosome.names))])
+                                                
+    for (selection in 1:length(chromosomes)) {
+  
+      ## Read bam file per chromosome and calculate coverage
+      which <- GRanges(names(chromosomes)[selection],
+                       IRanges(1, unname(chromosomes)[selection]))
+      what <- c("rname", "pos", "strand", "qwidth")
+      param <- ScanBamParam(which = which, what = what)
+      bam <- readGAlignments(sample.files[control.uniq.indices], param = param)
+      cov.chr <- coverage(bam)
+      cov.chr <- cov.chr@listData[names(chromosomes)[selection]][[1]]
+      cov.chr <- as.vector(cov.chr) # Makes subsetting faster
 
-			## Calculate peak detection and extension cutoffs per bin
-			peak.detection.cutoff <- vector(length = length(cov.chr)%/%resolution)
-			cov.chr.subsets <- NULL
-			for (i in 1:(length(cov.chr)%/%resolution)) {
-				cov.chr.subsets[[i]] <- cov.chr[(((i - 1) * resolution)):(i * resolution)]
-				peak.detection.cutoff[i] <- ceiling(.peakCutoff(cov.chr.subsets[[i]]))
-			}
-		
-			## Fill in missing values (zeroes and NAs) in peak.detection.cutoffs
-			peak.detection.cutoff[which(peak.detection.cutoff == 0)] <- NA
-			no.values.cutoffs <- which(is.na(peak.detection.cutoff))
-			no.values.replacements <- vector(length = length(no.values.cutoffs))
-			for (i in 1:length(no.values.cutoffs)) {
-				index <- no.values.cutoffs[i]
-				while (is.na(peak.detection.cutoff[index]) & index > 1) {
-					index = index - 1
-				}
-				lower.value <- peak.detection.cutoff[index]
-				index <- no.values.cutoffs[i]
-				while (is.na(peak.detection.cutoff[index])
-							 & index < length(peak.detection.cutoff)) {
-					index = index + 1
-				}
-				upper.value <- peak.detection.cutoff[index]
-				no.values.replacements[i] <- ceiling(mean(c(lower.value, upper.value),
-																						 na.rm = TRUE))
-			}
-			peak.detection.cutoff[no.values.cutoffs] <- no.values.replacements
-		
-			## Create islands and concatenate; select islands that are bigger than certain width (j)
-			# Use mapply for simultaneously iterating lists and vectors
-			peak.ranges <- mapply(function(x, z) {
-				x <- slice(x, lower = peak.detection.cutoff[z])
-				shift(x@ranges, resolution * (z - 1))
-			}, cov.chr.subsets, 1:length(peak.detection.cutoff))
-			peak.ranges <- Reduce(function(x, y) {
-				c(x, y)
-			}, peak.ranges)
-			peak.ranges <- reduce(peak.ranges)
-			peak.ranges <- peak.ranges[width(peak.ranges) > j, ]
-			peak.ranges <- peak.ranges[end(peak.ranges) < chromosomes[selection]%/%resolution * resolution, ]
-		
-			## Create RleViews object and calculate peakSummary
-			peaks.ranges.rleviews <- Views(Rle(cov.chr), peak.ranges)
-			peaks <- peakSummary(peaks.ranges.rleviews)
+      ## Calculate peak detection and extension cutoffs per bin
+      peak.detection.cutoff <- vector(length = length(cov.chr)%/%resolution)
+      cov.chr.subsets <- NULL
+      for (i in 1:(length(cov.chr)%/%resolution)) {
+        cov.chr.subsets[[i]] <- cov.chr[(((i - 1) * resolution)):(i * resolution)]
+        peak.detection.cutoff[i] <- ceiling(.peakCutoff(cov.chr.subsets[[i]]))
+      }
+    
+      ## Fill in missing values (zeroes and NAs) in peak.detection.cutoffs
+      peak.detection.cutoff[which(peak.detection.cutoff == 0)] <- NA
+      no.values.cutoffs <- which(is.na(peak.detection.cutoff))
+      no.values.replacements <- vector(length = length(no.values.cutoffs))
+      for (i in 1:length(no.values.cutoffs)) {
+        index <- no.values.cutoffs[i]
+        while (is.na(peak.detection.cutoff[index]) & index > 1) {
+          index = index - 1
+        }
+        lower.value <- peak.detection.cutoff[index]
+        index <- no.values.cutoffs[i]
+        while (is.na(peak.detection.cutoff[index])
+               & index < length(peak.detection.cutoff)) {
+          index = index + 1
+        }
+        upper.value <- peak.detection.cutoff[index]
+        no.values.replacements[i] <- ceiling(mean(c(lower.value, upper.value),
+                                             na.rm = TRUE))
+      }
+      peak.detection.cutoff[no.values.cutoffs] <- no.values.replacements
+    
+      ## Create islands and concatenate; select islands that are bigger than certain width (j)
+      # Use mapply for simultaneously iterating lists and vectors
+      peak.ranges <- mapply(function(x, z) {
+        x <- slice(x, lower = peak.detection.cutoff[z])
+        shift(x@ranges, resolution * (z - 1))
+      }, cov.chr.subsets, 1:length(peak.detection.cutoff))
+      peak.ranges <- Reduce(function(x, y) {
+        c(x, y)
+      }, peak.ranges)
+      peak.ranges <- reduce(peak.ranges)
+      peak.ranges <- peak.ranges[width(peak.ranges) > j, ]
+      peak.ranges <- peak.ranges[end(peak.ranges) < chromosomes[selection]%/%resolution * resolution, ]
+    
+      ## Create RleViews object and calculate peakSummary
+      peaks.ranges.rleviews <- Views(Rle(cov.chr), peak.ranges)
+      peaks <- peakSummary(peaks.ranges.rleviews)
 
-			if (nrow(peaks) > 0) {
-				test <- data.frame(seqnames = names(chromosomes)[selection],
-													 start = start(peaks), end = end(peaks))
-			
-				## Reiterate over peaks to check for for large differences in peak detection cutoffs
-				retest.peak.ranges <- apply(test, 1, function(x) {
-					print(x)
-					left.lower.boundary <- max(0, (as.integer(x["start"]) - (resolution + 1)))
-					left.higher.boundary <- max(0, (as.integer(x["start"]) - 1))
-					right.lower.boundary <- min(chromosomes[selection],
-																			(as.integer(x["end"]) + 1))
-					right.higher.boundary <- min(chromosomes[selection],
-																			 (as.integer(x["end"]) + (resolution + 1)))
-					left.peakCutoff <- ceiling(.peakCutoff(cov.chr[left.lower.boundary:left.higher.boundary]))
-					right.peakCutoff <- ceiling(.peakCutoff(cov.chr[right.lower.boundary:right.higher.boundary]))
-					max.peakCutoff <- max(left.peakCutoff, right.peakCutoff)
-					tmp <- slice(cov.chr[as.integer(x["start"]):as.integer(x["end"])],
-											 lower = max.peakCutoff)
-					shift(tmp@ranges, as.integer(x["start"]) - 1)
-				})
+      if (nrow(peaks) > 0) {
+        test <- data.frame(seqnames = names(chromosomes)[selection],
+                           start = start(peaks), end = end(peaks))
+      
+        ## Reiterate over peaks to check for for large differences in peak detection cutoffs
+        retest.peak.ranges <- apply(test, 1, function(x) {
+          print(x)
+          left.lower.boundary <- max(0, (as.integer(x["start"]) - (resolution + 1)))
+          left.higher.boundary <- max(0, (as.integer(x["start"]) - 1))
+          right.lower.boundary <- min(chromosomes[selection],
+                                      (as.integer(x["end"]) + 1))
+          right.higher.boundary <- min(chromosomes[selection],
+                                       (as.integer(x["end"]) + (resolution + 1)))
+          left.peakCutoff <- ceiling(.peakCutoff(cov.chr[left.lower.boundary:left.higher.boundary]))
+          right.peakCutoff <- ceiling(.peakCutoff(cov.chr[right.lower.boundary:right.higher.boundary]))
+          max.peakCutoff <- max(left.peakCutoff, right.peakCutoff)
+          tmp <- slice(cov.chr[as.integer(x["start"]):as.integer(x["end"])],
+                       lower = max.peakCutoff)
+          shift(tmp@ranges, as.integer(x["start"]) - 1)
+        })
 
-				retest.peak.ranges <- Reduce(function(x, y) {
-					c(x, y)
-				}, retest.peak.ranges)
-				retest.peak.ranges <- reduce(retest.peak.ranges)
+        retest.peak.ranges <- Reduce(function(x, y) {
+          c(x, y)
+        }, retest.peak.ranges)
+        retest.peak.ranges <- reduce(retest.peak.ranges)
 
-				## Select all with width of more than 100 and within bin regions
-				retest.peak.ranges <- retest.peak.ranges[width(retest.peak.ranges) > j, ]
-				retest.peak.ranges <- retest.peak.ranges[end(retest.peak.ranges) < chromosomes[selection]%/%resolution * resolution, ]
-		
-				## Create RleViews object and calculate peakSummary
-				retest.peaks.ranges.rleviews <- Views(Rle(cov.chr), retest.peak.ranges)
-				retest.peaks <- peakSummary(retest.peaks.ranges.rleviews)
+        ## Select all with width of more than 100 and within bin regions
+        retest.peak.ranges <- retest.peak.ranges[width(retest.peak.ranges) > j, ]
+        retest.peak.ranges <- retest.peak.ranges[end(retest.peak.ranges) < chromosomes[selection]%/%resolution * resolution, ]
+    
+        ## Create RleViews object and calculate peakSummary
+        retest.peaks.ranges.rleviews <- Views(Rle(cov.chr), retest.peak.ranges)
+        retest.peaks <- peakSummary(retest.peaks.ranges.rleviews)
 
-				test <- cbind(start(retest.peaks), end(retest.peaks))
-				colnames(test) <- c("start", "end")
+        test <- cbind(start(retest.peaks), end(retest.peaks))
+        colnames(test) <- c("start", "end")
 
-				if (nrow(test) > 0) {
-					## Calculate extension cutoff for every peak
-					lower.cutoff.peaks <- apply(test, 1, function(x) {
-						left.lower.boundary <- max(0, (as.integer(x["start"]) - (resolution + 1)))
-						left.higher.boundary <- max(0, (as.integer(x["start"]) - 1))
-						right.lower.boundary <- min(chromosomes[selection],
-																				(as.integer(x["end"]) + 1))
-						right.higher.boundary <- min(chromosomes[selection],
-																				 (as.integer(x["end"]) + (resolution + 1)))
-						left.peakCutoff <- floor(.peakCutoff(cov.chr[left.lower.boundary:left.higher.boundary],
-																									 fdr.cutoff = 0.1))
-						right.peakCutoff <- floor(.peakCutoff(cov.chr[right.lower.boundary:right.higher.boundary],
-																										fdr.cutoff = 0.1))
-						min(left.peakCutoff, right.peakCutoff)
-					})
-					lower.cutoff.peaks <- unlist(lower.cutoff.peaks)
-			
-					read.length <- qwidth(bam)[1]
-					if (nrow(test) > 0) {
-						for (i in 1:nrow(test)) {
-							index <- test[i, "start"]
-							while (cov.chr[index] > lower.cutoff.peaks[i]) {
-								index = index - 1
-							}
-							test[i, "start"] <- index - read.length
-							index <- test[i, "end"]
-							while (cov.chr[index] > lower.cutoff.peaks[i]) {
-								index = index + 1
-							}
-							test[i, "end"] <- index + read.length
-						}
-						test <- as(data.frame(seqnames = names(chromosomes)[selection], test),
-											 "GRanges")
-						test <- test[order(test)]
-						test <- reduce(test)
-						test <- as(test, "data.frame")
-						test <- within(test, {
-							rm(width, strand)
-						})
-						merged.bed <- rbind(merged.bed, test)
-					}
-				}
-			}
-		}
+        if (nrow(test) > 0) {
+          ## Calculate extension cutoff for every peak
+          lower.cutoff.peaks <- apply(test, 1, function(x) {
+            left.lower.boundary <- max(0, (as.integer(x["start"]) - (resolution + 1)))
+            left.higher.boundary <- max(0, (as.integer(x["start"]) - 1))
+            right.lower.boundary <- min(chromosomes[selection],
+                                        (as.integer(x["end"]) + 1))
+            right.higher.boundary <- min(chromosomes[selection],
+                                         (as.integer(x["end"]) + (resolution + 1)))
+            left.peakCutoff <- floor(.peakCutoff(cov.chr[left.lower.boundary:left.higher.boundary],
+                                                   fdr.cutoff = 0.1))
+            right.peakCutoff <- floor(.peakCutoff(cov.chr[right.lower.boundary:right.higher.boundary],
+                                                    fdr.cutoff = 0.1))
+            min(left.peakCutoff, right.peakCutoff)
+          })
+          lower.cutoff.peaks <- unlist(lower.cutoff.peaks)
+      
+          read.length <- qwidth(bam)[1]
+          if (nrow(test) > 0) {
+            for (i in 1:nrow(test)) {
+              index <- test[i, "start"]
+              while (cov.chr[index] > lower.cutoff.peaks[i]) {
+                index = index - 1
+              }
+              test[i, "start"] <- index - read.length
+              index <- test[i, "end"]
+              while (cov.chr[index] > lower.cutoff.peaks[i]) {
+                index = index + 1
+              }
+              test[i, "end"] <- index + read.length
+            }
+            test <- as(data.frame(seqnames = names(chromosomes)[selection], test),
+                       "GRanges")
+            test <- test[order(test)]
+            test <- reduce(test)
+            test <- as(test, "data.frame")
+            test <- within(test, {
+              rm(width, strand)
+            })
+            merged.bed <- rbind(merged.bed, test)
+          }
+        }
+      }
+    }
 
-		## Write data
-		write.table(merged.bed,
-								file = file.path(destination.folder, "BamBaiPeaksFiles",
-																 paste0("peaks", control.uniq.indices, ".bed")),
-								sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
-								
+    ## Write data
+    write.table(merged.bed,
+                file = file.path(destination.folder, "BamBaiPeaksFiles",
+                                 paste0("peaks", control.uniq.indices, ".bed")),
+                sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+                
     paste0("Analysis of peaks in sample " , sample.files[control.uniq.indices],
            " is done; output file: peaks", control.uniq.indices, ".bed")
-	}
-	sfInit(parallel = TRUE, cpus = min(length(control.uniq.indices), ncpu))
-	sfLibrary(Rsamtools)
-	sfLibrary(chipseq)
-	sfLibrary(GenomicRanges)
-	sfLibrary(GenomicAlignments)
-	to.log <- sfSapply(control.uniq.indices, DetectPeaks, sample.files,
-	                   prefixes[1], .peakCutoff, destination.folder)
-	sfStop()
+  }
+  sfInit(parallel = TRUE, cpus = min(length(control.uniq.indices), ncpu))
+  sfLibrary(Rsamtools)
+  sfLibrary(chipseq)
+  sfLibrary(GenomicRanges)
+  sfLibrary(GenomicAlignments)
+  to.log <- sfSapply(control.uniq.indices, DetectPeaks, sample.files,
+                     prefixes[1], .peakCutoff, destination.folder)
+  sfStop()
   cat(to.log, "\n", sep = "\n")
 
   ## Read count statistics
