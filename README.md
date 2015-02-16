@@ -1,4 +1,4 @@
-# ENCODER
+# CopywriteR
 
 Current methods for detection of copy number aberrations (CNA) from targeted
 sequencing data use the depth of coverage of captured exons only. Accurate CNA
