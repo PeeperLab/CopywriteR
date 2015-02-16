@@ -15,6 +15,7 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
 
     ## Set variables
     chromosomes <- inputStructure$chromosomes
+    nautosomes <- length(grep("[0-9]", chromosomes))
     prefix <- inputStructure$prefix
     ncpu <- inputStructure$ncpu
     bin.file <- inputStructure$bin.file
@@ -50,18 +51,20 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
                                    check.names = FALSE)
 
     ## Remove prefix and convert chromosome names to integers
-    log2.read.counts <- log2.read.counts[-which(rowSums(is.na(log2.read.counts[, -c(1:4), drop = FALSE])) > 0), ]
+    # log2.read.counts <- log2.read.counts[-which(rowSums(is.na(log2.read.counts[, -c(1:4), drop = FALSE])) > 0), ]
     log2.read.counts$Chromosome <- gsub(prefix, "", log2.read.counts$Chromosome)
-    log2.read.counts$Chromosome <- gsub("X", chromosomes + 1,
+    log2.read.counts$Chromosome <- gsub("X", length(nautosomes + 1),
                                         log2.read.counts$Chromosome)
-    log2.read.counts$Chromosome <- gsub("Y", chromosomes + 2,
+    log2.read.counts$Chromosome <- gsub("Y", length(nautosomes + 2),
                                         log2.read.counts$Chromosome)
     log2.read.counts$Chromosome <- as.integer(log2.read.counts$Chromosome)
 
     ## Fix behaviour of DNAcopy with 'outlier' values
     log2.read.counts[, 5:ncol(log2.read.counts)] <- apply(log2.read.counts[, 5:ncol(log2.read.counts), drop = FALSE],
                                                           c(1, 2), function(x) {
-        if (x < -5) {
+        if (is.na(x)) {
+            x <- NA
+        } else if (x < -5) {
             x <- -5
         } else if (x > 10) {
             x <- 10
@@ -172,6 +175,7 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
             # Select chromosome
             select.chrom <- x
             current.sample$data <- current.sample$data[current.sample$data$chrom %in% select.chrom, ]
+            current.sample$data <- current.sample$data[!is.na(current.sample$data[, select.sample]), ]
             current.sample$output <- current.sample$output[current.sample$output$chrom %in% select.chrom, ]
 
             # Set variables

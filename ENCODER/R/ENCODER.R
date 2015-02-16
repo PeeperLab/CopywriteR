@@ -323,8 +323,7 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
         ## Initialize
         merged.bed <- NULL
         chromosomes <- scanBamHeader(sample.files[control.uniq.indices])[[1]][["targets"]]
-        stripped.chromosome.names <- gsub(prefix, "", names(chromosomes))
-        chromosomes <- chromosomes[stripped.chromosome.names %in% used.chromosomes]
+        chromosomes <- chromosomes[names(chromosomes) %in% used.chromosomes]
 
         for (selection in 1:length(chromosomes)) {
 
@@ -370,20 +369,29 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
 
             ## Create islands and concatenate; select islands that are bigger than certain width (j)
             # Use mapply for simultaneously iterating lists and vectors
-            peak.ranges <- mapply(function(x, z) {
-                x <- slice(x, lower = peak.detection.cutoff[z])
-                shift(x@ranges, resolution * (z - 1))
-            }, cov.chr.subsets, 1:length(peak.detection.cutoff))
-            peak.ranges <- Reduce(function(x, y) {
-                c(x, y)
-            }, peak.ranges)
-            peak.ranges <- reduce(peak.ranges)
-            peak.ranges <- peak.ranges[width(peak.ranges) > j, ]
-            peak.ranges <- peak.ranges[end(peak.ranges) < chromosomes[selection]%/%resolution * resolution, ]
-
-            ## Create RleViews object and calculate peakSummary
-            peaks.ranges.rleviews <- Views(Rle(cov.chr), peak.ranges)
-            peaks <- peakSummary(peaks.ranges.rleviews)
+            # If no reads are present anywhere on a chromosome,
+            # peak.detection.cutoff is NaN for all bins -> test for this
+            if (!is.na(peak.detection.cutoff[1])) {
+            
+								peak.ranges <- mapply(function(x, z) {
+										print(x)
+										x <- slice(x, lower = peak.detection.cutoff[z])
+										shift(x@ranges, resolution * (z - 1))
+								}, cov.chr.subsets, 1:length(peak.detection.cutoff))
+								peak.ranges <- Reduce(function(x, y) {
+										c(x, y)
+								}, peak.ranges)
+								peak.ranges <- reduce(peak.ranges)
+								peak.ranges <- peak.ranges[width(peak.ranges) > j, ]
+								peak.ranges <- peak.ranges[end(peak.ranges) < chromosomes[selection]%/%resolution * resolution, ]
+								
+                ## Create RleViews object and calculate peakSummary
+                peaks.ranges.rleviews <- Views(Rle(cov.chr), peak.ranges)
+                peaks <- peakSummary(peaks.ranges.rleviews)
+                
+						} else {
+						    peaks <- data.frame()
+						}
 
             if (nrow(peaks) > 0) {
                 test <- data.frame(seqnames = names(chromosomes)[selection],
