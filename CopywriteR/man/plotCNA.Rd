@@ -1,10 +1,10 @@
 \name{plotCNA}
 \alias{plotCNA}
 \title{
-ENCODER: ENhanced COpy number Detection from Exome Reads
+CopywriteR: ENhanced COpy number Detection from Exome Reads
 }
 \description{
-plotCNA analyses ENCODER output using the segmentation algorithm CBS and creates
+plotCNA analyses CopywriteR output using the segmentation algorithm CBS and creates
 both whole-genome and per-chromosome plots.
 }
 \usage{
@@ -12,7 +12,7 @@ plotCNA(destination.folder, smoothed = TRUE, sample.plot, y.min, y.max, ...)
 }
 \arguments{
 \item{destination.folder}{
-the path to the output folder of ENCODER.
+the path to the output folder of CopywriteR.
 }
 \item{smoothed}{
 logical that determines whether DNAcopy smoothens copy number information before
@@ -24,7 +24,7 @@ control BAM files. The column names should be "samples" and "controls",
 respectively. The file locations in a row represent a sample and its
 corresponding control, which is used for plotting of relative copy number
 values. Every sample is plotted both without a reference and with a reference.
-Defaults to sample.controls as used for running ENCODER.
+Defaults to sample.controls as used for running CopywriteR.
 }
 \item{y.min}{
 determines lower boundary of the plotting range.
@@ -48,7 +48,7 @@ profile are provided for every sample.
 }
 }
 \references{
-ENCODER: DNA copy number detection from off-target sequence data. Thomas
+CopywriteR: DNA copy number detection from off-target sequence data. Thomas
 Kuilman, Arno Velds, Kristel Kemper, Marco Ranzani, Lorenzo Bombardelli,
 Marlous Hoogstraat, Ekaterina Nevedomskaya, Guotai Xu, Julian de Ruiter,
 Martijn P. Lolkema, Bauke Ylstra, Jos Jonkers, Sven Rottenberg, Lodewyk F.
@@ -59,7 +59,7 @@ publication.
 Thomas Kuilman (t.kuilman@nki.nl)
 }
 \seealso{
-\code{\link{ENCODER}}
+\code{\link{CopywriteR}}
 }
 \examples{
 \dontrun{

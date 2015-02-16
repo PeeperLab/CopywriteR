@@ -1,4 +1,4 @@
-preENCODER <- function(black.GC.mapa.folder, output.folder, bin.size,
+preCopywriteR <- function(black.GC.mapa.folder, output.folder, bin.size,
                        reference) {
 
     ## Make folder path absolute

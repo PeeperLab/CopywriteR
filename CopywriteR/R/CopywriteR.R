@@ -1,4 +1,4 @@
-ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
+CopywriteR <- function(sample.control, destination.folder, reference.folder, ncpu,
                     capture.regions.file, keep.intermediairy.files = FALSE) {
 
     ##########################
@@ -41,7 +41,7 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
 
     if (!file.exists(reference.folder)) {
         stop("The reference.folder could not be found.\nPlease change your ",
-             "reference.folder path or run `preENCODER` to generate the ",
+             "reference.folder path or run `preCopywriteR` to generate the ",
              "required folder with GC-content and mapability files for your ",
              "desired bin size.")
     }
@@ -562,8 +562,8 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
         # countBam on remainder of bins
         param <- ScanBamParam(which = reduce(outside.peak.grange),
                               what = c("pos"))
-        counts.ENCODER <- countBam(sample.files[i], param = param)
-        counts.ENCODER <- sum(counts.ENCODER$records)
+        counts.CopywriteR <- countBam(sample.files[i], param = param)
+        counts.CopywriteR <- sum(counts.CopywriteR$records)
 
         # Fix MT as levels in factor seqnames (remainder from setdiff operation)
         counts$space <- as.factor(as.character(counts$space))
@@ -615,7 +615,7 @@ ENCODER <- function(sample.control, destination.folder, reference.folder, ncpu,
                     paste0("Rsamtools finished calculating reads per bin in ", 
                            "sample ", sample.files[i], "; number of bins = ",
                            nrow(counts)),
-                    counts.ENCODER))
+                    counts.CopywriteR))
     }
     sfInit(parallel = TRUE, cpus = ncpu)
     sfLibrary(Rsamtools)

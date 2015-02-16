@@ -95,8 +95,8 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
         })
     } else {
         stop("One of the samples in sample.plot refers to a BAM file that has ",
-             "not been processed in ENCODER. Please make sure that you have ",
-             "provided the correct input files or re-run ENCODER accordingly.")
+             "not been processed in CopywriteR. Please make sure that you have ",
+             "provided the correct input files or re-run CopywriteR accordingly.")
     }
 
     ## Apply DNAcopy
