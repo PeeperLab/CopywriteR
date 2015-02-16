@@ -1,0 +1,276 @@
+%\VignetteIndexEntry{ENCODER}
+%\VignetteDepends{ENCODER}
+%\VignetteKeywords{Copy number detection from targeted sequencing using off-target reads.}
+%\VignettePackage{ENCODER}
+%\VignetteEngine{utils::Sweave}
+
+\documentclass{article}
+
+<<style-Sweave, eval=TRUE, echo=FALSE, results=tex>>=
+BiocStyle::latex()
+@
+
+\newcommand{\exitem}[3]{%
+  \item \texttt{\textbackslash#1\{#2\}} #3 \csname#1\endcsname{#2}.%
+}
+
+\title{\bf ENCODER: DNA copy number detection from off-target sequence data.}
+\author{Thomas Kuilman}
+
+\begin{document}
+
+\maketitle
+
+\begin{center}
+  Department of Molecular Oncology \\*
+  Netherlands Cancer Institute \\*
+  The Netherlands \\*
+\end{center}
+
+\begin{center}
+  \email{t.kuilman@nki.nl} or \email{thomaskuilman@yahoo.com}
+\end{center}
+
+\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Overview}
+
+To extract copy number information from targeted sequencing data while
+circumventing problems related to the use of on-target reads, we developed
+ENhanced COpy number Detection from Exome Reads (ENCODER). Unlike other
+currently available tools, ENCODER is based on off-target reads. We
+have shown that this approach has several advantages relative to current
+approaches\cite{Kuilman:vf} and it constitutes a viable alternative for copy
+number detection from targeted sequencing data.
+
+\section{ENCODER workflow}
+
+ENCODER uses .bam files as an input. These files are processed in
+several steps to allow copy number detection from off-target reads of targeted
+sequencing efforts. These steps include:
+
+\begin{itemize}
+  \item Removing of low-quality and anomalous reads
+  \item Peak calling (in reference when available, otherwise in sample itself)
+  \item Discarding of reads in peak regions
+  \item Piling up reads onto bins of pre-defined size
+  \item Compensating for the difference in effective bin size upon discarding
+  peaks in peak regions
+  \item Correcting for GC-content and mappability; applying a blacklist filter
+  for CNV regions
+\end{itemize}
+
+\section{Analysis workflow}
+
+The full analysis of copy number data with ENCODER includes three sequential
+steps, using the \Rcode{preENCODER()}, \Rcode{ENCODER()} and \Rcode{plotCNA()}
+functions respectively.
+
+In this analysis workflow, we will use ENCODER to extract copy number
+information from ChIPseq experiments on wild-type embryonic stem cells using an
+H3K4me3 antibody\cite{Clouaire:2012js}. The \Biocexptpkg{MMDiffBamSubset}
+Bioconductor experiment data package can be downloaded as follows:
+
+%<<download.data, print=FALSE, eval=TRUE, results=hide>>=
+%source("http://bioconductor.org/biocLite.R")
+%biocLite("MMDiffBamSubset")
+%@
+
+The .bam files in this dataset contain subsets of the original files with reads
+mapping to the region chr1:3000000-75000000 only.
+
+\subsection{\Rcode{preENCODER()}}
+
+ENCODER uses binned read count data as a basis for copy number detection.
+The \Rcode{preENCODER()} function allows to create all the necessary helper
+files (GC-content, mappability and blacklist files) for any custom bin size for
+the hg19, mm9 and mm10 reference genomes. The helper files are created in a new
+folder, which is required to run ENCODER. If previously created helper files for
+a specific bin size are available, the {\Rcode{preENCODER()} step can be
+omitted.
+
+For this example, ENCODER will be applied to a bin size of 1 Mb. In our example,
+the .bam files are kept in a folder called "data". We run {\Rcode{preENCODER()}
+to generate helper files as follows:
+
+<<load.ENCODER, print=FALSE, eval=TRUE>>=
+library(ENCODER)
+@
+
+<<get.root.folder, print=FALSE, eval=TRUE>>=
+data.folder <- tools::file_path_as_absolute(file.path(getwd(), "data"))
+@
+
+<<preENCODER, print=FALSE, eval=TRUE>>=
+preENCODER(black.GC.mapa.folder = file.path(data.folder, "mm10_1kb"),
+           output.folder = file.path(data.folder),
+           bin.size = 1000000,
+           reference = "mm10")
+@
+
+The black.GC.mapa.folder refers to the folder containing the original 1kb helper
+files, while the custom helper files are placed in a folder inside the
+output.folder folder. The bin.size argument takes the custom bin size (in bp) as
+input, and finally the reference is either "mm9", "mm10" or "hg19".
+
+The helper files are placed in a folder named after the reference genome and the
+bin size.
+
+<<list.dirs, print=FALSE, eval=TRUE>>=
+list.dirs(path = file.path(data.folder), full.names = FALSE)[2]
+@
+
+The GC-content, mappability and blacklist files are in .bed format. As an
+example, we print the bins.bed and mapability.bed files:
+
+<<head.bins, print=FALSE, eval=TRUE>>=
+head(read.delim(file = file.path(data.folder, "mm10_1000kb", "bins.bed"),
+                header = FALSE))
+@
+
+\newpage
+
+<<head.mapability, print=FALSE, eval=TRUE>>=
+head(read.delim(file = file.path(data.folder, "mm10_1000kb", "mapability.bed"),
+                header = FALSE))
+@
+
+\subsection{\Rcode{ENCODER()}}
+
+The \Rcode{ENCODER()} function allows to calculate binned read count data based
+on the helper files created using \Rcode{preENCODER()}. ENCODER uses a peak
+calling algorithm to remove 'on-target' reads. The argument that controls
+on which sample peaks are called is sample.control. This \Rcode{matrix} or
+\Rcode{data.frame} should contain path names to a 'sample' and its corresponding
+'control' in rows. The peaks called in the controls are used to remove reads
+from the samples. In the example used here, no matched germline control is
+available, and peaks are called on the sample itself.
+
+<<ENCODER, print=FALSE, eval=TRUE>>=
+samples <- list.files(path = file.path(data.folder), pattern = "bam$",
+                      full.names = TRUE)
+controls <- samples
+sample.control <- data.frame(samples, controls)
+
+ENCODER(sample.control = sample.control,
+        destination.folder = file.path(data.folder),
+        reference.folder = file.path(data.folder, "./mm10_1000kb"),
+        ncpu = 1,
+        keep.intermediairy.files = TRUE)
+@
+
+The destination.folder argument determines in which folder the output folder is
+going to be placed, and the reference.folder points to the location of the
+custom bin size helper files. ENCODER can use \Biocpkg{snowfall} for parallel
+computing, where every sample is processed on a single core. The ncpu argument
+defines the number of cores that will be maximally used by ENCODER during
+parallel computation. The keep.intermediairy.files argument determines
+whether intermediary .bam, .bai and peak .bed files are kept. The default value
+is FALSE, and we recommend only keeping these files for troubleshooting
+purposes to limit disk space usage. Finally, the capture.regions.file argument
+is optional, and can be used to define the location of a capture regions bed
+file. If this file is specified, statistics of the overlap of these regions with
+the called peaks is provided.
+
+\newpage
+
+ENCODER will create a new folder named CNAprofiles in the directory specified by
+destination.folder. This folder contains the following files:
+
+<<CNAprofiles.folder.contents, print=FALSE, eval=TRUE>>=
+cat(list.files(path = file.path(data.folder, "CNAprofiles")), sep = "\n")
+@
+
+The read\symbol{95}counts.txt file contains both uncompensated and compensated
+read counts for every sample, as well as the corresponding fraction.of.bin
+values. The 'fraction of bin' indicates what fraction of the bin is not on
+peaks, and therefore effectively contributes to the read count. In our example,
+the read\symbol{95}counts.txt has the following content:
+
+
+<<read.counts.example, print=FALSE, eval=TRUE>>=
+head(read.delim(file = file.path(data.folder, "CNAprofiles", "read_counts.txt")))
+@
+
+The log2\symbol{95}read\symbol{95}counts.igv file can be opened in the IGV
+browser (\url{http://www.broadinstitute.org/igv/}), and contains
+log2-transformed, normalized (ratios of) read counts. These data can be used for
+further downstream analysis, and are required for \Rcode{plotCNA()} to allow
+plotting of the copy number profiles:
+
+<<log2.read.counts.example, print=FALSE, eval=TRUE>>=
+head(read.delim(file = file.path(data.folder, "CNAprofiles",
+                                 "log2_read_counts.igv")))
+@
+
+The input.Rdata file contains a number of variables that are required to run
+the last function of the ENCODER package, \Rcode{plotCNA()}. The log.txt file
+contains log information of the R commands that have been used to perform the
+various subfunctions, and specifications of the input material. Finally, the qc
+folder contains two types of quality control plots.
+
+<<CNAprofiles.folder.contents, print=FALSE, eval=TRUE>>=
+cat(list.files(path = file.path(data.folder, "CNAprofiles", "qc")), sep = "\n")
+@
+
+The fraction.of.bin files contain the empirical cumulative distribution
+function for the 'fractions of bins'. The read.counts.compensated files
+contain the plots and the loesses that are used for GC-content and
+mappability corrections.
+
+\subsection{\Rcode{plotCNA()}}
+
+The \Rcode{plotCNA()} function allows segmentation of the copy number data using
+DNAcopy\cite{Olshen:2004ge}, and subsequent plotting. We run the plotting
+function as follows:
+
+<<CNAprofiles.folder.contents, print=FALSE, eval=TRUE>>=
+plotCNA(destination.folder = file.path(data.folder))
+@
+
+The plotting function saves the DNAcopy object containing the segmentation
+values in the segment.Rdata file. In addition, it creates the folder 'plots':
+
+<<CNAprofiles.folder.contents.2, print=FALSE, eval=TRUE>>=
+cat(list.files(path = file.path(data.folder, "CNAprofiles")), sep = "\n")
+@
+
+For every sample a separate directory is created:
+
+<<plots.folder.contents, print=FALSE, eval=TRUE>>=
+cat(list.files(path = file.path(data.folder, "CNAprofiles", "plots")), sep = "\n")
+@
+
+The samples are plotted per chromosome, as well as in a genome-wide fashion.
+We provide here the result of an identical analysis at 20 kb resolution (this
+was performed on the original sequence read file that has a higher coverage):
+
+\begin{center}
+\includegraphics[width=\textwidth]{data/chrom4}
+\end{center}
+
+In addition to the plots, the raw segmented values can be obtained from the
+DNAcopy object 'segment.Rdata'.
+
+I am interested in further improving ENCODER, so if ENCODER fails to analyze
+your samples, please don't hesitate to contact me. In this case, please provide
+the full command line output and the log-file.
+
+\newpage
+
+\section{Session Information}
+
+The version number of \R{} and packages loaded for generating the vignette were:
+<<sessionInfo, results=tex, print=TRUE, eval=TRUE>>=
+toLatex(sessionInfo())
+@
+
+\newpage
+
+\bibliography{ENCODER}
+
+\end{document}
+R CMD Sweave --pdf ENCODER.Rnw
+http://bioconductor.org/packages/devel/bioc/vignettes/BiocStyle/inst/doc/LatexStyle.pdf

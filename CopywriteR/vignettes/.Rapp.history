@@ -1,0 +1,17 @@
+test <- "hoi"#
+save(test)
+test <- "hoi"#
+save(file = test)
+load("/Users/t.kuilman/git/ENCODER/ENCODER/vignettes/test.Rdata")
+ls()
+test
+getwd()
+getwd("/Users/t.kuilman/git/ENCODER/ENCODER/vignettes/")
+setwd("/Users/t.kuilman/git/ENCODER/ENCODER/vignettes/")
+"/Users/t.kuilman"
+library(Rsamtools)#
+print(scanBamHeader("1_BT20_small.bam")[[1]][["targets"]])
+library(Rsamtools)#
+print(scanBamHeader("1_BT20_small.bam")[[1]][["targets"]])
+class(scanBamHeader("1_BT20_small.bam")[[1]][["targets"]])
+plot(1,1)
