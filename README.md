@@ -1,25 +1,25 @@
-# ENCODER
+# CopywriteR 
 
 Current methods for detection of copy number aberrations (CNA) from targeted
 sequencing data use the depth of coverage of captured exons only. Accurate CNA
 determination is complicated by uneven genomic distribution and non-uniform
-capture efficiency of targeted exons. Here we present a new tool, ENCODER, which
-eludes these problems by exploiting ‘off-target’ sequence reads. ENCODER allows
+capture efficiency of targeted exons. Here we present a new tool, CopywriteR, which
+eludes these problems by exploiting ‘off-target’ sequence reads. CopywriteR allows
 for extracting uniformly distributed copy number information, can be used
 without reference and can be applied to sequencing data obtained from various
 techniques including chromatin immunoprecipitation and target enrichment on
-small-size gene panels. ENCODER outperforms existing methods and constitutes a
+small-size gene panels. CopywriteR outperforms existing methods and constitutes a
 widely applicable alternative to available tools.
 
 ## Requirements:
 
-ENCODER was developed for UNIX based systems (including OSX) and requires the following command line tools:
+CopywriteR was developed for UNIX based systems (including OSX) and requires the following command line tools:
 
 - Samtools (http://samtools.sourceforge.net/) - To test Samtools: `$ samtools`
 - Bedtools (http://bedtools.readthedocs.org/) - To test Bedtools: `$ bedtools --version`
 - MACS 1.4 (http://liulab.dfci.harvard.edu/MACS/). To test MACS: `$ macs14 --version`
 
-The following R-packages are required to run ENCODER:
+The following R-packages are required to run CopywriteR:
 
 - Rsamtools
 - CGHcall
@@ -40,30 +40,30 @@ The remaining R-packages are available through CRAN:
 
 ## Installation R-package:
 
-After installing the required tools as described above you can download the pre-compiled ENCODER R-package.
+After installing the required tools as described above you can download the pre-compiled CopywriteR R-package.
 The package can be installed from the command line using the following command:
 
-    $ R CMD INSTALL ENCODER*.tar.gz
+    $ R CMD INSTALL CopywriteR*.tar.gz
 
-## ENCODER usage:
+## CopywriteR usage:
 
-Load the ENCODER package in R using:
+Load the CopywriteR package in R using:
 
-    > library("ENCODER")
+    > library("CopywriteR")
 
-ENCODER contains three main functions:
+CopywriteR contains three main functions:
 
-preENCODER will generate bin, mapability, GC-content, blacklist and capture regions .bed files for any specified bin size and for available reference genomes.
+preCopywriteR will generate bin, mapability, GC-content, blacklist and capture regions .bed files for any specified bin size and for available reference genomes.
 For every combination of reference genome and bin size, a separate set of such files needs to be created.
-preENCODER takes pre-assembled 1kb bin mapability, GC-content and blacklist .bed files as input.
+preCopywriteR takes pre-assembled 1kb bin mapability, GC-content and blacklist .bed files as input.
 Available reference genomes are hg19, mm9 and mm10.
 These can be downloaded from the release section.
 
-    preENCODER(blackGCMapaFolder, outputFolder, binSize, reference)
+    preCopywriteR(blackGCMapaFolder, outputFolder, binSize, reference)
 
-ENCODER will generate separate tables with compensated read counts and normalized compensated read counts (after correction for GC-content, mapability and removal of blacklisted regions).
+CopywriteR will generate separate tables with compensated read counts and normalized compensated read counts (after correction for GC-content, mapability and removal of blacklisted regions).
 
-    ENCODER(bamFolder, destinationFolder, referenceFolder, whichControl, ncpu, captureRegionsBedFile)
+    CopywriteR(bamFolder, destinationFolder, referenceFolder, whichControl, ncpu, captureRegionsBedFile)
 
 plotCNA performs segmentation, calling and plotting of copy number profiles using the CGHcall package.
 
@@ -72,19 +72,19 @@ plotCNA performs segmentation, calling and plotting of copy number profiles usin
 For more details see R-package manual.
 Alternatively, one of the following commands can be used to show help files for the corresponding function:
 
-    > ?preENCODER
-    > ?ENCODER
+    > ?preCopywriteR
+    > ?CopywriteR
     > ?plotCNA
 
 ## Troubleshooting
 
-There are a number of requirements for your ENCODER analysis to run successfully. These are discussed below.
+There are a number of requirements for your CopywriteR analysis to run successfully. These are discussed below.
 
 ### Chromosome names
 
-ENCODER by default assumes that the chromosome names in .bam files are "1", "2", ... "X", and "Y".
-These chromosome names are incorporated in the bin, mapability, GC-content, blacklist and capture regions .bed files by preENCODER.
-ENCODER can also be applied to .bam files with different chromosome names.
+CopywriteR by default assumes that the chromosome names in .bam files are "1", "2", ... "X", and "Y".
+These chromosome names are incorporated in the bin, mapability, GC-content, blacklist and capture regions .bed files by preCopywriteR.
+CopywriteR can also be applied to .bam files with different chromosome names.
 In this case, the supporting .bed files need to have the same chromosome notation.
 In case of non-matching chromosome notations, an error message will be displayed and the analysis will be aborted.
 Non-matching chromosome names between .bam and supporting .bed files can be matched by changing the supporting .bed files, for instance in UNIX using awk as follows:
@@ -107,7 +107,7 @@ CGHcall fails to run on the Y-chromosome when it has too few data points. If thi
 
 ## Contact
 
-We have tried to make the ENCODER code readable and its use as easy as possible. If any questions arise regarding the package, or if you want to report any bugs, please do not hesitate and contact:
+We have tried to make the CopywriteR code readable and its use as easy as possible. If any questions arise regarding the package, or if you want to report any bugs, please do not hesitate and contact:
 
 - [Thomas Kuilman](mailto:t.kuilman@nki.nl)
 - [Oscar Krijgsman](mailto:o.krijgsman@nki.nl)
@@ -125,7 +125,7 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 - [ ] Remove is.na from plotCNA function
 - [ ] Check why sex chromosomes are not plotted
-- [ ] Change ENCODER to allow custom bins?
+- [ ] Change CopywriteR to allow custom bins?
 - [ ] Remove potential to overwrite existing folders and files
 - [ ] Compile into bioConductor package
 - [ ] Make names consistent and apply Rlint to code
@@ -137,7 +137,7 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 - [ ] Check potential plotting error when running on custom bin files (implemented in source code)
 - [ ] Remove dependency for MACS 1.4 and use chipseq package instead (implemented in source code)
 - [ ] Change -Inf in log2-table to small value for visualization in IGV (implemented in source code)
-- [ ] Provide the amount of sequence reads used by ENCODER (implemented in source code)
+- [ ] Provide the amount of sequence reads used by CopywriteR (implemented in source code)
 - [ ] Check rm() function if no capture region file is specified (implemented in source code)
 - [ ] Provide the option to keep intermediary files; remove by default (implemented in source code)
 - [ ] Check writing permissions on bam.folder (implemented in source code)
@@ -163,4 +163,4 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 - [x] Add 1kb mapability and GC-content files for mouse mm9 and mm10 genomes
 - [x] Make captureRegionsBedFile optional
 - [x] Allow processing of single-end sequences
-- [x] Increase speed for generating bins in `preENCODER`
+- [x] Increase speed for generating bins in `preCopywriteR`
