@@ -1,0 +1,26 @@
+load("/Users/t.kuilman/git/ENCODER/ENCODER/vignettes/data/mm10_1kb/GCcontent.rda")
+ls()
+head(GC)
+GC <- GC[GC$chromosome == 4,]
+head(GC)
+tail(GC)
+save(GC, file = "/Users/t.kuilman/git/ENCODER/ENCODER/vignettes/data/mm10_1kb/GCcontent_4.rda", compress = "xz")
+load("/Users/t.kuilman/git/ENCODER/ENCODER/vignettes/data/mm10_1kb/GCcontent_4.rda")
+ls()
+GC
+rm(list = ls())
+load("/Users/t.kuilman/git/ENCODER/ENCODER/vignettes/data/mm10_1kb/mapability.rda")
+ls()
+head(mapa)
+mapa <- mapa[mapa$chromosome == 4, ]
+head(mapa)
+save(mapa, file = "/Users/t.kuilman/git/ENCODER/ENCODER/vignettes/data/mm10_1kb/mapability_4.rda", compress = "xz")
+?list.dirs
+options
+options()
+old.options = options()
+options("width" = 140)
+options()
+options(old.options)
+options
+options()
