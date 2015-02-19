@@ -65,18 +65,11 @@ sequencing efforts. These steps include:
 \section{Analysis workflow}
 
 The full analysis of copy number data with CopywriteR includes three sequential
-steps, using the \Rcode{preCopywriteR()}, \Rcode{CopywriteR()} and \Rcode{plotCNA()}
-functions respectively.
+steps, using the \Rcode{preCopywriteR()}, \Rcode{CopywriteR()} and
+\Rcode{plotCNA()} functions respectively.
 
 In this analysis workflow, we will use CopywriteR to extract copy number
-information from ChIPseq experiments on wild-type embryonic stem cells using an
-H3K4me3 antibody\cite{Clouaire:2012js}. The \Biocexptpkg{MMDiffBamSubset}
-Bioconductor experiment data package can be downloaded as follows:
-
-%<<download.data, print=FALSE, eval=TRUE, results=hide>>=
-%source("http://bioconductor.org/biocLite.R")
-%biocLite("MMDiffBamSubset")
-%@
+information from a mouse whole-exome sequening data from a murine small-cell lung cancer. The dataset used here only contains chromosome 4. The complete dataset can be downloaded from the European Nucleotide Archive (http://www.ebi.ac.uk/ena/home) using the accession number PRJEB6954.
 
 The .bam files in this dataset contain subsets of the original files with reads
 mapping to the region chr1:3000000-75000000 only.
@@ -254,9 +247,9 @@ was performed on the original sequence read file that has a higher coverage):
 In addition to the plots, the raw segmented values can be obtained from the
 DNAcopy object 'segment.Rdata'.
 
-I am interested in further improving CopywriteR, so if CopywriteR fails to analyze
-your samples, please don't hesitate to contact me. In this case, please provide
-the full command line output and the log-file.
+I am interested in further improving CopywriteR, so if CopywriteR fails to
+analyze your samples, please don't hesitate to contact me. In this case, please
+provide the full command line output and the log-file.
 
 \newpage
 

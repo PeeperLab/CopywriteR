@@ -53,11 +53,18 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
     ## Remove prefix and convert chromosome names to integers
     # log2.read.counts <- log2.read.counts[-which(rowSums(is.na(log2.read.counts[, -c(1:4), drop = FALSE])) > 0), ]
     log2.read.counts$Chromosome <- gsub(prefix, "", log2.read.counts$Chromosome)
-    log2.read.counts$Chromosome <- gsub("X", length(nautosomes + 1),
+    chromosomes <- gsub(prefix, "", chromosomes)
+    
+    log2.read.counts$Chromosome <- gsub("X", nautosomes + 1,
                                         log2.read.counts$Chromosome)
-    log2.read.counts$Chromosome <- gsub("Y", length(nautosomes + 2),
+    chromosomes <- gsub("X", nautosomes + 1, chromosomes)
+    
+    log2.read.counts$Chromosome <- gsub("Y", nautosomes + 2,
                                         log2.read.counts$Chromosome)
+    chromosomes <- gsub("Y", nautosomes + 2, chromosomes)
+    
     log2.read.counts$Chromosome <- as.integer(log2.read.counts$Chromosome)
+    chromosomes <- sort(as.integer(chromosomes))
 
     ## Fix behaviour of DNAcopy with 'outlier' values
     log2.read.counts[, 5:ncol(log2.read.counts)] <- apply(log2.read.counts[, 5:ncol(log2.read.counts), drop = FALSE],

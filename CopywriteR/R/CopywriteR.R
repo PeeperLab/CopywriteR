@@ -708,7 +708,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder, ncp
         NormalizeDOC <- function(i, data, .tng, usepoints, destination.folder) {
             .tng(data.frame(count = data$cov[, i], gc = data$anno$gc,
                             mapa = data$anno$mapa),
-                 use = usepoints, correctmapa = TRUE,
+                 use = usepoints & data$cov[, i] != 0, correctmapa = TRUE,
                  plot = file.path(destination.folder, "qc",
                                   paste0(colnames(data$cov)[i], ".png")))
         }

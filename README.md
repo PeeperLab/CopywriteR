@@ -123,12 +123,19 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 ## Changes and additions we are currently working on
 
+- [ ] Use BiocParallel for parallel computing
+- [ ] Address all NOTES when building package
+- [ ] Solve problem with 0-based ranges
+- [ ] Remove blacklisted regions by excluding regions and not excluding bins
+- [ ] Solve issue with data (RB)
+- [ ] Check problem with not using all bams as samples (RB)
+- [ ] Include helper file folder in log-file
 - [ ] Remove is.na from plotCNA function
-- [ ] Check why sex chromosomes are not plotted
 - [ ] Change CopywriteR to allow custom bins?
 - [ ] Remove potential to overwrite existing folders and files
 - [ ] Compile into bioConductor package
 - [ ] Make names consistent and apply Rlint to code
+- [ ] Check why sex chromosomes are not plotted (solved in source code)
 - [ ] Add track line to .igv output file (#track viewLimits=-3:3 graphType=heatmap color=255,0,0) (implemented in source code)
 - [ ] Check log.txt output file (implemented in source code)
 - [ ] Check that all chromosomes have same length (implemented in source code)

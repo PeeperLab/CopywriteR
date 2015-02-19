@@ -59,7 +59,7 @@ publication.
 Thomas Kuilman (t.kuilman@nki.nl)
 }
 \seealso{
-\code{\link{CopywriteR}}
+\code{CopywriteR}()
 }
 \examples{
 \dontrun{
