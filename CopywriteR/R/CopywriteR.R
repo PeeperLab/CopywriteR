@@ -647,8 +647,8 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     print(statistics)
     cat("\n\n")
 
-    write.table(read.counts, file = file.path(destination.folder,
-                                              "read_counts.txt"),
+    write.table(read.counts[mixedorder(read.counts$Chromosome), ],
+                file = file.path(destination.folder, "read_counts.txt"),
                 row.names = FALSE, quote = FALSE, col.names = TRUE, sep = "\t")
 
     ## Create histograms of fraction.of.bin
@@ -740,7 +740,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     log2.read.counts[log2.read.counts == -Inf] <- -.Machine$integer.max/2
     log2.read.counts[log2.read.counts == Inf] <- .Machine$integer.max/2
 
-    write.table(log2.read.counts,
+    write.table(log2.read.counts[mixedorder(log2.read.counts$Chromosome), ],
                 file.path(destination.folder, "log2_read_counts.igv"),
                 sep = "\t", row.names = FALSE, quote = FALSE)
 

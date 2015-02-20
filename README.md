@@ -130,6 +130,7 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 - [ ] Include helper file folder in log-file
 - [ ] Change CopywriteR to allow custom bins?
 - [ ] Compile into bioConductor package
+- [x] Provide output naturally sorted (implemented in source code)
 - [x] Solve issue with data RB (implemented in source code)
 - [x] Remove potential to overwrite existing folders and files (implemented in source code)
 - [x] Change handling of NAs in plotCNA function (implemented in source code)
