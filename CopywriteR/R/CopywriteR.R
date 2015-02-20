@@ -1,5 +1,6 @@
-CopywriteR <- function(sample.control, destination.folder, reference.folder, ncpu,
-                    capture.regions.file, keep.intermediairy.files = FALSE) {
+CopywriteR <- function(sample.control, destination.folder, reference.folder,
+                       ncpu, bpparam, capture.regions.file,
+                       keep.intermediairy.files = FALSE) {
 
     ##########################
     ## Check and initialise ##
@@ -80,14 +81,20 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder, ncp
     ## Create folders
     destination.folder <- file.path(destination.folder, "CNAprofiles")
     tryCatch({
-        if (!file.exists(file.path(destination.folder, "BamBaiPeaksFiles"))) {
-            dir.create(file.path(destination.folder, "BamBaiPeaksFiles"),
-                       recursive = TRUE)
-        }
+				if (!file.exists(file.path(destination.folder))) {
+						dir.create(file.path(destination.folder),
+											 recursive = TRUE)
+				} else {
+						stop("The folder ", file.path(destination.folder, "CNAprofiles"),
+								 " already exists. Please remove it, or (in case you still need ",
+								 "it), rename it to prevent files from being overwritten.")
+				}
     }, warning = function(e) {
         stop("You do not have write permissions in the destination folder.\n",
              "Stopping execution of the remaining part of the script...")
     })
+		dir.create(file.path(destination.folder, "BamBaiPeaksFiles"),
+							 recursive = TRUE)
 
     ## Provide output for log file
     sink(file = file.path(destination.folder, "log.txt"),
@@ -193,14 +200,12 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder, ncp
                  "are located.")
         }
         IndexBam <- function(sample.paths) {
+            library(Rsamtools)
             indexBam(sample.paths)
             paste0("indexBam(\"", sample.paths, "\")")
         }
-        sfInit(parallel = TRUE, cpus = ncpu)
-        sfLibrary(Rsamtools)
-        to.log <- sfSapply(sample.paths, IndexBam)
-        sfStop()
-        cat(to.log, "\n", sep = "\n")
+        to.log <- bplapply(sample.paths, IndexBam, BPPARAM = bpparam)
+        cat(unlist(to.log), "\n", sep = "\n")
 
         ## Garbage collection
         rm(IndexBam)
@@ -208,14 +213,13 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder, ncp
 
     ## Check whether BAMs are paired-end
     NumberPairedEndReads <- function(sample.paths) {
+        library(Rsamtools)
         flag <- scanBamFlag(isPaired = TRUE)
         param <- ScanBamParam(flag = flag)
         countBam(sample.paths, param = param)
     }
-    sfInit(parallel = TRUE, cpus = ncpu)
-    sfLibrary(Rsamtools)
-    is.paired.end <- sfLapply(sample.paths, NumberPairedEndReads)
-    sfStop()
+    is.paired.end <- bplapply(sample.paths, NumberPairedEndReads,
+                              BPPARAM = bpparam)
     is.paired.end <- Reduce(function(x, y) {
         merge(x, y, all = TRUE)
     }, is.paired.end)
@@ -230,6 +234,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder, ncp
     i <- c(1:length(sample.paths))
     ProperReads <- function(i, sample.paths, destination.folder, sample.files,
                             is.paired.end) {
+        library(Rsamtools)
         if (is.paired.end[i]) {
             flag <- scanBamFlag(isProperPair = TRUE)
             param <- ScanBamParam(flag = flag, what = "mapq")
@@ -265,22 +270,18 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder, ncp
                              "param = param)")
         }
     }
-    sfInit(parallel = TRUE, cpus = ncpu)
-    sfLibrary(Rsamtools)
-    to.log <- sfSapply(i, ProperReads, sample.paths, destination.folder,
-                       sample.files, is.paired.end)
-    sfStop()
-    cat(to.log, "\n", sep = "\n")
+    to.log <- bplapply(i, ProperReads, sample.paths, destination.folder,
+                       sample.files, is.paired.end, BPPARAM = bpparam)
+    cat(unlist(to.log), "\n", sep = "\n")
 
     ## Read count statistics
     Stats <- function(sample.paths) {
+        library(Rsamtools)
         countBam(sample.paths)
     }
-    sfInit(parallel = TRUE, cpus = ncpu)
-    sfLibrary(Rsamtools)
-    res <- sfSapply(sample.paths, Stats)
-    sfStop()
-    statistics <- data.frame(t(res))[, "records", drop = FALSE]
+    res <- bplapply(sample.paths, Stats, BPPARAM = bpparam)
+    res <- Reduce(function(x,y) {rbind(x,y)}, res)
+    statistics <- res[, "records", drop = FALSE]
     rownames(statistics) <- sample.files
     statistics <- within(statistics, {
         total <- records
@@ -294,12 +295,11 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder, ncp
 
     ## Read count statistics
     Stats <- function(sample.files) {
+        library(Rsamtools)
         countBam(sample.files)$records
     }
-    sfInit(parallel = TRUE, cpus = ncpu)
-    sfLibrary(Rsamtools)
-    res <- sfSapply(sample.files, Stats)
-    sfStop()
+    res <- bplapply(sample.files, Stats, BPPARAM = bpparam)
+    res <- Reduce(function(x,y) {rbind(x,y)}, res)
     statistics <- within(statistics, {
         total.properreads <- res
     })
@@ -313,6 +313,11 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder, ncp
     ## Call peaks in .bam file of control sample
     DetectPeaks <- function(control.uniq.indices, sample.files, prefix,
                             used.chromosomes, .peakCutoff, destination.folder) {
+
+        library(Rsamtools)
+        library(chipseq)
+        library(GenomicRanges)
+        library(GenomicAlignments)
 
         ## j represents the minimal peak width
         j <- 100
@@ -487,19 +492,14 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder, ncp
                sample.files[control.uniq.indices],
                " is done; output file: peaks", control.uniq.indices, ".bed")
     }
-    sfInit(parallel = TRUE, cpus = min(length(control.uniq.indices), ncpu))
-    sfLibrary(Rsamtools)
-    sfLibrary(chipseq)
-    sfLibrary(GenomicRanges)
-    sfLibrary(GenomicAlignments)
-    to.log <- sfSapply(control.uniq.indices, DetectPeaks, sample.files,
+    to.log <- bplapply(control.uniq.indices, DetectPeaks, sample.files,
                        prefixes[1], unique(bin.bed$Chromosome), .peakCutoff,
-                       destination.folder)
-    sfStop()
-    cat(to.log, "\n", sep = "\n")
+                       destination.folder, BPPARAM = bpparam)
+    cat(unlist(to.log), "\n", sep = "\n")
 
     ## Read count statistics
     Stats <- function(sample.files, bin.bed) {
+        library(Rsamtools)
         all.reads <- countBam(sample.files)$records
         which <- with(bin.bed, reduce(GRanges(seqnames = Chromosome,
                                               ranges = IRanges(start = Start,
@@ -510,10 +510,8 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder, ncp
         chrom.reads <- sum(chrom.reads$records)
         c(all.reads = all.reads, chrom.reads = chrom.reads)
     }
-    sfInit(parallel = TRUE, cpus = ncpu)
-    sfLibrary(Rsamtools)
-    res <- data.frame(t(sfSapply(sample.files, Stats, bin.bed)))
-    sfStop()
+    res <- bplapply(sample.files, Stats, bin.bed, BPPARAM = bpparam)
+    res <- data.frame(Reduce(function(x,y) {rbind(x,y)}, res))
     statistics <- within(statistics, {
         total.properreads <- res$all.reads
         unmapable.or.mitochondrial <- res$all.reads - res$chrom.reads
@@ -525,10 +523,16 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder, ncp
     bin.grange <- with(bin.bed, GRanges(seqnames = Chromosome,
                                         ranges = IRanges(start = Start,
                                                          end = End)))
+    bin.grange <- bin.grange[order(bin.grange)]
+                                                  
 
     i <- c(1:length(sample.files))
     CalculateDepthOfCoverage <- function(i, sample.files, control.indices,
                                          bin.grange, bin.size) {
+
+        library(Rsamtools)
+        library(data.table)
+        
         # Create GRanges object of peak files
         if (file.info(paste0("peaks", control.indices[i], ".bed"))$size != 0) {
             bed <- read.table(file = paste0("peaks", control.indices[i], ".bed"),
@@ -617,36 +621,26 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder, ncp
                            nrow(counts)),
                     counts.CopywriteR))
     }
-    sfInit(parallel = TRUE, cpus = ncpu)
-    sfLibrary(Rsamtools)
-    sfLibrary(data.table)
-    res <- sfSapply(i, CalculateDepthOfCoverage, sample.files, control.indices,
-                    bin.grange, bin.size)
-    sfStop()
+    res <- bplapply(i, CalculateDepthOfCoverage, sample.files, control.indices,
+                    bin.grange, bin.size, BPPARAM = bpparam)
     read.counts <- data.frame(Chromosome = as(seqnames(bin.grange), "factor"),
                               Start = ranges(bin.grange)@start,
                               End = ranges(bin.grange)@start + ranges(bin.grange)@width - 1L)
     read.counts <- within(read.counts, {
         Feature = paste0(Chromosome, ":", paste0(Start, "-", End))
     })
-    read.counts <- cbind(read.counts[, ], Reduce(cbind, res[1, ]),
-                         Reduce(cbind, res[2, ]), Reduce(cbind, res[3, ]))
+    ## ‘Map’ applies a function to the corresponding elements of given vectors.
+    res <- do.call(Map, c(cbind, res))
+    read.counts <- cbind(read.counts[, ], Reduce(cbind, res[1:3]))
 
     ## Remove potential NAs introduced by peaks spanning entire bins
-    read.counts[, 5:ncol(read.counts)] <- apply(read.counts[, 5:ncol(read.counts), drop = FALSE],
-                                                c(1, 2), function(x) {
-        if (is.na(x)) {
-            x <- 0
-        } else {
-            x <- x
-        }
-    })
-
-    cat(unlist(res[4, ]), "\n", sep = "\n")
+    res[is.na(res)] <- 0
+    
+    cat(unlist(res[4]), "\n", sep = "\n")
 
     ## Read count statistics
     statistics <- within(statistics, {
-        off.target <- unlist(res[5, ])
+        off.target <- unlist(res[5])
         on.target <- on.chromosomes - off.target
         rm(on.chromosomes)
     })
@@ -712,10 +706,8 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder, ncp
                  plot = file.path(destination.folder, "qc",
                                   paste0(colnames(data$cov)[i], ".png")))
         }
-        sfInit(parallel = TRUE, cpus = ncpu)
-        ratios <- sfLapply(i, NormalizeDOC, data, .tng, usepoints,
-                           destination.folder)
-        sfStop()
+        ratios <- bplapply(i, NormalizeDOC, data, .tng, usepoints,
+                           destination.folder, BPPARAM = bpparam)
         log2.read.counts <- matrix(unlist(ratios), ncol = length(sample.files))
     }, error = function(e) {
         stop("The GC-content and mapability normalization did not work due to ",

@@ -67,6 +67,7 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
     chromosomes <- sort(as.integer(chromosomes))
 
     ## Fix behaviour of DNAcopy with 'outlier' values
+    ######################## Use something like replace(junk[, 1:2], junk[, 1:2] > 5, 5)
     log2.read.counts[, 5:ncol(log2.read.counts)] <- apply(log2.read.counts[, 5:ncol(log2.read.counts), drop = FALSE],
                                                           c(1, 2), function(x) {
         if (is.na(x)) {

@@ -123,45 +123,45 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 ## Changes and additions we are currently working on
 
-- [ ] Use BiocParallel for parallel computing
 - [ ] Address all NOTES when building package
 - [ ] Solve problem with 0-based ranges
 - [ ] Remove blacklisted regions by excluding regions and not excluding bins
-- [ ] Solve issue with data (RB)
 - [ ] Check problem with not using all bams as samples (RB)
 - [ ] Include helper file folder in log-file
-- [ ] Remove is.na from plotCNA function
 - [ ] Change CopywriteR to allow custom bins?
-- [ ] Remove potential to overwrite existing folders and files
 - [ ] Compile into bioConductor package
-- [ ] Make names consistent and apply Rlint to code
-- [ ] Check why sex chromosomes are not plotted (solved in source code)
-- [ ] Add track line to .igv output file (#track viewLimits=-3:3 graphType=heatmap color=255,0,0) (implemented in source code)
-- [ ] Check log.txt output file (implemented in source code)
-- [ ] Check that all chromosomes have same length (implemented in source code)
-- [ ] Remove possibility for error when allowing more cpus than samples (implemented in source code)
-- [ ] Check for platform-compatibility when handling sample.files variable (implemented in source code)
-- [ ] Check potential plotting error when running on custom bin files (implemented in source code)
-- [ ] Remove dependency for MACS 1.4 and use chipseq package instead (implemented in source code)
-- [ ] Change -Inf in log2-table to small value for visualization in IGV (implemented in source code)
-- [ ] Provide the amount of sequence reads used by CopywriteR (implemented in source code)
-- [ ] Check rm() function if no capture region file is specified (implemented in source code)
-- [ ] Provide the option to keep intermediary files; remove by default (implemented in source code)
-- [ ] Check writing permissions on bam.folder (implemented in source code)
-- [ ] Include check for presence .bai files (implemented in source code)
-- [ ] Use file.paths for all file paths (implemented in source code)
-- [ ] Change output format for raw data from .txt to .igv (implemented in source code)
-- [ ] Remove bug in determining the total chromosome number with missing sex chromosomes (implemented in source code)
-- [ ] Remove dependency for CGHcall and use only DNAcopy for segmentation (implemented in source code)
-- [ ] Provide plotting function for DNAcopy output (implemented in source code)
-- [ ] Make keeping intermediate .bam and MACS files optional (implemented in source code)
-- [ ] Change input structure to allow more flexibility (implemented in source code)
-- [ ] Clean up code (implemented in source code)
-- [ ] Remove dependency for bedtools (replaced by GenomicRanges in source code)
-- [ ] Remove dependency for Samtools (replaced by Rsamtools in source code)
-- [ ] Include a check for integrity of BAM files (implemented in source code)
-- [ ] Change output format to igv2.0 (implemented in source code)
-- [ ] Remove bug in determining chromosome name prefixes (fixed in source code)
+- [x] Solve issue with data RB (implemented in source code)
+- [x] Remove potential to overwrite existing folders and files (implemented in source code)
+- [x] Change handling of NAs in plotCNA function (implemented in source code)
+- [x] Make names consistent and apply Rlint to code (implemented in source code)
+- [x] Use BiocParallel for parallel computing (implemented in source code)
+- [x] Check why sex chromosomes are not plotted (solved in source code)
+- [x] Add track line to .igv output file (#track viewLimits=-3:3 graphType=heatmap color=255,0,0) (implemented in source code)
+- [x] Check log.txt output file (implemented in source code)
+- [x] Check that all chromosomes have same length (implemented in source code)
+- [x] Remove possibility for error when allowing more cpus than samples (implemented in source code)
+- [x] Check for platform-compatibility when handling sample.files variable (implemented in source code)
+- [x] Check potential plotting error when running on custom bin files (implemented in source code)
+- [x] Remove dependency for MACS 1.4 and use chipseq package instead (implemented in source code)
+- [x] Change -Inf in log2-table to small value for visualization in IGV (implemented in source code)
+- [x] Provide the amount of sequence reads used by CopywriteR (implemented in source code)
+- [x] Check rm() function if no capture region file is specified (implemented in source code)
+- [x] Provide the option to keep intermediary files; remove by default (implemented in source code)
+- [x] Check writing permissions on bam.folder (implemented in source code)
+- [x] Include check for presence .bai files (implemented in source code)
+- [x] Use file.paths for all file paths (implemented in source code)
+- [x] Change output format for raw data from .txt to .igv (implemented in source code)
+- [x] Remove bug in determining the total chromosome number with missing sex chromosomes (implemented in source code)
+- [x] Remove dependency for CGHcall and use only DNAcopy for segmentation (implemented in source code)
+- [x] Provide plotting function for DNAcopy output (implemented in source code)
+- [x] Make keeping intermediate .bam and MACS files optional (implemented in source code)
+- [x] Change input structure to allow more flexibility (implemented in source code)
+- [x] Clean up code (implemented in source code)
+- [x] Remove dependency for bedtools (replaced by GenomicRanges in source code)
+- [x] Remove dependency for Samtools (replaced by Rsamtools in source code)
+- [x] Include a check for integrity of BAM files (implemented in source code)
+- [x] Change output format to igv2.0 (implemented in source code)
+- [x] Remove bug in determining chromosome name prefixes (fixed in source code)
 - [x] Debug error when using 1kb bin size
 - [x] Support alternative chromosome names (i.e., "chr1" instead of "1")
 - [x] Extract binSize from bins.bed file
