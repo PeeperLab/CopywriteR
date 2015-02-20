@@ -12,13 +12,6 @@
         stop("Files have variable number of lines and are not compatible")
     }
 
-    #naturally sort data 
-    d <- lapply(d, function(x) {
-        x[, 1] <- factor(x[, 1])
-        levels(x[, 1]) <- mixedsort(levels(x[, 1]))
-        x[order(x[, 1], x[, 2]), ]
-    })
-
     #check row order in data files
     if (length(files) > 1) {
 				for (i in 2:length(files)) {

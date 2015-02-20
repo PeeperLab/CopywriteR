@@ -1,7 +1,6 @@
 exportPattern("^[[:alpha:]]+")
 
 importFrom(matrixStats, madDiff, colMins, colMaxs)
-importFrom(gtools, mixedsort)
 importFrom(gtools, mixedorder)
 importFrom(data.table, data.table)
 import(chipseq)
