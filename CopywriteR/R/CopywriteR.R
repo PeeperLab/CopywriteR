@@ -1,5 +1,5 @@
 CopywriteR <- function(sample.control, destination.folder, reference.folder,
-                       ncpu, bpparam, capture.regions.file,
+                       bpparam, capture.regions.file,
                        keep.intermediairy.files = FALSE) {
 
     ##########################
@@ -11,7 +11,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     ## Set old options back on exit
     old.options <- options()
     on.exit(options(old.options))
-
+    
     ## Make capture.regions.file path absolute if present
     if (missing(capture.regions.file)) {
         capture.regions.file <- "not specified"
@@ -61,7 +61,8 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     sample.paths <- unlist(sample.control)
     sample.paths <- unique(sample.paths[!is.na(sample.paths)])
     sample.files <- basename(sample.paths)
-    control.indices <- match(sample.control$controls, sample.control$samples)
+    control.indices <- match(sample.control$controls, sample.paths)
+    sample.indices <- match(sample.control$samples, sample.paths)
 
     ## Create paths to helper files
     bin.file <- file.path(reference.folder, "bins.bed")
@@ -70,7 +71,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     mapability.file <- file.path(reference.folder, "mapability.bed")
 
     ## Cap the number of cpus to be used to the number of samples
-    ncpu <- if (ncpu < nrow(sample.control)) ncpu else nrow(sample.control)
+    ncpu <- bpparam$workers
 
     ## Retrieve number of chromosomes and bin size from bin.bed helper file
     bin.bed <- read.table(file = bin.file, as.is = TRUE, sep = "\t")
@@ -98,11 +99,23 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
 
     ## Provide output for log file
     sink(file = file.path(destination.folder, "log.txt"),
-         type = c("output", "message"))
+    type = c("output", "message"))
     options(width = 150)
-
+    cat("Running CopywriteR version", packageVersion("CopywriteR"), "...")
+    cat("CopywriteR was run using the following commands:\n",
+        "CopywriteR(sample.control = sample.control, destination.folder = \"",
+        destination.folder, "\", reference.folder = \"", reference.folder,
+        "\", bpparam = bpparam, capture.regions.file = \"",
+        capture.regions.file, "\", keep.intermediairy.files = ",
+        keep.intermediairy.files, ")\n\n", sep = "")
+    cat("The value of bpparam was:\n")
+    print(bpparam)
+    cat("\n")
+    cat("The value of sample.control was:\n")
+    print(sample.control)
+    cat("\n\n")
     cat("The following samples will be analyzed:\n")
-    cat(paste0("sample: ", sample.files, ";\tmatching control: ",
+    cat(paste0("sample: ", sample.files[sample.indices], ";\tmatching control: ",
                sample.files[control.indices]), sep = "\n")
     cat("The bin size for this analysis is", bin.size, "\n")
     cat("The capture region file is", capture.regions.file, "\n")
@@ -110,7 +123,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     sink()
 
     cat("The following samples will be analyzed:\n")
-    cat(paste0("sample: ", sample.files, ";\tmatching control: ",
+    cat(paste0("sample: ", sample.files[sample.indices], ";\tmatching control: ",
                sample.files[control.indices]), sep = "\n")
     cat("The bin size for this analysis is", bin.size, "\n")
     cat("The capture region file is", capture.regions.file, "\n")
@@ -275,18 +288,16 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     cat(unlist(to.log), "\n", sep = "\n")
 
     ## Read count statistics
-    Stats <- function(sample.paths) {
+    Stats.1 <- function(sample.paths) {
         library(Rsamtools)
         countBam(sample.paths)
     }
-    res <- bplapply(sample.paths, Stats, BPPARAM = bpparam)
+    res <- bplapply(sample.paths, Stats.1, BPPARAM = bpparam)
     res <- Reduce(function(x,y) {rbind(x,y)}, res)
     statistics <- res[, "records", drop = FALSE]
     rownames(statistics) <- sample.files
-    statistics <- within(statistics, {
-        total <- records
-        rm(records)
-    })
+    statistics[, "total"] <- statistics$records
+    statistics[, "records"] <- NULL
 
     ## Create new .bam list
     setwd(file.path(destination.folder, "BamBaiPeaksFiles"))
@@ -294,18 +305,17 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     cat(sample.files, "\n", sep = "\n")
 
     ## Read count statistics
-    Stats <- function(sample.files) {
+    Stats.2 <- function(sample.files) {
         library(Rsamtools)
         countBam(sample.files)$records
     }
-    res <- bplapply(sample.files, Stats, BPPARAM = bpparam)
+    res <- bplapply(sample.files, Stats.2, BPPARAM = bpparam)
     res <- Reduce(function(x,y) {rbind(x,y)}, res)
-    statistics <- within(statistics, {
-        total.properreads <- res
-    })
+    statistics[, "total.properreads"] <- res
 
     ## Garbage collection
-    rm(is.paired.end, NumberPairedEndReads, ProperReads, sample.paths, Stats)
+    rm(is.paired.end, NumberPairedEndReads, ProperReads, sample.paths, Stats.1,
+       Stats.2)
 
     ## Create list with numbers of controls
     control.uniq.indices <- unique(control.indices)
@@ -428,7 +438,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
                 retest.peak.ranges <- retest.peak.ranges[end(retest.peak.ranges) < chromosomes[selection]%/%resolution * resolution, ]
 
                 ## Create RleViews object and calculate peakSummary
-                retest.peaks.ranges.rleviews <- Views(Rle(cov.chr),
+                retest.peaks.ranges.rleviews <- Views(S4Vectors::Rle(cov.chr),
                                                       retest.peak.ranges)
                 retest.peaks <- peakSummary(retest.peaks.ranges.rleviews)
 
@@ -471,9 +481,8 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
                         test <- test[order(test)]
                         test <- reduce(test)
                         test <- as(test, "data.frame")
-                        test <- within(test, {
-                            rm(width, strand)
-                        })
+                        test[, "width"] <- NULL
+                        test[, "strand"] <- NULL
                         merged.bed <- rbind(merged.bed, test)
                     }
                 }
@@ -498,37 +507,34 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     cat(unlist(to.log), "\n", sep = "\n")
 
     ## Read count statistics
-    Stats <- function(sample.files, bin.bed) {
+    Stats.3 <- function(sample.files, bin.bed) {
         library(Rsamtools)
         all.reads <- countBam(sample.files)$records
-        which <- with(bin.bed, reduce(GRanges(seqnames = Chromosome,
-                                              ranges = IRanges(start = Start,
-                                                               end = End))))
+        which <- reduce(GRanges(seqnames = bin.bed$Chromosome,
+                                ranges = IRanges(start = bin.bed$Start,
+                                                 end = bin.bed$End)))
         what <- c("pos")
         param <- ScanBamParam(which = which, what = what)
         chrom.reads <- countBam(file = sample.files, param = param)
         chrom.reads <- sum(chrom.reads$records)
         c(all.reads = all.reads, chrom.reads = chrom.reads)
     }
-    res <- bplapply(sample.files, Stats, bin.bed, BPPARAM = bpparam)
+    res <- bplapply(sample.files, Stats.3, bin.bed, BPPARAM = bpparam)
     res <- data.frame(Reduce(function(x,y) {rbind(x,y)}, res))
-    statistics <- within(statistics, {
-        total.properreads <- res$all.reads
-        unmapable.or.mitochondrial <- res$all.reads - res$chrom.reads
-        on.chromosomes <- res$chrom.reads
-    })
+    statistics[, "unmapable.or.mitochondrial"] <- res$all.reads - res$chrom.reads
+    statistics[, "on.chromosomes"] <- res$chrom.reads
 
     ## Alternative for bedtools
     # Create GRanges file for bins
-    bin.grange <- with(bin.bed, GRanges(seqnames = Chromosome,
-                                        ranges = IRanges(start = Start,
-                                                         end = End)))
+    bin.grange <- GRanges(seqnames = bin.bed$Chromosome,
+                          ranges = IRanges(start = bin.bed$Start,
+                                           end = bin.bed$End))
     bin.grange <- bin.grange[order(bin.grange)]
                                                   
 
-    i <- c(1:length(sample.files))
+    i <- c(1:length(control.indices))
     CalculateDepthOfCoverage <- function(i, sample.files, control.indices,
-                                         bin.grange, bin.size) {
+                                         sample.indices, bin.grange, bin.size) {
 
         library(Rsamtools)
         library(data.table)
@@ -538,9 +544,9 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
             bed <- read.table(file = paste0("peaks", control.indices[i], ".bed"),
                               as.is = TRUE, sep = "\t")
             colnames(bed) <- c("Chromosome", "Start", "End")
-            peak.grange <- with(bed, GRanges(seqnames = Chromosome,
-                                             ranges = IRanges(start = Start,
-                                                              end = End)))
+            peak.grange <- GRanges(seqnames = bed$Chromosome,
+                                   ranges = IRanges(start = bed$Start,
+                                                    end = bed$End))
 
             # Calculate setdiff without reducing ranges
             outside.peak.grange <- split(bin.grange, rep_len(c(1, 2),
@@ -561,19 +567,21 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
 
         # countBam on remainder of bins
         param <- ScanBamParam(which = outside.peak.grange, what = c("pos"))
-        counts <- countBam(sample.files[i], param = param)
+        counts <- countBam(sample.files[sample.indices[i]], param = param)
 
         # countBam on remainder of bins
         param <- ScanBamParam(which = reduce(outside.peak.grange),
                               what = c("pos"))
-        counts.CopywriteR <- countBam(sample.files[i], param = param)
+        counts.CopywriteR <- countBam(sample.files[sample.indices[i]],
+                                      param = param)
         counts.CopywriteR <- sum(counts.CopywriteR$records)
 
         # Fix MT as levels in factor seqnames (remainder from setdiff operation)
         counts$space <- as.factor(as.character(counts$space))
 
         # Replace bins by real bins & calculate compensated read counts
-        sample.files[i] <- gsub("_properreads.bam$", ".bam", sample.files[i])
+        sample.files[sample.indices[i]] <- gsub("_properreads.bam$", ".bam",
+                                                sample.files[sample.indices[i]])
 
         # Aggregate counts and total length per bin
         counts.grange <- GRanges(seqnames = counts$space,
@@ -595,40 +603,44 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
         aggregate.data.table$lengths[which(is.na(aggregate.data.table$index))] <- 0
 
         # Replace bins by real bins & calculate compensated read counts
-        counts <- within(aggregate.data.table, {
-            Chromosome <- as(seqnames(bin.grange), "factor")
-            Start <- ranges(bin.grange)@start
-            End <- ranges(bin.grange)@start + ranges(bin.grange)@width - 1L
-            Feature <- paste0(Chromosome, ":", paste0(Start, "-", End))
-            assign(paste0("read.counts.", sample.files[i]), records)
-            assign(paste0("read.counts.compensated.", sample.files[i]),
-                   records/(lengths/(bin.size + 1)))
-            assign(paste0("fraction.of.bin.", sample.files[i]),
-                   lengths/(bin.size + 1))
-            rm(index, lengths, records)
-        })
+        counts <- aggregate.data.table
+        counts[, "Chromosome"] <- as(seqnames(bin.grange), "factor")
+        counts[, "Start"] <- ranges(bin.grange)@start
+        counts[, "End"] <- ranges(bin.grange)@start + ranges(bin.grange)@width - 1L
+        counts[, "Feature"] <- paste0(counts$Chromosome, ":",
+                                      paste0(counts$Start, "-", counts$End))
+				counts[, paste0("read.counts.", sample.files[sample.indices[i]])] <-
+				    counts$records
+				counts[, paste0("read.counts.compensated.",
+											  sample.files[sample.indices[i]])] <- 
+						counts$records/(counts$lengths/(bin.size + 1))
+				counts[, paste0("fraction.of.bin.", sample.files[sample.indices[i]])] <-
+						counts$lengths/(bin.size + 1)
+				counts$index <- NULL
+				counts$lengths <- NULL
+				counts$records <- NULL
         counts <- data.frame(counts, check.names = FALSE)
 
         # Return
         return(list(counts[, paste0("read.counts.compensated.",
-                                    sample.files[i]), drop = FALSE],
-                    counts[, paste0("read.counts.", sample.files[i]), 
+                                    sample.files[sample.indices[i]]), drop = FALSE],
+                    counts[, paste0("read.counts.", sample.files[sample.indices[i]]), 
                                     drop = FALSE],
-                    counts[, paste0("fraction.of.bin.", sample.files[i]),
+                    counts[, paste0("fraction.of.bin.", sample.files[sample.indices[i]]),
                                     drop = FALSE],
                     paste0("Rsamtools finished calculating reads per bin in ", 
-                           "sample ", sample.files[i], "; number of bins = ",
+                           "sample ", sample.files[sample.indices[i]], "; number of bins = ",
                            nrow(counts)),
                     counts.CopywriteR))
     }
     res <- bplapply(i, CalculateDepthOfCoverage, sample.files, control.indices,
-                    bin.grange, bin.size, BPPARAM = bpparam)
+                    sample.indices, bin.grange, bin.size, BPPARAM = bpparam)
     read.counts <- data.frame(Chromosome = as(seqnames(bin.grange), "factor"),
                               Start = ranges(bin.grange)@start,
                               End = ranges(bin.grange)@start + ranges(bin.grange)@width - 1L)
-    read.counts <- within(read.counts, {
-        Feature = paste0(Chromosome, ":", paste0(Start, "-", End))
-    })
+    read.counts[, "Feature"] <- paste0(read.counts$Chromosome, ":",
+                                       paste0(read.counts$Start, "-",
+                                              read.counts$End))
     ## ‘Map’ applies a function to the corresponding elements of given vectors.
     res <- do.call(Map, c(cbind, res))
     read.counts <- cbind(read.counts[, ], Reduce(cbind, res[1:3]))
@@ -639,11 +651,9 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     cat(unlist(res[4]), "\n", sep = "\n")
 
     ## Read count statistics
-    statistics <- within(statistics, {
-        off.target <- unlist(res[5])
-        on.target <- on.chromosomes - off.target
-        rm(on.chromosomes)
-    })
+    statistics[, "off.target"] <- unlist(res[5])
+    statistics[, "on.target"] <- statistics$on.chromosomes - statistics$off.target
+    statistics$on.chromosomes <- NULL
     print(statistics)
     cat("\n\n")
 
@@ -727,13 +737,12 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
                                    check.names = FALSE)
 
     ## Create table with corrected log2 values and write to file
-    log2.read.counts <- cbind(with(log2.read.counts,
-                                   cbind(Chromosome = as.vector(chr),
-                                         Start = start,
-                                         End = end,
-                                         Feature = paste0(chr, ":",
-                                                          paste0(start, "-",
-                                                                 end)))),
+    log2.read.counts <- cbind(cbind(Chromosome = as.vector(log2.read.counts$chr),
+                                    Start = log2.read.counts$start,
+                                    End = log2.read.counts$end,
+                                    Feature = paste0(log2.read.counts$chr, ":",
+                                                     paste0(log2.read.counts$start, "-",
+                                                            log2.read.counts$end))),
                               log2.read.counts[, 4:ncol(log2.read.counts), drop = FALSE])
 
     ## Replace -/+Inf values to -/+large values for compatibility with IGV browser
@@ -758,19 +767,17 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
         captured.bed <- read.table(capture.regions.file, as.is = TRUE,
                                    sep = "\t")
         colnames(captured.bed) <- c("Chromosome", "Start", "End")
-        captured.grange <- with(captured.bed,
-                                GRanges(seqnames = Chromosome,
-                                        ranges = IRanges(start = Start,
-                                                         end = End)))
+        captured.grange <- GRanges(seqnames = captured.bed$Chromosome,
+                                   ranges = IRanges(start = captured.bed$Start,
+                                                    end = captured.bed$End))
         for (control.index in control.uniq.indices) {
             peak.bed <- read.table(file = paste0("peaks", control.index,
                                                  ".bed"),
                                    as.is = TRUE, sep = "\t")
             colnames(peak.bed) <- c("Chromosome", "Start", "End")
-            peak.grange <- with(peak.bed,
-                                GRanges(seqnames = Chromosome,
-                                        ranges = IRanges(start = Start,
-                                                         end = End)))
+            peak.grange <- GRanges(seqnames = peak.bed$Chromosome,
+                                   ranges = IRanges(start = peak.bed$Start,
+                                                    end = peak.bed$End))
 
             overlap <- findOverlaps(captured.grange, peak.grange)
 
@@ -803,7 +810,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
 
     cat("Total calculation time: ", Sys.time() - start.time, "\n\n")
 
-    inputStructure <- list(sample.control = sample.control, ncpu = ncpu,
+    inputStructure <- list(sample.control = sample.control,
                            chromosomes = chromosomes, prefix = prefixes[1],
                            bin.file = bin.file, bin.size = bin.size)
     save(inputStructure, file = file.path(destination.folder, "input.Rdata"))

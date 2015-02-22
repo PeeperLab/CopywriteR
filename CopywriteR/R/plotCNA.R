@@ -11,6 +11,11 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
              "destination.folder path.")
     }
 
+    # Pre-define inputStructure variable to avoid it from raising NOTES during
+    # R CMD CHECK (variable is loaded from file below)
+    inputStructure <- NULL
+
+    # Load inputStructure variable
     load(file.path(destination.folder, "input.Rdata"), .GlobalEnv)
 
     ## Set variables
@@ -83,24 +88,18 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
 
     ## Create table with values to be plotted
     if (all(na.omit(unlist(sample.plot)) %in% colnames(log2.read.counts))) {
-        plotting.values <- within(log2.read.counts, {
-            # Loop through sample.plot calculating the relevant absolute and relative
-            # log2.read.counts values. Loop used for readability. Loop in reverse
-            # order to get the ordering in data.frame correct
-            for (i in nrow(sample.plot):1) {
-                if (!is.na(sample.plot$controls[i])) {
-                    assign(paste0(sample.plot$samples[i], ".vs.",
-                                  sample.plot$controls[i]),
-                           log2.read.counts[, sample.plot$samples[i]] -
-                           log2.read.counts[, sample.plot$controls[i]])
-                } else {
-                    assign(paste0(sample.plot$samples[i], ".vs.none"),
-                           log2.read.counts[, sample.plot$samples[i]])
-                }
+        plotting.values <- log2.read.counts[, c("Chromosome", "Start", "End", "Feature")]
+        for (i in 1:nrow(sample.plot)) {
+            if (!is.na(sample.plot$controls[i])) {
+                plotting.values[, paste0(sample.plot$samples[i], ".vs.",
+                                         sample.plot$controls[i])] <- 
+                    log2.read.counts[, sample.plot$samples[i]] -
+                    log2.read.counts[, sample.plot$controls[i]]
+            } else {
+                plotting.values[, paste0(sample.plot$samples[i], ".vs.none")] <-
+                    log2.read.counts[, sample.plot$samples[i]]
             }
-            rm(list = c("i",
-                        colnames(log2.read.counts[5:ncol(log2.read.counts)])))
-        })
+        }
     } else {
         stop("One of the samples in sample.plot refers to a BAM file that has ",
              "not been processed in CopywriteR. Please make sure that you have ",
@@ -128,25 +127,23 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
     suppressWarnings(chrom.lengths <- chrom.lengths[stripped.chromosome.names %in% c("X", "Y") |
                                                     !is.na(as.integer(stripped.chromosome.names)), ])
     chrom.lengths <- chrom.lengths[mixedorder(chrom.lengths$Chromosome), ]
-    chrom.lengths <- within(chrom.lengths, {
-        Chromosome <- 1:nrow(chrom.lengths)
-        CumSum <- c(0, cumsum(as.numeric(Length))[1:(nrow(chrom.lengths) - 1)])
-    })
-
+    chrom.lengths$Chromosome <- gsub("X", nautosomes + 1,
+                                     chrom.lengths$Chromosome)
+    chrom.lengths$Chromosome <- gsub("Y", nautosomes + 2,
+                                     chrom.lengths$Chromosome)
+    chrom.lengths[, "CumSum"] <- c(0, cumsum(as.numeric(chrom.lengths$Length))[1:(nrow(chrom.lengths) - 1)])
+    
     ## Create plots
-    segment.CNA.object$output <- within(segment.CNA.object$output, {
-        start.position.chrom <- chrom.lengths$CumSum[match(as.integer(chrom),
-                                                           chrom.lengths$Chromosome)]
-        loc.start <- loc.start + start.position.chrom
-        loc.end <- loc.end + start.position.chrom
-        rm(start.position.chrom)
-    })
-    segment.CNA.object$data <- within(segment.CNA.object$data, {
-        start.position.chrom <- chrom.lengths$CumSum[match(as.integer(chrom),
-                                                           chrom.lengths$Chromosome)]
-        maploc <- maploc + start.position.chrom
-        rm(start.position.chrom)
-    })
+    segment.CNA.object$output[, "start.position.chrom"] <- chrom.lengths$CumSum[match(as.integer(segment.CNA.object$output$chrom),
+                                                                                      chrom.lengths$Chromosome)]
+    segment.CNA.object$output$loc.start <- segment.CNA.object$output$loc.start + segment.CNA.object$output$start.position.chrom
+    segment.CNA.object$output$loc.end <- segment.CNA.object$output$loc.end + segment.CNA.object$output$start.position.chrom
+    segment.CNA.object$output$start.position.chrom <- NULL
+    
+    segment.CNA.object$data[, "start.position.chrom"] <- chrom.lengths$CumSum[match(as.integer(segment.CNA.object$data$chrom),
+                                                                                    chrom.lengths$Chromosome)]
+    segment.CNA.object$data$maploc <- segment.CNA.object$data$maploc + segment.CNA.object$data$start.position.chrom
+    segment.CNA.object$data$start.position.chrom <- NULL
 
     # Get sample names
     samples <- colnames(segment.CNA.object$data)

@@ -123,13 +123,16 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 ## Changes and additions we are currently working on
 
-- [ ] Address all NOTES when building package
+- [ ] Clean up code
+- [ ] Implement GenomicRanges::makeGRangesFromDataFrame()?
 - [ ] Solve problem with 0-based ranges
 - [ ] Remove blacklisted regions by excluding regions and not excluding bins
-- [ ] Check problem with not using all bams as samples (RB)
-- [ ] Include helper file folder in log-file
 - [ ] Change CopywriteR to allow custom bins?
 - [ ] Compile into bioConductor package
+- [x] Add version of CopywriteR to log (implemented in source code)
+- [x] Address all NOTES when building package (implemented in source code)
+- [x] Check problem with not using all bams as samples (RB; implemented in source code)
+- [x] Include helper file folder in log-file (implemented in source code)
 - [x] Provide output naturally sorted (implemented in source code)
 - [x] Solve issue with data RB (implemented in source code)
 - [x] Remove potential to overwrite existing folders and files (implemented in source code)

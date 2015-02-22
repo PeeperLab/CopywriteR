@@ -7,7 +7,7 @@ preCopywriteR <- function(black.GC.mapa.folder, output.folder, bin.size,
 
     ## Checks
     # Check whether folders exist.
-if (!(reference == "hg19" || reference == "mm10" || reference == "mm9")) {
+    if (!(reference == "hg19" || reference == "mm10" || reference == "mm9")) {
         stop("The reference is not recognised. Please provide a suitable",
              "reference.")
     }
@@ -32,7 +32,12 @@ if (!(reference == "hg19" || reference == "mm10" || reference == "mm9")) {
     }
 
     ## Generate files with desired bin.size (MAPA, GC, bed, blacklist)
-    # Load blacklist, CG-content and mapability files
+    # Pre-define mapa and GC variables to avoid them raising NOTES during
+    # R CMD CHECK (variables are loaded from file below)
+    mapa <- NULL
+    GC <- NULL
+    
+    # Load GC and mapa variables
     load(file.path(black.GC.mapa.folder, "mapability.rda"))
     load(file.path(black.GC.mapa.folder, "GCcontent.rda"))
     bed_file <- read.table(file.path(black.GC.mapa.folder, "blacklist.bed"),
