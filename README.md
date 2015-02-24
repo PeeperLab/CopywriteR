@@ -123,6 +123,7 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 ## Changes and additions we are currently working on
 
+- [ ] Make naming consistent (mappability, chromosome etc)
 - [ ] Clean up code
 - [ ] Implement GenomicRanges::makeGRangesFromDataFrame()?
 - [ ] Solve problem with 0-based ranges

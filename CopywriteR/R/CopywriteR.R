@@ -43,7 +43,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     if (!file.exists(reference.folder)) {
         stop("The reference.folder could not be found.\nPlease change your ",
              "reference.folder path or run `preCopywriteR` to generate the ",
-             "required folder with GC-content and mapability files for your ",
+             "required folder with GC-content and mappability files for your ",
              "desired bin size.")
     }
 
@@ -65,10 +65,11 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     sample.indices <- match(sample.control$samples, sample.paths)
 
     ## Create paths to helper files
+    helper.files <- 
     bin.file <- file.path(reference.folder, "bins.bed")
     blacklist.file <- file.path(reference.folder, "blacklist.bed")
     gc.content.file <- file.path(reference.folder, "GC_content.bed")
-    mapability.file <- file.path(reference.folder, "mapability.bed")
+    mappability.file <- file.path(reference.folder, "mappability.bed")
 
     ## Cap the number of cpus to be used to the number of samples
     ncpu <- bpparam$workers
@@ -180,7 +181,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
         prefixes[4] <- gsub("[[:digit:]]|X|Y", "", chr.names)
         close(con)
 
-        con <- file(mapability.file)
+        con <- file(mappability.file)
         chr.names <- unlist(strsplit(readLines(con, n = 1), "\t"))[1]
         prefixes[5] <- gsub("[[:digit:]]|X|Y", "", chr.names)
         close(con)
@@ -521,7 +522,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     }
     res <- bplapply(sample.files, Stats.3, bin.bed, BPPARAM = bpparam)
     res <- data.frame(Reduce(function(x,y) {rbind(x,y)}, res))
-    statistics[, "unmapable.or.mitochondrial"] <- res$all.reads - res$chrom.reads
+    statistics[, "unmappable.or.mitochondrial"] <- res$all.reads - res$chrom.reads
     statistics[, "on.chromosomes"] <- res$chrom.reads
 
     ## Alternative for bedtools
@@ -682,7 +683,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
        statistics, to.log)
 
     #############################################
-    ## Normalize for GC-content and mapability ##
+    ## Normalize for GC-content and mappability ##
     #############################################
 
     ## Read files
@@ -696,12 +697,12 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
 
     gc <- read.delim(gc.content.file)[, c(1, 2, 3, 5)]
     colnames(gc) <- c("chr", "start", "end", "gc")
-    mapa <- read.delim(mapability.file, header = FALSE,
-                       col.names = c("chr", "start", "end", "mapa"))
+    mappa <- read.delim(mappability.file, header = FALSE,
+                       col.names = c("chr", "start", "end", "mappa"))
     black <- read.delim(blacklist.file, header = FALSE,
                         col.names = c("chr", "start", "end"))
 
-    data <- .loadCovData(f, gc = gc, mapa = mapa, black = black,
+    data <- .loadCovData(f, gc = gc, mappa = mappa, black = black,
                          excludechr = "MT", datacol = 4)
     colnames(data$cov) <- f
     usepoints <- !(data$anno$chr %in% c("X", "Y", "MT", "chrX", "chrY", "chrM"))
@@ -711,8 +712,8 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
         i <- c(1:ncol(data$cov))
         NormalizeDOC <- function(i, data, .tng, usepoints, destination.folder) {
             .tng(data.frame(count = data$cov[, i], gc = data$anno$gc,
-                            mapa = data$anno$mapa),
-                 use = usepoints & data$cov[, i] != 0, correctmapa = TRUE,
+                            mappa = data$anno$mappa),
+                 use = usepoints & data$cov[, i] != 0, correctmappa = TRUE,
                  plot = file.path(destination.folder, "qc",
                                   paste0(colnames(data$cov)[i], ".png")))
         }
@@ -720,7 +721,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
                            destination.folder, BPPARAM = bpparam)
         log2.read.counts <- matrix(unlist(ratios), ncol = length(sample.files))
     }, error = function(e) {
-        stop("The GC-content and mapability normalization did not work due to ",
+        stop("The GC-content and mappability normalization did not work due to ",
              "a failure to calculate loesses.\nThis can generally be solved ",
              "by using larger bin sizes.\nStopping execution of the remaining ",
              "part of the script...")
@@ -731,7 +732,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     ###################
     ## Create output ##
     ###################
-    selection <- !data$anno$black & !is.na(data$anno$mapa) & data$anno$mapa > 0.2
+    selection <- !data$anno$black & !is.na(data$anno$mappa) & data$anno$mappa > 0.2
     log2.read.counts <- data.frame(data$anno[selection, c("chr", "start", "end")],
                                    log2.read.counts[selection, , drop = FALSE],
                                    check.names = FALSE)
@@ -755,7 +756,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
 
     ## Garbage collection
     rm(black, blacklist.file, data, f, gc, gc.content.file, i, log2.read.counts,
-       mapa, mapability.file, NormalizeDOC, ratios, read.counts, selection, 
+       mappa, mappability.file, NormalizeDOC, ratios, read.counts, selection, 
        usepoints)
 
     #############################################################################

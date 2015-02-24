@@ -2,7 +2,7 @@
     abs(x - round(x)) < tol
 }
 
-.loadCovData <- function(files, gc = NULL, mapa = NULL, black = NULL,
+.loadCovData <- function(files, gc = NULL, mappa = NULL, black = NULL,
                          excludechr = NULL, datacol = 5) {
     d <- lapply(files, read.delim, header = FALSE)
     names(d) <- files
@@ -30,10 +30,10 @@
         anno$gc <- gc[match(annoid,
                             paste(gc$chr, gc$start, gc$end, sep = ":")), "gc"]
     }
-    if (!is.null(mapa)) {
-        anno$mapa <- mapa[match(annoid,
-                                paste(mapa$chr, mapa$start, mapa$end, 
-                                      sep = ":")), "mapa"]
+    if (!is.null(mappa)) {
+        anno$mappa <- mappa[match(annoid,
+                                paste(mappa$chr, mappa$start, mappa$end, 
+                                      sep = ":")), "mappa"]
     }
     if (!is.null(black)) {
         anno$black <- rep(F, nrow(anno))
@@ -84,7 +84,7 @@
     }
 }
 
-.tng <- function(df, use, correctmapa = TRUE, plot = NULL, verbose = TRUE) {
+.tng <- function(df, use, correctmappa = TRUE, plot = NULL, verbose = TRUE) {
     #tests
     if (!is.logical(use) && length(use) == nrow(df)) 
         stop("use should be logicval vector with same size as df")
@@ -108,7 +108,7 @@
     #gc fits also excludes the low mappability data
 
     #correct gc using double lowess
-    gcuse <- (use & !is.na(df$mapa) & df$mapa > 0.8 & !is.na(df$gc) & df$gc > 0)
+    gcuse <- (use & !is.na(df$mappa) & df$mappa > 0.8 & !is.na(df$gc) & df$gc > 0)
     rough <- loess(count ~ gc, data = df, subset = gcuse, span = 0.03)
     i <- seq(0, 1, by = 0.001)
     final <- loess(predict(rough, i) ~ i, span = 0.3)
@@ -125,41 +125,41 @@
         points(df$gc, normv, col = "red", pch = ".")
     }
 
-    #correct mapa using linear function that intercepts zero
-    #if(correctmapa) {
-    #mapause <- (use & !is.na(df$mapa))
-    #lm(countgcloess~0+mapa, data=df, subset=mapause) ->fll
+    #correct mappa using linear function that intercepts zero
+    #if(correctmappa) {
+    #mappause <- (use & !is.na(df$mappa))
+    #lm(countgcloess~0+mappa, data=df, subset=mappause) ->fll
     #if(verbose) print(summary(fll))
 
     #if (plot) {
-    #  plot(countgcloess ~ mapa, data=df, subset=mapause, ylim=quantile(df$countgcloess, c(0.0001, .999), na.rm=T), pch=".")
-    #  points(countgcloess ~ mapa, data=df, subset=!mapause, col=rgb(1,0,0,.3), pch=".")
+    #  plot(countgcloess ~ mappa, data=df, subset=mappause, ylim=quantile(df$countgcloess, c(0.0001, .999), na.rm=T), pch=".")
+    #  points(countgcloess ~ mappa, data=df, subset=!mappause, col=rgb(1,0,0,.3), pch=".")
     #  abline(0, fll$coef, col=2)
     #}
 
-    #correct mapa using double lowess -> paired end sequencing
-    if (correctmapa) {
-        mapause <- (use & !is.na(df$mapa))
-        rough <- loess(countgcloess ~ mapa, data = df, subset = mapause,
+    #correct mappa using double lowess -> paired end sequencing
+    if (correctmappa) {
+        mappause <- (use & !is.na(df$mappa))
+        rough <- loess(countgcloess ~ mappa, data = df, subset = mappause,
                        span = 0.03)
         i <- seq(0, 1, by = 0.001)
         final <- loess(predict(rough, i) ~ i, span = 0.3)
-        normv <- predict(final, df$mapa)
-        df$countgcmapaloess <- df$countgcloess/(normv/median(normv,
+        normv <- predict(final, df$mappa)
+        df$countgcmappaloess <- df$countgcloess/(normv/median(normv,
                                                              na.rm = TRUE))
 
         if (plot) {
-            plot(countgcloess ~ mapa, data = df, subset = mapause,
-                 ylim = quantile(df$countgcloess[mapause], c(1e-04, 0.999),
+            plot(countgcloess ~ mappa, data = df, subset = mappause,
+                 ylim = quantile(df$countgcloess[mappause], c(1e-04, 0.999),
                                  na.rm = TRUE), xlim = c(0, 1), pch = ".")
-            points(countgcloess ~ mapa, data = df, subset = !mapause,
+            points(countgcloess ~ mappa, data = df, subset = !mappause,
                    col = rgb(1, 0, 0, 0.3), pch = ".")
             lines(i, predict(rough, i), col = "green")
-            points(df$mapa, normv, subset = (!is.na(df$mapa) && !is.na(normv)),
+            points(df$mappa, normv, subset = (!is.na(df$mappa) && !is.na(normv)),
                    col = "red", pch = ".")
         }
 
-        return(log2(df$countgcmapaloess/median(df$countgcmapaloess[use],
+        return(log2(df$countgcmappaloess/median(df$countgcmappaloess[use],
                                                na.rm = TRUE)))
     } else {
         #corerct agains median value (exluding sex chr)
