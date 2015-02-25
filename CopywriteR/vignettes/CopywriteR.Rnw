@@ -39,11 +39,10 @@ BiocStyle::latex()
 
 To extract copy number information from targeted sequencing data while
 circumventing problems related to the use of on-target reads, we developed
-ENhanced COpy number Detection from Exome Reads (CopywriteR). Unlike other
-currently available tools, CopywriteR is based on off-target reads. We
-have shown that this approach has several advantages relative to current
-approaches\cite{Kuilman:vf} and it constitutes a viable alternative for copy
-number detection from targeted sequencing data.
+the CopywriteR package. Unlike other currently available tools, CopywriteR is
+based on off-target reads. We have shown that this approach has several
+advantages relative to current approaches\cite{Kuilman:vf} and it constitutes a
+viable alternative for copy number detection from targeted sequencing data.
 
 \section{CopywriteR workflow}
 
@@ -52,14 +51,14 @@ several steps to allow copy number detection from off-target reads of targeted
 sequencing efforts. These steps include:
 
 \begin{itemize}
-  \item Removing of low-quality and anomalous reads
-  \item Peak calling (in reference when available, otherwise in sample itself)
-  \item Discarding of reads in peak regions
-  \item Piling up reads onto bins of pre-defined size
-  \item Compensating for the difference in effective bin size upon discarding
-  peaks in peak regions
-  \item Correcting for GC-content and mappability; applying a blacklist filter
-  for CNV regions
+    \item Removing of low-quality and anomalous reads
+    \item Peak calling (in reference when available, otherwise in sample itself)
+    \item Discarding of reads in peak regions
+    \item Piling up reads onto bins of pre-defined size
+    \item Compensating for the difference in effective bin size upon discarding
+     peaks in peak regions
+    \item Correcting for GC-content and mappability; applying a blacklist filter
+     for CNV regions
 \end{itemize}
 
 \section{Analysis workflow}
@@ -69,24 +68,32 @@ steps, using the \Rcode{preCopywriteR()}, \Rcode{CopywriteR()} and
 \Rcode{plotCNA()} functions respectively.
 
 In this analysis workflow, we will use CopywriteR to extract copy number
-information from a mouse whole-exome sequening data from a murine small-cell lung cancer. The dataset used here only contains chromosome 4. The complete dataset can be downloaded from the European Nucleotide Archive (http://www.ebi.ac.uk/ena/home) using the accession number PRJEB6954.
-
-The .bam files in this dataset contain subsets of the original files with reads
-mapping to the region chr1:3000000-75000000 only.
+information from whole-exome sequening data from a murine small-cell lung
+cancer. The complete dataset can be downloaded from the European Nucleotide
+Archive (\url{http://www.ebi.ac.uk/ena/home}) using the accession number
+PRJEB6954. In this vignette, a part of this dataset is used containing only the
+sequence reads on chromosome 4. The data are contained in the \Biocpkg{SCLCBam}
+package. Before starting the analysis, GC-content and mappability helper files
+need to be created for the desired bin size and reference genome. This is done
+using the \Rcode{preCopywriteR()} function.
 
 \subsection{\Rcode{preCopywriteR()}}
 
-CopywriteR uses binned read count data as a basis for copy number detection.
-The \Rcode{preCopywriteR()} function allows to create all the necessary helper
-files (GC-content, mappability and blacklist files) for any custom bin size for
-the hg19, mm9 and mm10 reference genomes. The helper files are created in a new
-folder, which is required to run CopywriteR. If previously created helper files for
-a specific bin size are available, the {\Rcode{preCopywriteR()} step can be
-omitted.
+CopywriteR uses binned read count data as a basis for copy number detection. We
+have pre-assembled 1 kb bin GC-content and mappability information for the hg19,
+mm9 and mm10 reference genomes in the \Biocpkg{CopyhelpeR} package. The
+\Rcode{preCopywriteR()} function allows to create two necessary helper files.
+These files can be created for any custom bin size that is a multiple of 1000
+bp, and for the hg19, mm9 and mm10 reference genomes. The helper files are saved
+in a new folder and are required to run CopywriteR. If previously created helper
+files for a specific bin size / reference genome combination are available, the
+{\Rcode{preCopywriteR()} step can be omitted.
 
-For this example, CopywriteR will be applied to a bin size of 1 Mb. In our example,
-the .bam files are kept in a folder called "data". We run {\Rcode{preCopywriteR()}
-to generate helper files as follows:
+For this example, CopywriteR will be applied to a bin size of 20 kb. This is the
+bin size we recommend starting with when analyzing whole-exome sequencing data,
+while we would analyze at 50 kb resolution for targeted sequencing on smaller
+gene panels. As the .bam file contained in the \Biocpkg{SCLCBam} package is
+mapped to the mm10 reference genome, we run {\Rcode{preCopywriteR()} as follows:
 
 <<load.CopywriteR, print=FALSE, eval=TRUE>>=
 library(CopywriteR)
@@ -97,49 +104,60 @@ data.folder <- tools::file_path_as_absolute(file.path(getwd(), "data"))
 @
 
 <<preCopywriteR, print=FALSE, eval=TRUE>>=
-preCopywriteR(black.GC.mapa.folder = file.path(data.folder, "mm10_1kb"),
-           output.folder = file.path(data.folder),
-           bin.size = 1000000,
-           reference = "mm10")
+preCopywriteR(output.folder = file.path(data.folder),
+              bin.size = 200000,
+              ref.genome = "mm10")
 @
 
-The black.GC.mapa.folder refers to the folder containing the original 1kb helper
-files, while the custom helper files are placed in a folder inside the
-output.folder folder. The bin.size argument takes the custom bin size (in bp) as
-input, and finally the reference is either "mm9", "mm10" or "hg19".
-
-The helper files are placed in a folder named after the reference genome and the
-bin size.
+The custom helper files are placed in a folder inside the output.folder folder.
+The folder containing the helper files is named after the reference genome and
+the bin size. The bin.size argument specifies the custom bin size (in bp), and
+the ref.genome argument can be either "mm9", "mm10" or "hg19". If you are
+interested in getting helper files for other genomes, please contact me by the
+email addresses supplied at the beginning of this vignette.
 
 <<list.dirs, print=FALSE, eval=TRUE>>=
 list.dirs(path = file.path(data.folder), full.names = FALSE)[2]
 @
-
-The GC-content, mappability and blacklist files are in .bed format. As an
-example, we print the bins.bed and mapability.bed files:
-
-<<head.bins, print=FALSE, eval=TRUE>>=
-head(read.delim(file = file.path(data.folder, "mm10_1000kb", "bins.bed"),
-                header = FALSE))
+<<list.dirs, print=FALSE, eval=TRUE>>=
+list.dirs(path = file.path(data.folder, "mm10_20kb"), full.names = FALSE)
 @
 
-\newpage
+The data are contained in two GRanges objects (from the \Biocpkg{GenomicRanges}
+package) of which one (blacklist.rda) contains regions of copy number variation:
 
-<<head.mapability, print=FALSE, eval=TRUE>>=
-head(read.delim(file = file.path(data.folder, "mm10_1000kb", "mapability.bed"),
-                header = FALSE))
+<<show.blacklist, print=FALSE, eval=TRUE>>=
+load(file = file.path(data.folder, "mm10_20kb", "blacklist.rda"))
+blacklist.grange
 @
+
+The other helper file (GC_mappability.rda) contains GC-content and mappability
+information for a particular bin size:
+
+<<show.GC.mappa, print=FALSE, eval=TRUE>>=
+load(file = file.path(data.folder, "mm10_20kb", "GC_mappability.rda"))
+GC.mappa.grange
+@
+
+\subsection{\Rcode{BiocParallel} for parallel computing}
+
+CopywriteR can use \Biocpkg{snowfall} for parallel
+computing, where every sample is processed on a single core. The ncpu argument
+defines the number of cores that will be maximally used by CopywriteR during
+parallel computation. 
+param = 
 
 \subsection{\Rcode{CopywriteR()}}
 
-The \Rcode{CopywriteR()} function allows to calculate binned read count data based
-on the helper files created using \Rcode{preCopywriteR()}. CopywriteR uses a peak
-calling algorithm to remove 'on-target' reads. The argument that controls
+The \Rcode{CopywriteR()} function allows to calculate binned read count data
+based on the helper files created using \Rcode{preCopywriteR()}. CopywriteR uses
+a peak calling algorithm to remove 'on-target' reads. The argument that controls
 on which sample peaks are called is sample.control. This \Rcode{matrix} or
-\Rcode{data.frame} should contain path names to a 'sample' and its corresponding
-'control' in rows. The peaks called in the controls are used to remove reads
-from the samples. In the example used here, no matched germline control is
-available, and peaks are called on the sample itself.
+\Rcode{data.frame} should contain path names to 'samples' and their
+corresponding 'controls' in rows. The peaks called in the controls are used to
+remove reads from the corresponding samples as well as the controls themselves.
+In the example used here, no matched germline control is available, peaks are
+called on the sample itself, and therefore the sample and control are identical.
 
 <<CopywriteR, print=FALSE, eval=TRUE>>=
 samples <- list.files(path = file.path(data.folder), pattern = "bam$",
@@ -148,24 +166,20 @@ controls <- samples
 sample.control <- data.frame(samples, controls)
 
 CopywriteR(sample.control = sample.control,
-        destination.folder = file.path(data.folder),
-        reference.folder = file.path(data.folder, "./mm10_1000kb"),
-        ncpu = 1,
-        keep.intermediairy.files = TRUE)
+           destination.folder = file.path(data.folder),
+           reference.folder = file.path(data.folder, "./mm10_1000kb")
+           bpparam = param)
 @
 
 The destination.folder argument determines in which folder the output folder is
 going to be placed, and the reference.folder points to the location of the
-custom bin size helper files. CopywriteR can use \Biocpkg{snowfall} for parallel
-computing, where every sample is processed on a single core. The ncpu argument
-defines the number of cores that will be maximally used by CopywriteR during
-parallel computation. The keep.intermediairy.files argument determines
-whether intermediary .bam, .bai and peak .bed files are kept. The default value
-is FALSE, and we recommend only keeping these files for troubleshooting
-purposes to limit disk space usage. Finally, the capture.regions.file argument
-is optional, and can be used to define the location of a capture regions bed
-file. If this file is specified, statistics of the overlap of these regions with
-the called peaks is provided.
+custom bin size helper files. The keep.intermediairy.files is an optional
+argument that determines whether intermediary .bam, .bai and peak .bed files are
+kept. The default value is FALSE, and we recommend only keeping these files for
+troubleshooting purposes to limit disk space usage. Finally, the
+capture.regions.file argument is optional, and can be used to define the
+location of a capture regions bed file. If this file is specified, statistics of
+the overlap of these regions with the called peaks is provided.
 
 \newpage
 

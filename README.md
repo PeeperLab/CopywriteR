@@ -125,11 +125,11 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 - [ ] Make naming consistent (mappability, chromosome etc)
 - [ ] Clean up code
-- [ ] Implement GenomicRanges::makeGRangesFromDataFrame()?
-- [ ] Solve problem with 0-based ranges
 - [ ] Remove blacklisted regions by excluding regions and not excluding bins
 - [ ] Change CopywriteR to allow custom bins?
 - [ ] Compile into bioConductor package
+- [x] Solve problem with 0-based ranges (implemented in source code)
+- [x] Implement GenomicRanges::makeGRangesFromDataFrame() (implemented in source code)
 - [x] Add version of CopywriteR to log (implemented in source code)
 - [x] Address all NOTES when building package (implemented in source code)
 - [x] Check problem with not using all bams as samples (RB; implemented in source code)

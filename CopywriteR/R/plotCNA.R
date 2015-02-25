@@ -22,8 +22,6 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
     chromosomes <- inputStructure$chromosomes
     nautosomes <- length(grep("[0-9]", chromosomes))
     prefix <- inputStructure$prefix
-    ncpu <- inputStructure$ncpu
-    bin.file <- inputStructure$bin.file
     bin.size <- inputStructure$bin.size
 
     ## Set sample.plot

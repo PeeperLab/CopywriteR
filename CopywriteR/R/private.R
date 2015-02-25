@@ -2,51 +2,6 @@
     abs(x - round(x)) < tol
 }
 
-.loadCovData <- function(files, gc = NULL, mappa = NULL, black = NULL,
-                         excludechr = NULL, datacol = 5) {
-    d <- lapply(files, read.delim, header = FALSE)
-    names(d) <- files
-
-    #checks
-    if (length(unique(sapply(d, nrow))) != 1) {
-        stop("Files have variable number of lines and are not compatible")
-    }
-
-    #check row order in data files
-    if (length(files) > 1) {
-				for (i in 2:length(files)) {
-						if (!isTRUE(all.equal(d[[1]][, 1:3], d[[i]][, 1:3],
-																	check.attributes = FALSE))) {
-								stop(paste("Datafiles 1 and", i, "are not in the same order"))
-						}
-				}
-    }
-
-    cov <- sapply(d, function(x) x[!(x[, 1] %in% excludechr), datacol])
-    anno <- data.frame(droplevels(d[[1]][!(d[[1]][, 1] %in% excludechr), 1:3]))
-    colnames(anno) <- c("chr", "start", "end")
-    annoid <- paste(anno$chr, anno$start, anno$end, sep = ":")
-    if (!is.null(gc)) {
-        anno$gc <- gc[match(annoid,
-                            paste(gc$chr, gc$start, gc$end, sep = ":")), "gc"]
-    }
-    if (!is.null(mappa)) {
-        anno$mappa <- mappa[match(annoid,
-                                paste(mappa$chr, mappa$start, mappa$end, 
-                                      sep = ":")), "mappa"]
-    }
-    if (!is.null(black)) {
-        anno$black <- rep(F, nrow(anno))
-        for (c in levels(anno$chr)) {
-            ar <- IRanges(anno$start[anno$chr == c], anno$end[anno$chr == c])
-            br <- IRanges(black$start[black$chr == c],
-                          black$end[black$chr == c])
-            anno$black[anno$chr == c] <- ar %over% br
-        }
-    }
-    list(cov = cov, anno = anno)
-}
-
 .peakCutoff <- function(cov, fdr.cutoff = 1e-04, k = 2:150) {
     length.y <- length(cov)
     y <- tabulate(cov)
