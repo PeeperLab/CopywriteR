@@ -1,5 +1,5 @@
 # CopywriteR
-#### (formerly known as ENCODER)
+#### (formerly known as [ENCODER](https://github.com/PeeperLab/ENCODER))
 
 Current methods for detection of copy number variants and aberrations (CNV and
 CNA) from targeted sequencing data are based on the depth of coverage of
