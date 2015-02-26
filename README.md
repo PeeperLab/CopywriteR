@@ -1,4 +1,5 @@
-# CopywriteR (formerly known as ENCODER)
+# CopywriteR
+#### (formerly known as ENCODER)
 
 Current methods for detection of copy number variants and aberrations (CNV and
 CNA) from targeted sequencing data are based on the depth of coverage of
@@ -46,7 +47,7 @@ available reference genomes (hg19, mm9 and mm10). The helper files can be
 re-used and need to be created only once for every combination of reference
 genome and bin size. `preCopywriteR` uses information stored in pre-assembled
 1kb bin mappability and GC-content GRanges objects to create the custom bin size
-helper files. These objects are stored in the `CopyhelpeR` annotation package.
+helper files. These objects are stored in the CopyhelpeR annotation package.
 
 preCopywriteR can be run as follows:
 
