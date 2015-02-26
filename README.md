@@ -20,6 +20,7 @@ available via CRAN (http://cran.r-project.org/) and bioconductor
 (http://bioconductor.org/). A number of packages are required to run CopywriteR,
 which can be installed by pasting the following command in the R command line:
 
+    > source("http://bioconductor.org/biocLite.R")
     > biocLite(c("matrixStats", "gtools", "data.table", "S4Vectors", "chipseq",
                  "IRanges", "Rsamtools", "DNAcopy", "GenomicAlignments",
                  "GenomicRanges", "GenomeInfoDb", "BiocParallel", "BiocStyle"))
