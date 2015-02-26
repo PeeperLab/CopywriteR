@@ -1,5 +1,5 @@
 CopywriteR <- function(sample.control, destination.folder, reference.folder,
-                       bpparam, capture.regions.file,
+                       bp.param, capture.regions.file,
                        keep.intermediairy.files = FALSE) {
 
     ##########################
@@ -71,7 +71,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     load(file.path(reference.folder, "GC_mappability.rda"))
 
     ## Calculate the maximal number of CPUs to be used
-    ncpu <- bpparam$workers
+    ncpu <- bp.param$workers
 
     ## Retrieve number of chromosomes and bin size from GC.mappa.grange object
     chromosomes <- seqlevels(GC.mappa.grange)
@@ -104,11 +104,11 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     cat("CopywriteR was run using the following commands:", "\n",
         "CopywriteR(sample.control = sample.control, destination.folder = \"",
         dirname(destination.folder), "\", reference.folder = \"",
-        reference.folder, "\", bpparam = bpparam, capture.regions.file = \"",
+        reference.folder, "\", BPPARAM = bp.param, capture.regions.file = \"",
         capture.regions.file, "\", keep.intermediairy.files = ",
         keep.intermediairy.files, ")", "\n\n", sep = "")
-    cat("The value of bpparam was:", "\n")
-    print(bpparam)
+    cat("The value of bp.param was:", "\n")
+    print(bp.param)
     cat("\n")
     cat("The value of sample.control was:", "\n")
     print(sample.control)
@@ -203,7 +203,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
             indexBam(sample.paths)
             paste0("indexBam(\"", sample.paths, "\")")
         }
-        to.log <- bplapply(sample.paths, IndexBam, BPPARAM = bpparam)
+        to.log <- bplapply(sample.paths, IndexBam, BPPARAM = bp.param)
         cat(unlist(to.log), "\n", sep = "\n")
 
         ## Garbage collection
@@ -218,7 +218,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
         countBam(sample.paths, param = param)
     }
     is.paired.end <- bplapply(sample.paths, NumberPairedEndReads,
-                              BPPARAM = bpparam)
+                              BPPARAM = bp.param)
     is.paired.end <- Reduce(function(x, y) {
         merge(x, y, all = TRUE)
     }, is.paired.end)
@@ -270,7 +270,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
         }
     }
     to.log <- bplapply(i, ProperReads, sample.paths, destination.folder,
-                       sample.files, is.paired.end, BPPARAM = bpparam)
+                       sample.files, is.paired.end, BPPARAM = bp.param)
     cat(unlist(to.log), "\n", sep = "\n")
 
     ## Read count statistics
@@ -278,7 +278,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
         library(Rsamtools)
         countBam(sample.paths)
     }
-    res <- bplapply(sample.paths, Stats.1, BPPARAM = bpparam)
+    res <- bplapply(sample.paths, Stats.1, BPPARAM = bp.param)
     res <- Reduce(function(x,y) {rbind(x,y)}, res)
     statistics <- res[, "records", drop = FALSE]
     rownames(statistics) <- sample.files
@@ -295,7 +295,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
         library(Rsamtools)
         countBam(sample.files)$records
     }
-    res <- bplapply(sample.files, Stats.2, BPPARAM = bpparam)
+    res <- bplapply(sample.files, Stats.2, BPPARAM = bp.param)
     res <- Reduce(function(x,y) {rbind(x,y)}, res)
     statistics[, "total.properreads"] <- res
 
@@ -487,13 +487,13 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
                sample.files[control.uniq.indices],
                " is done; output file: peaks", control.uniq.indices, ".bed")
     }
-    # current.bpparam <- bpparam
-    # bpparam$workers <- ifelse(bpparam$workers < length(control.uniq.indices),
-    #                           bpparam$workers, length(control.uniq.indices))
+    # current.bp.param <- bp.param
+    # bp.param$workers <- ifelse(bp.param$workers < length(control.uniq.indices),
+    #                           bp.param$workers, length(control.uniq.indices))
     to.log <- bplapply(control.uniq.indices, DetectPeaks, sample.files,
                        prefixes[1], chromosomes, .peakCutoff,
-                       destination.folder, BPPARAM = bpparam)
-    # bpparam <- current.bpparam
+                       destination.folder, BPPARAM = bp.param)
+    # bp.param <- current.bp.param
     cat(unlist(to.log), "\n", sep = "\n")
 
     ## Read count statistics
@@ -507,7 +507,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
         chrom.reads <- sum(chrom.reads$records)
         c(all.reads = all.reads, chrom.reads = chrom.reads)
     }
-    res <- bplapply(sample.files, Stats.3, GC.mappa.grange, BPPARAM = bpparam)
+    res <- bplapply(sample.files, Stats.3, GC.mappa.grange, BPPARAM = bp.param)
     res <- data.frame(Reduce(function(x,y) {rbind(x,y)}, res))
     statistics[, "unmappable.or.mitochondrial"] <- res$all.reads - res$chrom.reads
     statistics[, "on.chromosomes"] <- res$chrom.reads
@@ -611,7 +611,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
                     counts.CopywriteR))
     }
     res <- bplapply(i, CalculateDepthOfCoverage, sample.files, control.indices,
-                    sample.indices, GC.mappa.grange, bin.size, BPPARAM = bpparam)
+                    sample.indices, GC.mappa.grange, bin.size, BPPARAM = bp.param)
     read.counts <- data.frame(Chromosome = as(seqnames(GC.mappa.grange), "factor"),
                               Start = start(GC.mappa.grange),
                               End = end(GC.mappa.grange))
@@ -664,7 +664,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
 
     ## Create data input file for correction function
     read.counts <- read.counts[, 1:(4 + length(sample.files))]
-    data <- list(cov = read.counts[, 5:ncol(read.counts)],
+    data <- list(cov = read.counts[, 5:ncol(read.counts), drop = FALSE],
                  anno = read.counts[, c("Chromosome", "Start", "End", "Feature")])
     data$anno[, "mappa"] <- GC.mappa.grange$mappability
     data$anno[, "gc"] <- GC.mappa.grange$GCcontent
@@ -683,7 +683,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
                                   paste0(colnames(data$cov)[i], ".png")))
         }
         ratios <- bplapply(i, NormalizeDOC, data, .tng, usepoints,
-                           destination.folder, BPPARAM = bpparam)
+                           destination.folder, BPPARAM = bp.param)
         log2.read.counts <- matrix(unlist(ratios), ncol = length(sample.files))
     }, error = function(e) {
         stop("The GC-content and mappability normalization did not work due to ",
@@ -721,7 +721,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
                 append = TRUE, sep = "\t", row.names = FALSE, quote = FALSE)
 
     ## Garbage collection
-    rm(blacklist.grange, bpparam, data, GC.mappa.grange, i, log2.read.counts,
+    rm(blacklist.grange, bp.param, data, GC.mappa.grange, i, log2.read.counts,
        NormalizeDOC, ratios, read.counts, selection, usepoints)
 
     #############################################################################

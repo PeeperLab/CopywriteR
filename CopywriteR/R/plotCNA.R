@@ -16,7 +16,7 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
     inputStructure <- NULL
 
     # Load inputStructure variable
-    load(file.path(destination.folder, "input.Rdata"), .GlobalEnv)
+    load(file.path(destination.folder, "input.Rdata"))
 
     ## Set variables
     chromosomes <- inputStructure$chromosomes
@@ -28,7 +28,7 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
     if (missing(sample.plot)) {
         sample.plot <- apply(inputStructure$sample.control, c(1, 2),
                              function(x) {
-            x <- paste0("log2.read.counts.", basename(x))
+            x <- paste0("log2.", basename(x))
         })
         all.samples <- unique(as.vector(sample.plot))
         sample.plot <- rbind(data.frame(sample.plot, stringsAsFactors = FALSE),
@@ -191,9 +191,9 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
 
             # Plot data
             if (length(x) > 1) {
-                name.chrom <- "all.chrom"
+                name.chrom <- "all_chrom"
             } else {
-                name.chrom <- paste0("chrom.", x)
+                name.chrom <- paste0("chrom_", x)
             }
             pdf(file = paste0(name.chrom, ".pdf"), width = 14, height = 7)
             plot(current.sample$data[, "maploc"],

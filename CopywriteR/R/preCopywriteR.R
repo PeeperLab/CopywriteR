@@ -24,10 +24,11 @@ preCopywriteR <- function(output.folder, bin.size, ref.genome) {
     }
 
     ## Generate files with desired bin.size (mappa, GC, bed, blacklist)
-    # Pre-define mappa and GC variables to avoid them raising NOTES during
-    # R CMD CHECK (variables are loaded from file below)
-    mappa <- NULL
-    GC <- NULL
+    # Pre-define GC.mappa.grange and blacklist.grange variables to avoid them
+    # from raising NOTES during R CMD CHECK (variables are loaded from file
+    # below)
+    GC.mappa.grange <- NULL
+    blacklist.grange <- NULL
     
     # Load GC.grange, GC.mappa.grange and blacklist.grange variables
     black.GC.mappa.folder <- getPathHelperFiles(ref.genome)

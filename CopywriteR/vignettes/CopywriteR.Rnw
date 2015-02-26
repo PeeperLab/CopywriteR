@@ -41,7 +41,7 @@ To extract copy number information from targeted sequencing data while
 circumventing problems related to the use of on-target reads, we developed
 the CopywriteR package. Unlike other currently available tools, CopywriteR is
 based on off-target reads. We have shown that this approach has several
-advantages relative to current approaches\cite{Kuilman:vf} and it constitutes a
+advantages relative to current approaches \cite{Kuilman:vf} and it constitutes a
 viable alternative for copy number detection from targeted sequencing data.
 
 \section{CopywriteR workflow}
@@ -54,7 +54,7 @@ sequencing efforts. These steps include:
     \item Removing of low-quality and anomalous reads
     \item Peak calling (in reference when available, otherwise in sample itself)
     \item Discarding of reads in peak regions
-    \item Piling up reads onto bins of pre-defined size
+    \item Counting reads on bins of pre-defined size
     \item Compensating for the difference in effective bin size upon discarding
      peaks in peak regions
     \item Correcting for GC-content and mappability; applying a blacklist filter
@@ -82,46 +82,50 @@ using the \Rcode{preCopywriteR()} function.
 CopywriteR uses binned read count data as a basis for copy number detection. We
 have pre-assembled 1 kb bin GC-content and mappability information for the hg19,
 mm9 and mm10 reference genomes in the \Biocpkg{CopyhelpeR} package. The
-\Rcode{preCopywriteR()} function allows to create two necessary helper files.
+\Rcode{preCopywriteR()} function allows to create the necessary helper files.
 These files can be created for any custom bin size that is a multiple of 1000
-bp, and for the hg19, mm9 and mm10 reference genomes. The helper files are saved
+bp, and for the above-mentioned reference genomes. The helper files are saved
 in a new folder and are required to run CopywriteR. If previously created helper
 files for a specific bin size / reference genome combination are available, the
 {\Rcode{preCopywriteR()} step can be omitted.
 
-For this example, CopywriteR will be applied to a bin size of 20 kb. This is the
-bin size we recommend starting with when analyzing whole-exome sequencing data,
-while we would analyze at 50 kb resolution for targeted sequencing on smaller
-gene panels. As the .bam file contained in the \Biocpkg{SCLCBam} package is
-mapped to the mm10 reference genome, we run {\Rcode{preCopywriteR()} as follows:
+In this example, CopywriteR will be applied to a bin size of 20 kb. This is the
+bin size we recommend trying out when analyzing whole-exome sequencing data,
+while we would start analyzing at 50 kb resolution for targeted sequencing on
+smaller gene panels. As the .bam file contained in the \Biocpkg{SCLCBam} package
+is mapped to the mm10 reference genome, we run {\Rcode{preCopywriteR()} as
+follows:
 
 <<load.CopywriteR, print=FALSE, eval=TRUE>>=
 library(CopywriteR)
 @
 
 <<get.root.folder, print=FALSE, eval=TRUE>>=
-data.folder <- tools::file_path_as_absolute(file.path(getwd(), "data"))
+data.folder <- tools::file_path_as_absolute(file.path(getwd()))
 @
 
 <<preCopywriteR, print=FALSE, eval=TRUE>>=
 preCopywriteR(output.folder = file.path(data.folder),
-              bin.size = 200000,
+              bin.size = 20000,
               ref.genome = "mm10")
 @
 
-The custom helper files are placed in a folder inside the output.folder folder.
-The folder containing the helper files is named after the reference genome and
-the bin size. The bin.size argument specifies the custom bin size (in bp), and
-the ref.genome argument can be either "mm9", "mm10" or "hg19". If you are
-interested in getting helper files for other genomes, please contact me by the
-email addresses supplied at the beginning of this vignette.
+The custom helper files are placed in a folder that is named after the reference
+genome and the bin size (in this example: mm10\symbol{95}20kb). This folder, on
+its turn, is placed inside the folder specified by the output.folder argument.
+The bin.size argument specifies the custom bin size (in bp), and the ref.genome
+argument can be either "mm9", "mm10" or "hg19". If you are interested in getting
+helper files for other genomes, please contact me by the email addresses
+supplied at the beginning of this vignette.
 
 <<list.dirs, print=FALSE, eval=TRUE>>=
 list.dirs(path = file.path(data.folder), full.names = FALSE)[2]
 @
 <<list.dirs, print=FALSE, eval=TRUE>>=
-list.dirs(path = file.path(data.folder, "mm10_20kb"), full.names = FALSE)
+list.files(path = file.path(data.folder, "mm10_20kb"), full.names = FALSE)
 @
+
+\newpage
 
 The data are contained in two GRanges objects (from the \Biocpkg{GenomicRanges}
 package) of which one (blacklist.rda) contains regions of copy number variation:
@@ -131,60 +135,72 @@ load(file = file.path(data.folder, "mm10_20kb", "blacklist.rda"))
 blacklist.grange
 @
 
-The other helper file (GC_mappability.rda) contains GC-content and mappability
-information for a particular bin size:
+The other helper file (GC\symbol{95}mappability.rda) contains GC-content and
+mappability information for a particular bin size:
 
 <<show.GC.mappa, print=FALSE, eval=TRUE>>=
 load(file = file.path(data.folder, "mm10_20kb", "GC_mappability.rda"))
-GC.mappa.grange
+GC.mappa.grange[1000:1010]
 @
 
-\subsection{\Rcode{BiocParallel} for parallel computing}
+\newpage
 
-CopywriteR can use \Biocpkg{snowfall} for parallel
-computing, where every sample is processed on a single core. The ncpu argument
-defines the number of cores that will be maximally used by CopywriteR during
-parallel computation. 
-param = 
+\subsection{\Biocpkg{BiocParallel} for parallel computing}
+
+CopywriteR fully supports paralel computing and is implemented in such a way
+that every sample is processed on a single core. CopywriteR uses the
+\Biocpkg{BiocParallel} for parallel computing. This package requires the user to
+specify which parallel environment is used by creating an instance of
+\Rcode{BiocParallelParam}. In the example case, we are using the \Rcode{snow}
+environment and specify a \Rcode{SnowParam}:
+
+<<create.BiocParallelParam, print=FALSE, eval=TRUE>>=
+bp.param <- SnowParam(workers = 1, type = "PSOCK")
+bp.param
+@
+
+For using other instances of the \Rcode{BiocParallelParam} parameter, please
+refer to the \Biocpkg{BiocParallel} package vignette. The bp.param parameter can
+now be passed on to \Rcode{CopywriteR()} to allow parallel computation.
 
 \subsection{\Rcode{CopywriteR()}}
 
 The \Rcode{CopywriteR()} function allows to calculate binned read count data
-based on the helper files created using \Rcode{preCopywriteR()}. CopywriteR uses
+based on the helper files created by \Rcode{preCopywriteR()}. CopywriteR uses
 a peak calling algorithm to remove 'on-target' reads. The argument that controls
 on which sample peaks are called is sample.control. This \Rcode{matrix} or
 \Rcode{data.frame} should contain path names to 'samples' and their
 corresponding 'controls' in rows. The peaks called in the controls are used to
 remove reads from the corresponding samples as well as the controls themselves.
-In the example used here, no matched germline control is available, peaks are
-called on the sample itself, and therefore the sample and control are identical.
+In the example used here, no matched germline control is available, and peaks
+are called on the sample itself. Therefore the sample and control are identical.
 
 <<CopywriteR, print=FALSE, eval=TRUE>>=
-samples <- list.files(path = file.path(data.folder), pattern = "bam$",
-                      full.names = TRUE)
+path <- SCLCBam::getPathBamFolder()
+samples <- list.files(path = path, pattern = "bam$", full.names = TRUE)
 controls <- samples
 sample.control <- data.frame(samples, controls)
 
 CopywriteR(sample.control = sample.control,
            destination.folder = file.path(data.folder),
-           reference.folder = file.path(data.folder, "./mm10_1000kb")
-           bpparam = param)
+           reference.folder = file.path(data.folder, "mm10_20kb"),
+           bp.param = bp.param)
 @
 
 The destination.folder argument determines in which folder the output folder is
 going to be placed, and the reference.folder points to the location of the
 custom bin size helper files. The keep.intermediairy.files is an optional
 argument that determines whether intermediary .bam, .bai and peak .bed files are
-kept. The default value is FALSE, and we recommend only keeping these files for
-troubleshooting purposes to limit disk space usage. Finally, the
-capture.regions.file argument is optional, and can be used to define the
-location of a capture regions bed file. If this file is specified, statistics of
-the overlap of these regions with the called peaks is provided.
+kept. The default value is FALSE to limit disk space usage; it can be set to
+TRUE however for troubleshooting purposes. Finally, the capture.regions.file
+argument is optional, and can be used to define the location of a capture
+regions bed file. If this file is specified, statistics of the overlap of these
+regions with the called peaks is provided.
 
 \newpage
 
-CopywriteR will create a new folder named CNAprofiles in the directory specified by
-destination.folder. This folder contains the following files:
+CopywriteR will create a new folder named CNAprofiles in the directory specified
+by destination.folder. This folder contains the following files:
 
 <<CNAprofiles.folder.contents, print=FALSE, eval=TRUE>>=
 cat(list.files(path = file.path(data.folder, "CNAprofiles")), sep = "\n")
@@ -196,9 +212,9 @@ values. The 'fraction of bin' indicates what fraction of the bin is not on
 peaks, and therefore effectively contributes to the read count. In our example,
 the read\symbol{95}counts.txt has the following content:
 
-
 <<read.counts.example, print=FALSE, eval=TRUE>>=
-head(read.delim(file = file.path(data.folder, "CNAprofiles", "read_counts.txt")))
+read.table(file = file.path(data.folder, "CNAprofiles", "read_counts.txt"),
+           header = TRUE)[30000:30005, ]
 @
 
 The log2\symbol{95}read\symbol{95}counts.igv file can be opened in the IGV
@@ -208,8 +224,8 @@ further downstream analysis, and are required for \Rcode{plotCNA()} to allow
 plotting of the copy number profiles:
 
 <<log2.read.counts.example, print=FALSE, eval=TRUE>>=
-head(read.delim(file = file.path(data.folder, "CNAprofiles",
-                                 "log2_read_counts.igv")))
+read.table(file = file.path(data.folder, "CNAprofiles",
+                            "log2_read_counts.igv"), header = TRUE)[26000:26005, ]
 @
 
 The input.Rdata file contains a number of variables that are required to run
@@ -227,10 +243,12 @@ function for the 'fractions of bins'. The read.counts.compensated files
 contain the plots and the loesses that are used for GC-content and
 mappability corrections.
 
+\newpage
+
 \subsection{\Rcode{plotCNA()}}
 
 The \Rcode{plotCNA()} function allows segmentation of the copy number data using
-DNAcopy\cite{Olshen:2004ge}, and subsequent plotting. We run the plotting
+DNAcopy \cite{Olshen:2004ge}, and subsequent plotting. We run the plotting
 function as follows:
 
 <<CNAprofiles.folder.contents, print=FALSE, eval=TRUE>>=
@@ -251,17 +269,16 @@ cat(list.files(path = file.path(data.folder, "CNAprofiles", "plots")), sep = "\n
 @
 
 The samples are plotted per chromosome, as well as in a genome-wide fashion.
-We provide here the result of an identical analysis at 20 kb resolution (this
-was performed on the original sequence read file that has a higher coverage):
+We provide here the result for chromosome 4:
 
 \begin{center}
-\includegraphics[width=\textwidth]{data/chrom4}
+\includegraphics[width=\textwidth]{CNAprofiles/plots/log2.T43_4.bam.vs.none/chrom_4}
 \end{center}
 
 In addition to the plots, the raw segmented values can be obtained from the
 DNAcopy object 'segment.Rdata'.
 
-I am interested in further improving CopywriteR, so if CopywriteR fails to
+We are interested in further improving CopywriteR, so if CopywriteR fails to
 analyze your samples, please don't hesitate to contact me. In this case, please
 provide the full command line output and the log-file.
 
@@ -279,5 +296,3 @@ toLatex(sessionInfo())
 \bibliography{CopywriteR}
 
 \end{document}
-R CMD Sweave --pdf CopywriteR.Rnw
-http://bioconductor.org/packages/devel/bioc/vignettes/BiocStyle/inst/doc/LatexStyle.pdf
