@@ -38,21 +38,21 @@ Load the CopywriteR package in R using:
 
 CopywriteR contains three main functions:
 
-preCopywriteR will generate a GRanges object containing mappability and
+`preCopywriteR` will generate a GRanges object containing mappability and
 GC-content information, and one containing 'blacklisted' regions that contain
 are subject to copy number variation. These 'helper' files can be created for
 any specified bin size that is a multiple of 1000 bp, and for any of the
 available reference genomes (hg19, mm9 and mm10). The helper files can be
 re-used and need to be created only once for every combination of reference
-genome and bin size. preCopywriteR uses information stored in pre-assembled 1kb
-bin mappability and GC-content GRanges objects to create the custom bin size
-helper files. These objects are stored in the CopyhelpeR annotation package.
+genome and bin size. `preCopywriteR` uses information stored in pre-assembled
+1kb bin mappability and GC-content GRanges objects to create the custom bin size
+helper files. These objects are stored in the `CopyhelpeR` annotation package.
 
 preCopywriteR can be run as follows:
 
     > preCopywriteR(output.folder, bin.size, ref.genome)
 
-CopywriteR will generate separate tables with compensated read counts and
+`CopywriteR` will generate separate tables with compensated read counts and
 log2-transformed normalized read counts after compensated, correction for
 GC-content, mappability and removal of blacklisted regions.
 
@@ -60,7 +60,7 @@ GC-content, mappability and removal of blacklisted regions.
                  bp.param, capture.regions.file,
                  keep.intermediairy.files = FALSE)
 
-plotCNA performs segmentation using the DNAcopy Bioconductor package, and
+`plotCNA` performs segmentation using the DNAcopy Bioconductor package, and
 plotting of copy number profiles.
 
     > plotCNA(destinationFolder, set.nchrom)
