@@ -52,7 +52,7 @@ helper files. These objects are stored in the CopyhelpeR annotation package.
 
 preCopywriteR can be run as follows:
 
-    > preCopywriteR(output.folder, bin.size, ref.genome)
+    > preCopywriteR(output.folder, bin.size, ref.genome, prefix = "")
 
 `CopywriteR` will generate separate tables with compensated read counts and
 log2-transformed normalized read counts after compensated, correction for
