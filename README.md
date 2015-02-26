@@ -16,38 +16,19 @@ available tools.
 
 CopywriteR was developed to run in R, and only depends on packages that are
 available via CRAN (http://cran.r-project.org/) and bioconductor
-(http://bioconductor.org/). The required packages can be installed by pasting
-the following command in the R command line:
+(http://bioconductor.org/). A number of packages are required to run CopywriteR,
+which can be installed by pasting the following command in the R command line:
 
-- biocLite(c("matrixStats", "gtools", "data.table", "S4Vectors", "chipseq",
-             "IRanges", "Rsamtools", "DNAcopy", "GenomicAlignments",
-             "GenomicRanges", "GenomeInfoDb", "BiocParallel", "BiocStyle"))
+    > biocLite(c("matrixStats", "gtools", "data.table", "S4Vectors", "chipseq",
+                 "IRanges", "Rsamtools", "DNAcopy", "GenomicAlignments",
+                 "GenomicRanges", "GenomeInfoDb", "BiocParallel", "BiocStyle"))
 
-The following R-packages are required to run CopywriteR:
+In addition, CopywriteR requires the CopyhelpeR package, which can be downloaded
+as tarball (.tar.gz-file) from the releases webpage
+(https://github.com/PeeperLab/CopywriteR/releases). Subsequently, the CopyhelpeR
+package can be installed from the command line using the following command:
 
-- Rsamtools
-- CGHcall
-- snowfall
-- IRanges
-- matrixStats
-- data.table
-- gtools
-
-Some of these can be installed from bioconductor.org:
-
-    > source("http://bioconductor.org/biocLite.R")
-    > biocLite(c('Rsamtools', 'CGHcall', 'snowfall', 'IRanges'))
-
-The remaining R-packages are available through CRAN:
-
-    > install.packages(c('matrixStats', 'data.table', 'gtools'))
-
-## Installation R-package:
-
-After installing the required tools as described above you can download the pre-compiled CopywriteR R-package.
-The package can be installed from the command line using the following command:
-
-    $ R CMD INSTALL CopywriteR*.tar.gz
+    $ R CMD INSTALL CopyhelpeR*.tar.gz
 
 ## CopywriteR usage:
 
@@ -57,24 +38,36 @@ Load the CopywriteR package in R using:
 
 CopywriteR contains three main functions:
 
-preCopywriteR will generate bin, mapability, GC-content, blacklist and capture regions .bed files for any specified bin size and for available reference genomes.
-For every combination of reference genome and bin size, a separate set of such files needs to be created.
-preCopywriteR takes pre-assembled 1kb bin mapability, GC-content and blacklist .bed files as input.
-Available reference genomes are hg19, mm9 and mm10.
-These can be downloaded from the release section.
+preCopywriteR will generate a GRanges object containing mappability and
+GC-content information, and one containing 'blacklisted' regions that contain
+are subject to copy number variation. These 'helper' files can be created for
+any specified bin size that is a multiple of 1000 bp, and for any of the
+available reference genomes (hg19, mm9 and mm10). The helper files can be
+re-used and need to be created only once for every combination of reference
+genome and bin size. preCopywriteR uses information stored in pre-assembled 1kb
+bin mappability and GC-content GRanges objects to create the custom bin size
+helper files. These objects are stored in the CopyhelpeR annotation package.
 
-    preCopywriteR(blackGCMapaFolder, outputFolder, binSize, reference)
+To run preCopywriteR, 
 
-CopywriteR will generate separate tables with compensated read counts and normalized compensated read counts (after correction for GC-content, mapability and removal of blacklisted regions).
+    > preCopywriteR(output.folder, bin.size, ref.genome)
 
-    CopywriteR(bamFolder, destinationFolder, referenceFolder, whichControl, ncpu, captureRegionsBedFile)
+CopywriteR will generate separate tables with compensated read counts and
+log2-transformed normalized read counts after compensated, correction for
+GC-content, mappability and removal of blacklisted regions.
 
-plotCNA performs segmentation, calling and plotting of copy number profiles using the CGHcall package.
+    > CopywriteR(sample.control, destination.folder, reference.folder,
+                 bp.param, capture.regions.file,
+                 keep.intermediairy.files = FALSE)
 
-    plotCNA(destinationFolder, set.nchrom)
+plotCNA performs segmentation using the DNAcopy Bioconductor package, and
+plotting of copy number profiles.
 
-For more details see R-package manual.
-Alternatively, one of the following commands can be used to show help files for the corresponding function:
+    > plotCNA(destinationFolder, set.nchrom)
+
+For more details please refer to the CopywriteR vignette. Alternatively, one of
+the following commands can be used to show help files for the corresponding
+function:
 
     > ?preCopywriteR
     > ?CopywriteR
@@ -82,36 +75,45 @@ Alternatively, one of the following commands can be used to show help files for 
 
 ## Troubleshooting
 
-There are a number of requirements for your CopywriteR analysis to run successfully. These are discussed below.
+There are a number of requirements for your CopywriteR analysis to run
+successfully. These are discussed below.
 
 ### Chromosome names
 
-CopywriteR by default assumes that the chromosome names in .bam files are "1", "2", ... "X", and "Y".
-These chromosome names are incorporated in the bin, mapability, GC-content, blacklist and capture regions .bed files by preCopywriteR.
-CopywriteR can also be applied to .bam files with different chromosome names.
-In this case, the supporting .bed files need to have the same chromosome notation.
-In case of non-matching chromosome notations, an error message will be displayed and the analysis will be aborted.
-Non-matching chromosome names between .bam and supporting .bed files can be matched by changing the supporting .bed files, for instance in UNIX using awk as follows:
+CopywriteR by default assumes that the chromosome names in .bam files are "1",
+"2", ... "X", and "Y". These chromosome names are incorporated in the bin,
+mapability, GC-content, blacklist and capture regions .bed files by
+preCopywriteR. CopywriteR can also be applied to .bam files with different
+chromosome names. In this case, the supporting .bed files need to have the same
+chromosome notation. In case of non-matching chromosome notations, an error
+message will be displayed and the analysis will be aborted. Non-matching 
+chromosome names between .bam and supporting .bed files can be matched by
+changing the supporting .bed files, for instance in UNIX using awk as follows:
 
-    > awk 'BEGIN { FS = OFS = "\t"; } { print "chr"$1, $2, $3; }' bins.bed > ../NEWFOLDER/bins.bed
-    > awk 'BEGIN { FS = OFS = "\t"; } { print "chr"$1, $2, $3; }' blacklist.bed > ../NEWFOLDER/blacklist.bed
-    > awk 'BEGIN { FS = OFS = "\t"; } { print "chr"$1, $2, $3, $4, $5; }' GC_content.bed > ../NEWFOLDER/GC_content.bed
-    > awk 'BEGIN { FS = OFS = "\t"; } { print "chr"$1, $2, $3, $4; }' mapability.bed > ../NEWFOLDER/mapability.bed
+Chromosome names in .bam files can be adjusted using bedtools as follows (UNIX
+only):
 
-Alternatively, chromosome names in .bam files can be adjusted using bedtools as follows (UNIX only):
+    $ samtools view -H in.bam | awk 'BEGIN { FS = OFS = "\t"; }
+      {if ($1 == "@SQ") { gsub("SN:chr", "SN:", $2); print $1, $2, $3; } else print; }'
+      | samtools reheader - in.bam > out.bam
 
-    $ samtools view -H in.bam | awk 'BEGIN { FS = OFS = "\t"; } {if ($1 == "@SQ") { gsub("SN:chr", "SN:", $2); print $1, $2, $3; } else print; }' | samtools reheader - in.bam > out.bam
-
-Please note that gsub in awk works similar to the gsub command in R.
-Also, changing the chromosome names in the .bam header is sufficient as the chromosome names in the body of the file are in fact references to the chromosome names in the header.
+Please note that gsub in awk works similar to the gsub command in R. Also,
+changing the chromosome names in the .bam header is sufficient as the chromosome
+names in the body of the file are in fact references to the chromosome names in
+the header.
 
 ### Number of chromosomes
 
-CGHcall fails to run on the Y-chromosome when it has too few data points. If this occurs, we recommend a re-run of plotCNA with set.nchrom set as the total amount of chromosomes minus 1 (i.e., 23 for the human genome). CGHcall will then ignore the Y-chromosome.
+CGHcall fails to run on the Y-chromosome when it has too few data points. If
+this occurs, we recommend a re-run of plotCNA with set.nchrom set as the total
+amount of chromosomes minus 1 (i.e., 23 for the human genome). CGHcall will then
+ignore the Y-chromosome.
 
 ## Contact
 
-We have tried to make the CopywriteR code readable and its use as easy as possible. If any questions arise regarding the package, or if you want to report any bugs, please do not hesitate and contact:
+We have tried to make the CopywriteR code readable and its use as easy as
+possible. If any questions arise regarding the package, or if you want to report
+any bugs, please do not hesitate and contact:
 
 - [Thomas Kuilman](mailto:t.kuilman@nki.nl)
 - [Oscar Krijgsman](mailto:o.krijgsman@nki.nl)
