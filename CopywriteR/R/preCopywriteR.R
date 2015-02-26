@@ -1,4 +1,4 @@
-preCopywriteR <- function(output.folder, bin.size, ref.genome) {
+preCopywriteR <- function(output.folder, bin.size, ref.genome, prefix = "") {
 
     ## Make folder path absolute
     output.folder <- tools::file_path_as_absolute(output.folder)
@@ -57,9 +57,10 @@ preCopywriteR <- function(output.folder, bin.size, ref.genome) {
                                          nrow = MERGEBINNUMBER))
         mappability.bin <- colMeans(matrix(GC.mappa.grange$mappability[selection],
                                            nrow = MERGEBINNUMBER))
-        chr.bin <- cbind(seqnames = chr, start = start.bin, end = end.bin,
-                     ATcontent = ATcontent.bin, GCcontent = GCcontent.bin,
-                     mappability = mappability.bin)
+        chr.bin <- cbind(seqnames = paste0(prefix, chr), start = start.bin,
+                         end = end.bin, ATcontent = ATcontent.bin,
+                         GCcontent = GCcontent.bin,
+                         mappability = mappability.bin)
         chr.bin <- chr.bin[1:(nrow(chr.bin) - 1), ]
         custom.bin <- rbind(custom.bin, chr.bin)
     }
@@ -70,8 +71,14 @@ preCopywriteR <- function(output.folder, bin.size, ref.genome) {
     GC.mappa.grange <- makeGRangesFromDataFrame(custom.bin,
                                                 keep.extra.columns = TRUE)
     
-    cat("Generated", bin.size, "bp bins for all chromosomes with matching",
-        "GC-content and mappability data", "\n")
+    cat("Generated GC-content and mappability data at", bin.size, "bp",
+        "resolution...", "\n")
+    
+    # Generate blacklist object
+    blacklist.grange <- as(blacklist.grange, "data.frame")
+    blacklist.grange$seqnames <- paste0(prefix, blacklist.grange$seqnames)
+    blacklist.grange <- makeGRangesFromDataFrame(blacklist.grange)
+    cat("Generated blacklist file...", "\n")
 
     ## Create folder for output files
     file.name <- paste0(ref.genome, "_", bin.size/1000, "kb")

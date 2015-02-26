@@ -114,9 +114,12 @@ The custom helper files are placed in a folder that is named after the reference
 genome and the bin size (in this example: mm10\symbol{95}20kb). This folder, on
 its turn, is placed inside the folder specified by the output.folder argument.
 The bin.size argument specifies the custom bin size (in bp), and the ref.genome
-argument can be either "mm9", "mm10" or "hg19". If you are interested in getting
-helper files for other genomes, please contact me by the email addresses
-supplied at the beginning of this vignette.
+argument can be either "mm9", "mm10" or "hg19". The default chromosome notation
+is "1", "2", ..., "X", "Y". The prefix argument is optional and can be used to
+add a prefix to these names.
+
+If you are interested in getting helper files for other genomes, please contact
+me by the email addresses supplied at the beginning of this vignette.
 
 <<list.dirs, print=FALSE, eval=TRUE>>=
 list.dirs(path = file.path(data.folder), full.names = FALSE)[2]

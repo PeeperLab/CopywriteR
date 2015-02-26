@@ -11,7 +11,7 @@ helper files. These binary 1 kb helper files are available at
 genomes.
 }
 \usage{
-preCopywriteR(output.folder, bin.size, ref.genome)
+preCopywriteR(output.folder, bin.size, ref.genome, prefix = "")
 }
 \arguments{
 \item{output.folder}{
@@ -23,6 +23,10 @@ desired bin length (in bp) for which helper files should be generated.
 \item{ref.genome}{
 the reference genome for which helper files should be generated, e.g. hg19, mm9
 or mm10.
+}
+\item{prefix}{
+the prefix that is used for chromosome notation. Standard notation is "1", "2",
+..., "X", "Y". For "chr1", ... notation, use prefix = "chr".
 }
 }
 \details{

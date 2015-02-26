@@ -48,7 +48,7 @@ genome and bin size. preCopywriteR uses information stored in pre-assembled 1kb
 bin mappability and GC-content GRanges objects to create the custom bin size
 helper files. These objects are stored in the CopyhelpeR annotation package.
 
-To run preCopywriteR, 
+preCopywriteR can be run as follows:
 
     > preCopywriteR(output.folder, bin.size, ref.genome)
 
@@ -81,33 +81,11 @@ successfully. These are discussed below.
 ### Chromosome names
 
 CopywriteR by default assumes that the chromosome names in .bam files are "1",
-"2", ... "X", and "Y". These chromosome names are incorporated in the bin,
-mapability, GC-content, blacklist and capture regions .bed files by
-preCopywriteR. CopywriteR can also be applied to .bam files with different
-chromosome names. In this case, the supporting .bed files need to have the same
-chromosome notation. In case of non-matching chromosome notations, an error
-message will be displayed and the analysis will be aborted. Non-matching 
-chromosome names between .bam and supporting .bed files can be matched by
-changing the supporting .bed files, for instance in UNIX using awk as follows:
-
-Chromosome names in .bam files can be adjusted using bedtools as follows (UNIX
-only):
-
-    $ samtools view -H in.bam | awk 'BEGIN { FS = OFS = "\t"; }
-      {if ($1 == "@SQ") { gsub("SN:chr", "SN:", $2); print $1, $2, $3; } else print; }'
-      | samtools reheader - in.bam > out.bam
-
-Please note that gsub in awk works similar to the gsub command in R. Also,
-changing the chromosome names in the .bam header is sufficient as the chromosome
-names in the body of the file are in fact references to the chromosome names in
-the header.
-
-### Number of chromosomes
-
-CGHcall fails to run on the Y-chromosome when it has too few data points. If
-this occurs, we recommend a re-run of plotCNA with set.nchrom set as the total
-amount of chromosomes minus 1 (i.e., 23 for the human genome). CGHcall will then
-ignore the Y-chromosome.
+"2", ... "X", and "Y". These chromosome names are incorporated in the
+mappability and GC-content GRanges object, as well as in the blacklist GRanges
+object created by preCopywriteR. preCopywriteR has an optional prefix argument
+that can be used to created helper files with a chromosome notation using a
+prefix (for instance "chr" for "chr1", "chr2", ... notation).
 
 ## Contact
 
