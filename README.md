@@ -1,23 +1,27 @@
-# CopywriteR 
+# CopywriteR (formerly known as ENCODER)
 
-Current methods for detection of copy number aberrations (CNA) from targeted
-sequencing data use the depth of coverage of captured exons only. Accurate CNA
-determination is complicated by uneven genomic distribution and non-uniform
-capture efficiency of targeted exons. Here we present a new tool, CopywriteR, which
-eludes these problems by exploiting ‘off-target’ sequence reads. CopywriteR allows
-for extracting uniformly distributed copy number information, can be used
-without reference and can be applied to sequencing data obtained from various
-techniques including chromatin immunoprecipitation and target enrichment on
-small-size gene panels. CopywriteR outperforms existing methods and constitutes a
-widely applicable alternative to available tools.
+Current methods for detection of copy number variants and aberrations (CNV and
+CNA) from targeted sequencing data are based on the depth of coverage of
+captured exons. Accurate CNA determination is complicated by uneven genomic
+distribution and non-uniform capture efficiency of targeted exons. Here we
+present CopywriteR which eludes these problems by exploiting ‘off-target’
+sequence reads. CopywriteR allows for extracting uniformly distributed copy
+number information, can be used without reference and can be applied to
+sequencing data obtained from various techniques including chromatin
+immunoprecipitation and target enrichment on small gene panels. CopywriteR
+outperforms existing methods and constitutes a widely applicable alternative to
+available tools.
 
 ## Requirements:
 
-CopywriteR was developed for UNIX based systems (including OSX) and requires the following command line tools:
+CopywriteR was developed to run in R, and only depends on packages that are
+available via CRAN (http://cran.r-project.org/) and bioconductor
+(http://bioconductor.org/). The required packages can be installed by pasting
+the following command in the R command line:
 
-- Samtools (http://samtools.sourceforge.net/) - To test Samtools: `$ samtools`
-- Bedtools (http://bedtools.readthedocs.org/) - To test Bedtools: `$ bedtools --version`
-- MACS 1.4 (http://liulab.dfci.harvard.edu/MACS/). To test MACS: `$ macs14 --version`
+- biocLite(c("matrixStats", "gtools", "data.table", "S4Vectors", "chipseq",
+             "IRanges", "Rsamtools", "DNAcopy", "GenomicAlignments",
+             "GenomicRanges", "GenomeInfoDb", "BiocParallel", "BiocStyle"))
 
 The following R-packages are required to run CopywriteR:
 
