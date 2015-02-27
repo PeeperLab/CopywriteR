@@ -16,9 +16,10 @@ available tools.
 ## Requirements:
 
 CopywriteR was developed to run in R, and only depends on packages that are
-available via CRAN (http://cran.r-project.org/) and bioconductor
-(http://bioconductor.org/). A number of packages are required to run CopywriteR,
-which can be installed by pasting the following command in the R command line:
+available via [CRAN](http://cran.r-project.org/) and
+[bioconductor](http://bioconductor.org/). A number of packages are required to
+run CopywriteR, which can be installed by pasting the following command in the R
+command line:
 
     > source("http://bioconductor.org/biocLite.R")
     > biocLite(c("matrixStats", "gtools", "data.table", "S4Vectors", "chipseq",
@@ -26,9 +27,10 @@ which can be installed by pasting the following command in the R command line:
                  "GenomicRanges", "GenomeInfoDb", "BiocParallel", "BiocStyle"))
 
 In addition, CopywriteR requires the CopyhelpeR package, which can be downloaded
-as tarball (.tar.gz-file) from the releases webpage
-(https://github.com/PeeperLab/CopywriteR/releases). Subsequently, the CopyhelpeR
-package can be installed from the command line using the following command:
+as tarball (.tar.gz-file) from the
+[releases webpage](https://github.com/PeeperLab/CopywriteR/releases).
+Subsequently, the CopyhelpeR package can be installed from the command line
+using the following command:
 
     $ R CMD INSTALL CopyhelpeR*.tar.gz
 
@@ -74,6 +76,89 @@ function:
     > ?preCopywriteR
     > ?CopywriteR
     > ?plotCNA
+
+## Quick start
+
+A typical analysis using CopywriteR could be as follows. First, CopywriteR needs
+to be loaded:
+
+    > library(CopywriteR)
+
+Then, preCopywriteR can be run using the command:
+
+    > preCopywriteR(output.folder = file.path(data.folder),
+                    bin.size = 20000,
+                    ref.genome = "mm10",
+                    prefix = "")
+
+Next, we need to specify the settings for parallel computing. We have
+implemented use of the [BiocParallel](http://bioconductor.org/packages/release/bioc/html/BiocParallel.html)
+package, which supports several different types of environments. For every
+environment, a BiocParallelParam can be specified that defines how parallel
+computation is executed. Below, we use a SnowParam instance of
+BiocParallelParam, which is based on the
+[snow](http://cran.r-project.org/web/packages/snow/index.html) package. Please
+refer to the [BiocParallel](http://bioconductor.org/packages/release/bioc/html/BiocParallel.html)
+package for more information. A SnowParam using 12 CPUs can be defined as
+follows:
+
+    > bp.param <- SnowParam(workers = 12, type = "PSOCK")
+
+Next, we need to specify which samples and controls correspond to each other.
+For CopywriteR, controls are specified as those samples that will be used to
+identify which regions contain on-target and off-target reads. This information
+will then be applied to both the sample and the control to exclude on-target
+reads. We specify the sample.control variable as follows:
+
+    > path <- "./path/to/bam"
+    > samples <- list.files(path = path, pattern = "bam$", full.names = TRUE)
+    > controls <- samples[c(1:6, 1:6)]
+    > sample.control <- data.frame(samples, controls)
+
+This might result in the following variable:
+
+    > sample.control
+          samples   controls
+    1  ./C003.bam ./C003.bam
+    2  ./C016.bam ./C016.bam
+    3  ./C024.bam ./C024.bam
+    4  ./C037.bam ./C037.bam
+    5  ./C049.bam ./C049.bam
+    6  ./C055.bam ./C055.bam
+    7  ./M003.bam ./C003.bam
+    8  ./M016.bam ./C016.bam
+    9  ./M024.bam ./C024.bam
+    10 ./M037.bam ./C037.bam
+    11 ./M049.bam ./C049.bam
+    12 ./M055.bam ./C055.bam
+
+Sequence data starting with 'M' could for instance be from a tumor sample,
+and the corresponding 'C' data set would from a matched germline sample. We
+recommend identifying on-target and off-target regions based on a germline
+sample if possible, as this would avoid identifying highly amplified regions
+as on-target regions. Please refer to our
+[manuscript](http://genomebiology.com/2015/16/1/49/abstract) for more details on
+how CopywriteR extracts copy number profiles from targeted sequencing.
+
+We are now set for running CopywriteR:
+
+    > CopywriteR(sample.control = sample.control,
+                 destination.folder = file.path("./path/to/destination/folder"),
+                 reference.folder = file.path("./path/to/reference/folder", "mm10_20kb"),
+                 bp.param = bp.param)
+
+Finally, we can segment the data using
+[DNAcopy](http://www.bioconductor.org/packages/release/bioc/html/DNAcopy.html)
+and plot the result using the plotCNA function:
+
+    > plotCNA(destination.folder = file.path("/path/to/destination/folder"))
+
+By default, data will be analyzed and plotted according to the matching of
+samples and controls in the sample.control variable (specified above). Every
+sample in the samples column of the variable will be analyzed without a
+reference, and with the corresponding control as a reference. Optionally, a new
+sample.control variable can be created to control analysis and plotting by
+plotCNA. Please refer to the manual for more information.
 
 ## Troubleshooting
 
