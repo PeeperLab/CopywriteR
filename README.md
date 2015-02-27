@@ -109,6 +109,7 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 ## Changes and additions we are currently working on
 
+- [ ] Increase speed of paired / single end testing
 - [ ] Make naming consistent (mappability, chromosome etc)
 - [ ] Clean up code
 - [ ] Remove blacklisted regions by excluding regions and not excluding bins
