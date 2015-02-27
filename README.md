@@ -86,7 +86,7 @@ to be loaded:
 
 Then, preCopywriteR can be run using the command:
 
-    > preCopywriteR(output.folder = file.path(data.folder),
+    > preCopywriteR(output.folder = file.path("./path/to/output/folder"),
                     bin.size = 20000,
                     ref.genome = "mm10",
                     prefix = "")
