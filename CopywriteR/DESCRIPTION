@@ -10,4 +10,4 @@ Depends: R(>= 2.10), BiocParallel
 Suggests: BiocStyle, SCLCBam
 Description: CopywriteR generate DNA copy number profiles from whole exome sequencing by analysing the offtarget sequence reads. By exploiting the offtarget sequence reads, it allows for creation of robust copy number profiles from WES with a uniform read depth and evenly distributed data points over the genome.  
 License: GPL-2
-biocViews: TargetedResequencing, ExomeSeq, CopyNumberVariation, Preprocessing, Visualization
+biocViews: TargetedResequencing, ExomeSeq, CopyNumberVariation, Preprocessing, Visualization, Coverage

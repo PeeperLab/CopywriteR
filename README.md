@@ -175,6 +175,16 @@ object created by preCopywriteR. preCopywriteR has an optional prefix argument
 that can be used to created helper files with a chromosome notation using a
 prefix (for instance "chr" for "chr1", "chr2", ... notation).
 
+Moreover, CopywriteR assumes that all .bam files that are analyzed together are
+mapped to the same reference genome. If this is not the case, please re-run
+multiple CopywriteR analyses with every analysis using .bam files mapped to the
+same reference genome.
+
+### Plotting
+
+In order to allow plotting, the .bam files need to be present in the same folder
+as when the CopywriteR analysis was performed.
+
 ## Contact
 
 We have tried to make the CopywriteR code readable and its use as easy as

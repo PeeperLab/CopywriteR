@@ -4,9 +4,9 @@
 CopywriteR: DNA copy number detection from off-target sequence data
 }
 \description{
-preCopywriteR is used to generate helper files (blacklist, bin region, GC-content,
-and mappability .bed files) for the desired bin size from pre-assembled 1 kb 
-helper files. These binary 1 kb helper files are available at
+preCopywriteR is used to generate helper files (blacklist, bin region,
+GC-content, and mappability .bed files) for the desired bin size from
+pre-assembled 1 kb helper files. These binary 1 kb helper files are available at
 \url{https://github.com/PeeperLab/CopywriteR} for hg19, mm9 and mm10 reference
 genomes.
 }

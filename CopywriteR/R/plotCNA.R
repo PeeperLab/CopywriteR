@@ -19,8 +19,7 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
                      if (!missing(y.min)) {paste0(", y.min = ", y.min)},
                      if (!missing(y.max)) {paste0(", y.max = ", y.max)},
                      if (!missing(...)) {paste0(", ", paste(names(args.ellipsis),
-                                                "=",
-                                                args.ellipsis,
+                                                "=", args.ellipsis,
                                                 collapse = ", "))},
                      ")"))
 
@@ -88,8 +87,9 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
     chromosomes <- sort(as.integer(chromosomes))
 
     ## Fix behaviour of DNAcopy with 'outlier' values
-    log2.read.counts[, 5:ncol(log2.read.counts)] <- apply(log2.read.counts[, 5:ncol(log2.read.counts), drop = FALSE],
-                                                          c(1, 2), function(x) {
+    log2.read.counts[, 5:ncol(log2.read.counts)] <-
+        apply(log2.read.counts[, 5:ncol(log2.read.counts), drop = FALSE],
+              c(1, 2), function(x) {
         if (is.na(x)) {
             x <- NA
         } else if (x < -5) {
@@ -103,7 +103,8 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
 
     ## Create table with values to be plotted
     if (all(na.omit(unlist(sample.plot)) %in% colnames(log2.read.counts))) {
-        plotting.values <- log2.read.counts[, c("Chromosome", "Start", "End", "Feature")]
+        plotting.values <-
+            log2.read.counts[, c("Chromosome", "Start", "End", "Feature")]
         for (i in seq_len(nrow(sample.plot))) {
             if (!is.na(sample.plot$controls[i])) {
                 plotting.values[, paste0(sample.plot$samples[i], ".vs.",
@@ -136,12 +137,13 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
                                               "segment.Rdata"))
 
     ## Calculate the chromosome lengths from the bin.bed file
-    chrom.lengths <- scanBamHeader(inputStructure$sample.control$samples[1])[[1]]$targets
+    chrom.lengths <-
+        scanBamHeader(inputStructure$sample.control$samples[1])[[1]]$targets
+    names(chrom.lengths) <- gsub(prefix, "", names(chrom.lengths))    
     chrom.lengths <- data.frame(Chromosome = names(chrom.lengths),
-                                Length = chrom.lengths)
-    stripped.chromosome.names <- gsub(prefix, "", chrom.lengths$Chromosome)
-    suppressWarnings(chrom.lengths <- chrom.lengths[stripped.chromosome.names %in% c("X", "Y") |
-                                                    !is.na(as.integer(stripped.chromosome.names)), ])
+                                Length = chrom.lengths, row.names = NULL)
+    suppressWarnings(chrom.lengths <- chrom.lengths[chrom.lengths$Chromosome %in% c("X", "Y") |
+                                                    !is.na(as.integer(chrom.lengths$Chromosome)), ])
     chrom.lengths <- chrom.lengths[mixedorder(chrom.lengths$Chromosome), ]
     chrom.lengths$Chromosome <- gsub("X", nautosomes + 1,
                                      chrom.lengths$Chromosome)
@@ -150,14 +152,16 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
     chrom.lengths[, "CumSum"] <- c(0, cumsum(as.numeric(chrom.lengths$Length))[seq_len(nrow(chrom.lengths) - 1)])
     
     ## Create plots
-    segment.CNA.object$output[, "start.position.chrom"] <- chrom.lengths$CumSum[match(as.integer(segment.CNA.object$output$chrom),
-                                                                                      chrom.lengths$Chromosome)]
+    segment.CNA.object$output[, "start.position.chrom"] <-
+        chrom.lengths$CumSum[match(as.integer(segment.CNA.object$output$chrom),
+                                   chrom.lengths$Chromosome)]
     segment.CNA.object$output$loc.start <- segment.CNA.object$output$loc.start + segment.CNA.object$output$start.position.chrom
     segment.CNA.object$output$loc.end <- segment.CNA.object$output$loc.end + segment.CNA.object$output$start.position.chrom
     segment.CNA.object$output$start.position.chrom <- NULL
     
-    segment.CNA.object$data[, "start.position.chrom"] <- chrom.lengths$CumSum[match(as.integer(segment.CNA.object$data$chrom),
-                                                                                    chrom.lengths$Chromosome)]
+    segment.CNA.object$data[, "start.position.chrom"] <-
+        chrom.lengths$CumSum[match(as.integer(segment.CNA.object$data$chrom),
+                                   chrom.lengths$Chromosome)]
     segment.CNA.object$data$maploc <- segment.CNA.object$data$maploc + segment.CNA.object$data$start.position.chrom
     segment.CNA.object$data$start.position.chrom <- NULL
 
@@ -183,8 +187,10 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
         # Select sample
         select.sample <- x
         current.sample <- segment.CNA.object
-        current.sample$data <- current.sample$data[, c("chrom", "maploc", select.sample)]
-        current.sample$output <- current.sample$output[current.sample$output$ID == select.sample, ]
+        current.sample$data <-
+            current.sample$data[, c("chrom", "maploc", select.sample)]
+        current.sample$output <-
+            current.sample$output[current.sample$output$ID == select.sample, ]
 
         # Create and set new directory
         dir.create(file.path(plot.folder, select.sample))
@@ -200,12 +206,13 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
             current.sample$output <- current.sample$output[current.sample$output$chrom %in% select.chrom, ]
 
             # Set variables
-            genome.position.min <- chrom.lengths$CumSum[match(min(select.chrom),
-                                                              chrom.lengths$Chromosome)]
-            genome.position.max <- chrom.lengths$CumSum[match(max(select.chrom),
-                                                              chrom.lengths$Chromosome)] +
-                                   chrom.lengths$Length[match(max(select.chrom), 
-                                                              chrom.lengths$Chromosome)]
+            genome.position.min <-
+                chrom.lengths$CumSum[match(min(select.chrom),
+                                           chrom.lengths$Chromosome)]
+            genome.position.max <-
+                chrom.lengths$CumSum[match(max(select.chrom),
+                                           chrom.lengths$Chromosome)] +
+                                     chrom.lengths$Length[match(max(select.chrom), chrom.lengths$Chromosome)]
 
             # Plot data
             if (length(x) > 1) {

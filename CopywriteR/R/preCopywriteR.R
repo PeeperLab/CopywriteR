@@ -82,7 +82,8 @@ preCopywriteR <- function(output.folder, bin.size, ref.genome, prefix = "") {
     cat(.wrap("Generated blacklist file..."), "\n")
 
     ## Create folder for output files
-    file.name <- paste0(ref.genome, "_", bin.size/1000, "kb")
+    file.name <- paste0(ref.genome, "_", bin.size/1000, "kb",
+                        if (prefix != "") {paste0("_", prefix)})
     dir.create(file.path(output.folder, file.name))
     if (file.exists(file.path(output.folder, file.name)) == FALSE) {
         stop(.wrap("The output folder could not be created; please check that",

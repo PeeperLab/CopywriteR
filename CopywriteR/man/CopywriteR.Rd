@@ -98,8 +98,10 @@ Thomas Kuilman (t.kuilman@nki.nl)
 \dontrun{
 setwd("/PATH/TO/BAMFILES/")
 samples <- list.files(pattern = ".bam$", full.names = TRUE)
-# controls <- samples[rep(1, length(samples))] ## Use the first .bam file as a control for every sample
-controls <- samples ## Use every sample as its own control (i.e., peaks are called on sample itself)
+## Use the first .bam file as a control for every sample
+# controls <- samples[rep(1, length(samples))]
+## Use every sample as its own control (i.e., peaks are called on sample itself)
+controls <- samples
 sample.control <- data.frame(samples, controls)
 
 CopywriteR(sample.control = sample.control, destination.folder =

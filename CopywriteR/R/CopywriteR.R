@@ -109,7 +109,8 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
                      capture.regions.file, "\", keep.intermediairy.files = ",
                      keep.intermediairy.files, ")"))
     flog.info("The value of bp.param was:", getClass(bp.param), capture = TRUE)
-    flog.info("The value of sample.control was:", sample.control, capture = TRUE)
+    flog.info("The value of sample.control was:", sample.control,
+              capture = TRUE)
     flog.info(paste("The bin size for this analysis is", bin.size))
     flog.info(paste("The capture region file is", capture.regions.file))
     flog.info(paste("This analysis will be run on", ncpu, "cpus"))
@@ -230,9 +231,10 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
                       filter = filter, indexDestination = TRUE, param = param)
             paste0("filterBam(\"", sample.paths[i], "\", \"",
                    file.path(destination.folder, "BamBaiPeaksFiles",
-                             gsub(".bam$", "_properreads.bam", sample.files[i])),
-                             "\", filter = filter, indexDestination = TRUE, ",
-                             "param = param)")
+                             gsub(".bam$", "_properreads.bam",
+                                  sample.files[i])),
+                   "\", filter = filter, indexDestination = TRUE, ",
+                   "param = param)")
         } else {
             param <- ScanBamParam(what = "mapq")
             filter <- FilterRules(list(isHighQual = function(x) {
@@ -246,9 +248,10 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
                       filter = filter, indexDestination = TRUE, param = param)
             paste0("filterBam(\"", sample.paths[i], "\", \"",
                    file.path(destination.folder, "BamBaiPeaksFiles",
-                             gsub(".bam$", "_properreads.bam", sample.files[i])),
-                             "\", filter = filter, indexDestination = TRUE, ",
-                             "param = param)")
+                             gsub(".bam$", "_properreads.bam",
+                                  sample.files[i])),
+                   "\", filter = filter, indexDestination = TRUE, ",
+                   "param = param)")
         }
     }
     to.log <- bplapply(i, ProperReads, sample.paths, destination.folder,
@@ -567,19 +570,24 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
 
         # Return
         return(list(counts[, paste0("read.counts.compensated.",
-                                    sample.files[sample.indices[i]]), drop = FALSE],
-                    counts[, paste0("read.counts.", sample.files[sample.indices[i]]), 
+                                    sample.files[sample.indices[i]]),
                                     drop = FALSE],
-                    counts[, paste0("fraction.of.bin.", sample.files[sample.indices[i]]),
+                    counts[, paste0("read.counts.",
+                                    sample.files[sample.indices[i]]), 
+                                    drop = FALSE],
+                    counts[, paste0("fraction.of.bin.",
+                                    sample.files[sample.indices[i]]),
                                     drop = FALSE],
                     paste0("Rsamtools finished calculating reads per bin in ", 
-                           "sample ", sample.files[sample.indices[i]], "; number of bins = ",
-                           nrow(counts)),
+                           "sample ", sample.files[sample.indices[i]],
+                           "; number of bins = ", nrow(counts)),
                     counts.CopywriteR))
     }
     res <- bplapply(i, CalculateDepthOfCoverage, sample.files, control.indices,
-                    sample.indices, GC.mappa.grange, bin.size, BPPARAM = bp.param)
-    read.counts <- data.frame(Chromosome = as(seqnames(GC.mappa.grange), "factor"),
+                    sample.indices, GC.mappa.grange, bin.size,
+                    BPPARAM = bp.param)
+    read.counts <- data.frame(Chromosome = as(seqnames(GC.mappa.grange),
+                                              "factor"),
                               Start = start(GC.mappa.grange),
                               End = end(GC.mappa.grange))
     read.counts[, "Feature"] <- paste0(read.counts$Chromosome, ":",
@@ -629,12 +637,14 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     ## Create data input file for correction function
     read.counts <- read.counts[, seq_len(4 + length(sample.files))]
     data <- list(cov = read.counts[, 5:ncol(read.counts), drop = FALSE],
-                 anno = read.counts[, c("Chromosome", "Start", "End", "Feature")])
+                 anno = read.counts[, c("Chromosome", "Start",
+                                        "End", "Feature")])
     data$anno[, "mappa"] <- GC.mappa.grange$mappability
     data$anno[, "gc"] <- GC.mappa.grange$GCcontent
     data$anno[, "black"] <- overlapsAny(GC.mappa.grange, blacklist.grange)
 
-    usepoints <- !(data$anno$Chromosome %in% c("X", "Y", "MT", "chrX", "chrY", "chrM"))
+    usepoints <- !(data$anno$Chromosome %in% c("X", "Y", "MT",
+                                               "chrX", "chrY", "chrM"))
 
     ## Perform GC-content and mappability corrections (in .tng helper function)
     tryCatch({
@@ -664,7 +674,8 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
 
     ## Create table with corrected log2 values and write to file
     selection <- !data$anno$black & !is.na(data$anno$mappa) & data$anno$mappa > 0.2
-    log2.read.counts <- data.frame(data$anno[selection, c("Chromosome", "Start", "End", "Feature")],
+    log2.read.counts <- data.frame(data$anno[selection, c("Chromosome", "Start",
+                                                          "End", "Feature")],
                                    log2.read.counts[selection, , drop = FALSE],
                                    check.names = FALSE)
     log2.read.counts$Chromosome <- as.vector(log2.read.counts$Chromosome)

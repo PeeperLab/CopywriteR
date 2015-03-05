@@ -8,12 +8,15 @@
     y <- append(y, length.y - sum(y), 0)
     names(y) <- 0:(length(y) - 1)
     z <- sort(y, decreasing = TRUE)
-    lambda <- as.integer(names(z[1])) + 1 # Add one as otherwise 0 is possible outcome
+    # Add 1 as otherwise 0 is possible outcome
+    lambda <- as.integer(names(z[1])) + 1
     second.largest <- as.integer(names(z[2])) + 1
-    if (lambda == 1 & second.largest != 2) { # If second largest value after 0 is not 1, use other lambda
+    # If second largest value after 0 is not 1, use other lambda
+    if (lambda == 1 & second.largest != 2) {
         lambda <- second.largest + 1
     }
-    n <- exp(log(y[1] + 1) - dpois(1, lambda, log = TRUE)) # 1 Added to y[1]; otherwise if y[1] = 0 outcome is 0
+    # Add 1 to y[1]; otherwise if y[1] = 0 outcome is 0
+    n <- exp(log(y[1] + 1) - dpois(1, lambda, log = TRUE))
     exp.fd <- n * ppois(k - 1, lambda, lower.tail = FALSE)
     obs.d <- rep(0, length(k))
     names.y <- as.integer(names(y))
@@ -27,12 +30,14 @@
     }
     FDR <- ifelse(obs.d == 0, 0, exp.fd/obs.d)
     fdr.ok <- which(FDR < fdr.cutoff)
+    # Return 0 is there are no cutoffs low enough
     if (length(fdr.ok) < 1) {
-        return(0) ## Return 0 is there are no cutoffs low enough
+        return(0)
     }
     fdr.chosen <- fdr.ok[1]
     tmp <- k[fdr.chosen - 1] + (FDR[fdr.chosen - 1] - fdr.cutoff)/(FDR[fdr.chosen - 1] - FDR[fdr.chosen])
-    if (length(tmp) > 0) { ## Always give output 0 if tmp is numeric(0)
+    ## Always give output 0 if tmp is numeric(0)
+    if (length(tmp) > 0) {
         tmp
     } else {
         0
@@ -87,8 +92,10 @@
     #if(verbose) print(summary(fll))
 
     #if (plot) {
-    #  plot(countgcloess ~ mappa, data=df, subset=mappause, ylim=quantile(df$countgcloess, c(0.0001, .999), na.rm=T), pch=".")
-    #  points(countgcloess ~ mappa, data=df, subset=!mappause, col=rgb(1,0,0,.3), pch=".")
+    #  plot(countgcloess ~ mappa, data=df, subset=mappause,
+    #       ylim=quantile(df$countgcloess, c(0.0001, .999), na.rm=T), pch=".")
+    #  points(countgcloess ~ mappa, data=df, subset=!mappause,
+    #         col=rgb(1,0,0,.3), pch=".")
     #  abline(0, fll$coef, col=2)
     #}
 
@@ -110,7 +117,8 @@
             points(countgcloess ~ mappa, data = df, subset = !mappause,
                    col = rgb(1, 0, 0, 0.3), pch = ".")
             lines(i, predict(rough, i), col = "green")
-            points(df$mappa, normv, subset = (!is.na(df$mappa) && !is.na(normv)),
+            points(df$mappa, normv,
+                   subset = (!is.na(df$mappa) && !is.na(normv)),
                    col = "red", pch = ".")
         }
 

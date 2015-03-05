@@ -4,8 +4,8 @@
 CopywriteR: ENhanced COpy number Detection from Exome Reads
 }
 \description{
-plotCNA analyses CopywriteR output using the segmentation algorithm CBS and creates
-both whole-genome and per-chromosome plots.
+plotCNA analyses CopywriteR output using the segmentation algorithm CBS and
+creates both whole-genome and per-chromosome plots.
 }
 \usage{
 plotCNA(destination.folder, smoothed = TRUE, sample.plot, y.min, y.max, ...)
@@ -65,7 +65,8 @@ Thomas Kuilman (t.kuilman@nki.nl)
 \dontrun{
 setwd("/PATH/TO/BAMFILES/")
 samples <- list.files(pattern = ".bam$", full.names = TRUE)
-controls <- samples[rep(1, length(samples))] ## Use the first .bam file as a reference for plotting every sample
+## Use the first .bam file as a reference for plotting every sample
+controls <- samples[rep(1, length(samples))]
 sample.plot <- data.frame(samples, controls)
 
 plotCNA("./PATH/TO/DESTINATIONFOLDER/", sample.plot = sample.plot, y.min = -3,

@@ -86,8 +86,10 @@ mm9 and mm10 reference genomes in the \Biocpkg{CopyhelpeR} package. The
 \Rcode{preCopywriteR()} function allows to create the necessary helper files.
 These files can be created for any custom bin size that is a multiple of 1000
 bp, and for the above-mentioned reference genomes. The helper files are saved
-in a new folder and are required to run CopywriteR. If previously created helper
-files for a specific bin size / reference genome combination are available, the
+in a new folder that is names after the relevant reference genome, the bin size,
+and the prefix (all separated by '\symbol{95}'). The helper files are required
+to run CopywriteR. If previously created helper files for a specific bin size / 
+reference genome / prefix combination are available, the
 {\Rcode{preCopywriteR()} step can be omitted.
 
 In this example, CopywriteR will be applied to a bin size of 20 kb. This is the
