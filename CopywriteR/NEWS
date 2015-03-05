@@ -1,6 +1,16 @@
 IMPROVEMENTS
 
-	o Included indentation with 4 spaces
+	o Improved the speed of the package
+	o Implemented logging with the futile.logger package
+	o Replaced direct slot or field access with the use of accessor functions
+	o Implemented text wrapping
+	o Replaced the use of bed-file format with GRanges objects
+	o Created annotation and experiment packages
+	o Addressed all NOTES upon R CMD CHECK
+	o Restore options upon exit
+	o Adjusted version numbering to 1.99.0
+	o Implemented BiocParallel for parallel computing
+	o Changed name from ENCODER to CopywriteR
 	o Shortened lines to 80 characters
 	o Added NEWS file
 	o Changed F to FALSE
@@ -8,9 +18,9 @@ IMPROVEMENTS
 	o Added biocViews
 	o Changed version to 0.99.0
 
-Changes in version 0.99.0 (2015-02-06)
+Changes in version 1.99.0 (2015-03-05)
 -------------------------------------
 
 RELEASE (version 2.0)
 
-        o initial submitted version
+        o Released new version

@@ -41,8 +41,9 @@ To extract copy number information from targeted sequencing data while
 circumventing problems related to the use of on-target reads, we developed
 the CopywriteR package. Unlike other currently available tools, CopywriteR is
 based on off-target reads. We have shown that this approach has several
-advantages relative to current approaches \cite{Kuilman:vf} and it constitutes a
-viable alternative for copy number detection from targeted sequencing data.
+advantages relative to current approaches \cite{s13059-015-0617-1} and it
+constitutes a viable alternative for copy number detection from targeted
+sequencing data.
 
 \section{CopywriteR workflow}
 
@@ -232,10 +233,10 @@ read.table(file = file.path(data.folder, "CNAprofiles",
 @
 
 The input.Rdata file contains a number of variables that are required to run
-the last function of the CopywriteR package, \Rcode{plotCNA()}. The log.txt file
-contains log information of the R commands that have been used to perform the
-various subfunctions, and specifications of the input material. Finally, the qc
-folder contains two types of quality control plots.
+the last function of the CopywriteR package, \Rcode{plotCNA()}. The
+CopywriteR.log file contains log information of the R commands that have been
+used to perform the various subfunctions, and specifications of the input
+material. Finally, the qc folder contains two types of quality control plots.
 
 <<CNAprofiles.folder.contents, print=FALSE, eval=TRUE>>=
 cat(list.files(path = file.path(data.folder, "CNAprofiles", "qc")), sep = "\n")

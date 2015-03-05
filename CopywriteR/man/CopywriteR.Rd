@@ -69,7 +69,7 @@ GC-content and mappability corrections, and after removal of data points in
 blacklisted regions. Counts are log2-transformed. The file is a
 tab-separated file formatted to be viewed in the IGV genome browser.
 }
-\item{log.txt}{
+\item{CopywriteR.log}{
 log file of CopywriteR.
 }
 \item{qc}{

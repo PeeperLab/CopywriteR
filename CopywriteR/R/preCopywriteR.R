@@ -6,21 +6,22 @@ preCopywriteR <- function(output.folder, bin.size, ref.genome, prefix = "") {
     ## Checks
     # Check whether ref.genome is supported
     if (!(ref.genome == "hg19" || ref.genome == "mm10" || ref.genome == "mm9")) {
-        stop("The ref.genome is not recognised. Please provide a suitable",
-             "ref.genome.")
+        stop(.wrap("The reference genome is not recognised. Please provide a",
+                   "suitable", sQuote(ref.genome)))
     }
 
     # Check the existence of the output folder
     if (file.exists(output.folder) == FALSE) {
-        stop("The output.folder could not be found. Please change the output",
-             "folder path.")
+        stop(.wrap("The output folder could not be found. Please change the",
+                   "path specified in", sQuote(output.folder)))
     } else {
-        cat("The output folder", output.folder, "has been detected", "\n")
+        cat(.wrap("The output folder", sQuote(output.folder), "has been",
+                  "detected"), "\n")
     }
 
     # Check if bin.size is factor of 1kb
     if (!.is.wholenumber(bin.size/1000)) {
-        stop("Please provide a bin size which is a multiple of 1000.")
+        stop(.wrap("Please provide a bin size which is a multiple of 1000."))
     }
 
     ## Generate files with desired bin.size (mappa, GC, bed, blacklist)
@@ -45,7 +46,7 @@ preCopywriteR <- function(output.folder, bin.size, ref.genome, prefix = "") {
     on.exit(options(old.options))
     options(warn = -1, scipen = 999)
     
-    for (chr in seqnames(GC.mappa.grange)@values) {
+    for (chr in seqlevels(GC.mappa.grange)) {
         selection <- as(seqnames(GC.mappa.grange) == chr, "vector")
         start.bin <- colMins(matrix(start(GC.mappa.grange)[selection],
                                     nrow = MERGEBINNUMBER))
@@ -61,7 +62,7 @@ preCopywriteR <- function(output.folder, bin.size, ref.genome, prefix = "") {
                          end = end.bin, ATcontent = ATcontent.bin,
                          GCcontent = GCcontent.bin,
                          mappability = mappability.bin)
-        chr.bin <- chr.bin[1:(nrow(chr.bin) - 1), ]
+        chr.bin <- chr.bin[seq_len(nrow(chr.bin) - 1), ]
         custom.bin <- rbind(custom.bin, chr.bin)
     }
     custom.bin[, 2:ncol(custom.bin)] <-
@@ -71,21 +72,21 @@ preCopywriteR <- function(output.folder, bin.size, ref.genome, prefix = "") {
     GC.mappa.grange <- makeGRangesFromDataFrame(custom.bin,
                                                 keep.extra.columns = TRUE)
     
-    cat("Generated GC-content and mappability data at", bin.size, "bp",
-        "resolution...", "\n")
+    cat(.wrap("Generated GC-content and mappability data at", bin.size, "bp",
+              "resolution..."), "\n")
     
     # Generate blacklist object
     blacklist.grange <- as(blacklist.grange, "data.frame")
     blacklist.grange$seqnames <- paste0(prefix, blacklist.grange$seqnames)
     blacklist.grange <- makeGRangesFromDataFrame(blacklist.grange)
-    cat("Generated blacklist file...", "\n")
+    cat(.wrap("Generated blacklist file..."), "\n")
 
     ## Create folder for output files
     file.name <- paste0(ref.genome, "_", bin.size/1000, "kb")
     dir.create(file.path(output.folder, file.name))
     if (file.exists(file.path(output.folder, file.name)) == FALSE) {
-        stop("The output folder could not be created, please check argument",
-             "output.folder and the corresponding folder permissions.")
+        stop(.wrap("The output folder could not be created; please check that",
+                   "you have permission to write in", sQuote(output.folder)))
     }
 
     ## Write files to folder

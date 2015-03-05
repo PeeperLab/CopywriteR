@@ -24,7 +24,8 @@ command line:
     > source("http://bioconductor.org/biocLite.R")
     > biocLite(c("matrixStats", "gtools", "data.table", "S4Vectors", "chipseq",
                  "IRanges", "Rsamtools", "DNAcopy", "GenomicAlignments",
-                 "GenomicRanges", "GenomeInfoDb", "BiocParallel", "BiocStyle"))
+                 "GenomicRanges", "GenomeInfoDb", "BiocParallel", "BiocStyle",
+                 "futile.logger"))
 
 In addition, CopywriteR requires the CopyhelpeR package, which can be downloaded
 as tarball (.tar.gz-file) from the
@@ -194,6 +195,7 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 ## Changes and additions we are currently working on
 
+- [ ] Use futile.logger for logging of messages
 - [ ] Increase speed of paired / single end testing
 - [ ] Make naming consistent (mappability, chromosome etc)
 - [ ] Clean up code
