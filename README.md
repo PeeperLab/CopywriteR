@@ -205,13 +205,13 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 ## Changes and additions we are currently working on
 
-- [ ] Use futile.logger for logging of messages
-- [ ] Increase speed of paired / single end testing
-- [ ] Make naming consistent (mappability, chromosome etc)
-- [ ] Clean up code
 - [ ] Remove blacklisted regions by excluding regions and not excluding bins
 - [ ] Change CopywriteR to allow custom bins?
 - [ ] Compile into bioConductor package
+- [x] Clean up code (implemented in source code)
+- [x] Use futile.logger for logging of messages (implemented in source code)
+- [x] Increase speed of paired / single end testing (implemented in source code)
+- [x] Make naming consistent (mappability, chromosome etc) (implemented in source code)
 - [x] Solve problem with 0-based ranges (implemented in source code)
 - [x] Implement GenomicRanges::makeGRangesFromDataFrame() (implemented in source code)
 - [x] Add version of CopywriteR to log (implemented in source code)
