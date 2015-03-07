@@ -14,8 +14,8 @@ outperforms existing methods and constitutes a widely applicable alternative to
 available tools.
 
 CopywriteR has been described in
-[Genome Biology](http://genomebiology.com/2015/16/1/49/abstract). The analysis
-described in this publication were performed using the older version
+[(Kuilman et al., 2015)](http://genomebiology.com/2015/16/1/49/abstract). The
+analysis described in this publication were performed using the older version
 [V1.3](https://github.com/PeeperLab/CopywriteR/releases/tag/V1.3).
 
 ## Requirements:
@@ -34,11 +34,20 @@ command line:
 
 In addition, CopywriteR requires the CopyhelpeR package, which can be downloaded
 as tarball (.tar.gz-file) from the
-[releases webpage](https://github.com/PeeperLab/CopywriteR/releases).
+[CopyhelpeR releases webpage](https://github.com/PeeperLab/CopyhelpeR/releases).
 Subsequently, the CopyhelpeR package can be installed from the command line
 using the following command:
 
     $ R CMD INSTALL CopyhelpeR*.tar.gz
+
+As the last step in the installation process, the latest CopywriteR package can
+be downloaded from the
+[CopywriteR releases webpage](https://github.com/PeeperLab/CopywriteR/releases)
+and installed using the following command:
+
+    $ R CMD INSTALL CopywriteR*.tar.gz
+
+Now you are all set to start your analysis.
 
 ## CopywriteR usage:
 
@@ -171,7 +180,7 @@ plotCNA. Please refer to the manual for more information.
 There are a number of requirements for your CopywriteR analysis to run
 successfully. These are discussed below.
 
-### Chromosome names
+#### Chromosome names
 
 CopywriteR by default assumes that the chromosome names in .bam files are "1",
 "2", ... "X", and "Y". These chromosome names are incorporated in the
@@ -185,7 +194,7 @@ mapped to the same reference genome. If this is not the case, please re-run
 multiple CopywriteR analyses with every analysis using .bam files mapped to the
 same reference genome.
 
-### Plotting
+#### Plotting
 
 In order to allow plotting, the .bam files need to be present in the same folder
 as when the CopywriteR analysis was performed.
@@ -205,7 +214,7 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 ## Cited by
 
-The CopywriteR tool has been cited by:
+The CopywriteR tool has been cited and referenced by:
 
 - Hoogstraat, M., Gadellaa-van Hooijdonk, C. G., Ubink, I., Besselink, N. J. M.,
   Pieterse, M., Veldhuis, W., van Stralen, M., Meijer, E. F. J., Willems, S. M.,
