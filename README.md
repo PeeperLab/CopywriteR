@@ -13,6 +13,11 @@ immunoprecipitation and target enrichment on small gene panels. CopywriteR
 outperforms existing methods and constitutes a widely applicable alternative to
 available tools.
 
+CopywriteR has been described in
+[Genome Biology](http://genomebiology.com/2015/16/1/49/abstract). The analysis
+described in the manuscript were performed using the older version
+[V1.3](https://github.com/PeeperLab/CopywriteR/releases/tag/V1.3).
+
 ## Requirements:
 
 CopywriteR was developed to run in R, and only depends on packages that are
@@ -198,6 +203,12 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 - [Lab website](http://research.nki.nl/peeperlab/)
 
+## Cited by
+
+The CopywriteR tool has been cited by:
+
+- Hoogstraat, M., Gadellaa-van Hooijdonk, C. G., Ubink, I., Besselink, N. J. M., Pieterse, M., Veldhuis, W., van Stralen, M., Meijer, E. F. J., Willems, S. M.,Hadders, M. A., Kuilman, T., Krijgsman, O., Peeper, D. S., Koudijs, M. J., Cuppen, E., Voest, E. E. and Lolkema, M. P. (2015), Detailed imaging and genetic analysis reveal a secondary BRAFL505H resistance mutation and extensive intrapatient heterogeneity in metastatic BRAF mutant melanoma patients treated with vemurafenib. Pigment Cell & Melanoma Research. [doi: 10.1111/pcmr.12347](http://www.ncbi.nlm.nih.gov/pubmed/25515853)
+- [Omicstools](http://omictools.com/copywriter-s8589.html)
 
 ## Reported bugs
 
