@@ -14,7 +14,7 @@ outperforms existing methods and constitutes a widely applicable alternative to
 available tools.
 
 CopywriteR has been described in
-[(Kuilman et al., 2015)](http://genomebiology.com/2015/16/1/49/abstract). The
+[Kuilman et al., 2015](http://genomebiology.com/2015/16/1/49/abstract). The
 analysis described in this publication were performed using the older version
 [V1.3](https://github.com/PeeperLab/CopywriteR/releases/tag/V1.3).
 
@@ -152,8 +152,9 @@ and the corresponding 'C' data set would from a matched germline sample. We
 recommend identifying on-target and off-target regions based on a germline
 sample if possible, as this would avoid identifying highly amplified regions
 as on-target regions. Please refer to our
-[manuscript](http://genomebiology.com/2015/16/1/49/abstract) for more details on
-how CopywriteR extracts copy number profiles from targeted sequencing.
+[Kuilman et al., 2015](http://genomebiology.com/2015/16/1/49/abstract) for more
+details on how CopywriteR extracts copy number profiles from targeted
+sequencing.
 
 We are now set for running CopywriteR:
 
