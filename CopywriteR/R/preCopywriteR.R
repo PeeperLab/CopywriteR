@@ -4,11 +4,6 @@ preCopywriteR <- function(output.folder, bin.size, ref.genome, prefix = "") {
     output.folder <- tools::file_path_as_absolute(output.folder)
 
     ## Checks
-    # Check whether ref.genome is supported
-    if (!(ref.genome == "hg19" || ref.genome == "mm10" || ref.genome == "mm9")) {
-        stop(.wrap("The reference genome is not recognised. Please provide a",
-                   "suitable", sQuote(ref.genome)))
-    }
 
     # Check the existence of the output folder
     if (file.exists(output.folder) == FALSE) {

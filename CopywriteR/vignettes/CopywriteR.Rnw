@@ -81,15 +81,15 @@ using the \Rcode{preCopywriteR()} function.
 \subsection{\Rcode{preCopywriteR()}}
 
 CopywriteR uses binned read count data as a basis for copy number detection. We
-have pre-assembled 1 kb bin GC-content and mappability information for the hg19,
-mm9 and mm10 reference genomes in the \Biocpkg{CopyhelpeR} package. The
-\Rcode{preCopywriteR()} function allows to create the necessary helper files.
-These files can be created for any custom bin size that is a multiple of 1000
-bp, and for the above-mentioned reference genomes. The helper files are saved
-in a new folder that is names after the relevant reference genome, the bin size,
-and the prefix (all separated by '\symbol{95}'). The helper files are required
-to run CopywriteR. If previously created helper files for a specific bin size / 
-reference genome / prefix combination are available, the
+have pre-assembled 1 kb bin GC-content and mappability information for the hg18,
+hg19, hg38, mm9 and mm10 reference genomes in the \Biocpkg{CopyhelpeR} package.
+The \Rcode{preCopywriteR()} function allows to create the necessary helper
+files. These files can be created for any custom bin size that is a multiple of
+1000 bp, and for the above-mentioned reference genomes. The helper files are
+saved in a new folder that is names after the relevant reference genome, the bin
+size, and the prefix (all separated by '\symbol{95}'). The helper files are
+required to run CopywriteR. If previously created helper files for a specific
+bin size / reference genome / prefix combination are available, the
 {\Rcode{preCopywriteR()} step can be omitted.
 
 In this example, CopywriteR will be applied to a bin size of 20 kb. This is the
@@ -117,9 +117,9 @@ The custom helper files are placed in a folder that is named after the reference
 genome and the bin size (in this example: mm10\symbol{95}20kb). This folder, on
 its turn, is placed inside the folder specified by the output.folder argument.
 The bin.size argument specifies the custom bin size (in bp), and the ref.genome
-argument can be either "mm9", "mm10" or "hg19". The default chromosome notation
-is "1", "2", ..., "X", "Y". The prefix argument is optional and can be used to
-add a prefix to these names.
+argument can be either "hg18", "hg19", "hg38", "mm9" or "mm10". The default
+chromosome notation is "1", "2", ..., "X", "Y". The prefix argument is optional
+and can be used to add a prefix to these names.
 
 If you are interested in getting helper files for other genomes, please contact
 me by the email addresses supplied at the beginning of this vignette.
@@ -161,7 +161,7 @@ specify which parallel environment is used by creating an instance of
 environment and specify a \Rcode{SnowParam}:
 
 <<create.BiocParallelParam, print=FALSE, eval=TRUE>>=
-bp.param <- SnowParam(workers = 1, type = "PSOCK")
+bp.param <- SnowParam(workers = 1, type = "SOCK")
 bp.param
 @
 
@@ -181,9 +181,9 @@ remove reads from the corresponding samples as well as the controls themselves.
 In the example used here, no matched germline control is available, and peaks
 are called on the sample itself. Therefore the sample and control are identical.
 
-<<CopywriteR, print=FALSE, eval=TRUE>>=
+<<CopywriteR, print=FALSE, eval=FALSE>>=
 path <- SCLCBam::getPathBamFolder()
-samples <- list.files(path = path, pattern = "bam$", full.names = TRUE)
+samples <- list.files(path = path, pattern = ".bam$", full.names = TRUE)
 controls <- samples
 sample.control <- data.frame(samples, controls)
 
@@ -191,6 +191,10 @@ CopywriteR(sample.control = sample.control,
            destination.folder = file.path(data.folder),
            reference.folder = file.path(data.folder, "mm10_20kb"),
            bp.param = bp.param)
+@
+<<CopywriteR, print=FALSE, eval=TRUE, results=hide, echo=FALSE>>=
+file.copy(system.file(package = "CopywriteR", "extdata", "CNAprofiles"),
+          data.folder, recursive = TRUE, copy.mode = TRUE)
 @
 
 The destination.folder argument determines in which folder the output folder is
@@ -203,14 +207,14 @@ argument is optional, and can be used to define the location of a capture
 regions bed file. If this file is specified, statistics of the overlap of these
 regions with the called peaks is provided.
 
-\newpage
-
 CopywriteR will create a new folder named CNAprofiles in the directory specified
 by destination.folder. This folder contains the following files:
 
 <<CNAprofiles.folder.contents, print=FALSE, eval=TRUE>>=
 cat(list.files(path = file.path(data.folder, "CNAprofiles")), sep = "\n")
 @
+
+\newpage
 
 The read\symbol{95}counts.txt file contains both uncompensated and compensated
 read counts for every sample, as well as the corresponding fraction.of.bin
@@ -220,7 +224,7 @@ the read\symbol{95}counts.txt has the following content:
 
 <<read.counts.example, print=FALSE, eval=TRUE>>=
 read.table(file = file.path(data.folder, "CNAprofiles", "read_counts.txt"),
-           header = TRUE)[30000:30005, ]
+           header = TRUE)[301:306, ]
 @
 
 The log2\symbol{95}read\symbol{95}counts.igv file can be opened in the IGV
@@ -231,7 +235,7 @@ plotting of the copy number profiles:
 
 <<log2.read.counts.example, print=FALSE, eval=TRUE>>=
 read.table(file = file.path(data.folder, "CNAprofiles",
-                            "log2_read_counts.igv"), header = TRUE)[26000:26005, ]
+                            "log2_read_counts.igv"), header = TRUE)[133:138, ]
 @
 
 The input.Rdata file contains a number of variables that are required to run

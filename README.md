@@ -151,7 +151,7 @@ Sequence data starting with 'M' could for instance be from a tumor sample,
 and the corresponding 'C' data set would from a matched germline sample. We
 recommend identifying on-target and off-target regions based on a germline
 sample if possible, as this would avoid identifying highly amplified regions
-as on-target regions. Please refer to our
+as on-target regions. Please refer to
 [Kuilman et al., 2015](http://genomebiology.com/2015/16/1/49/abstract) for more
 details on how CopywriteR extracts copy number profiles from targeted
 sequencing.
