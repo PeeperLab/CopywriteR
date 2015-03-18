@@ -233,6 +233,10 @@ The CopywriteR tool has been cited and referenced by:
 
 ## Changes and additions we are currently working on
 
+- [ ] Address the NA in counting reads of vignette
+- [ ] Change plotCNA (double line in plots of RB1705)
+- [ ] Remove warning messages small bams _chr
+- [ ] Address warning message in analysis RB1705
 - [ ] Remove blacklisted regions by excluding regions and not excluding bins
 - [ ] Change CopywriteR to allow custom bins?
 - [ ] Compile into bioConductor package
