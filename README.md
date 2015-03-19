@@ -30,7 +30,7 @@ command line:
     > biocLite(c("matrixStats", "gtools", "data.table", "S4Vectors", "chipseq",
                  "IRanges", "Rsamtools", "DNAcopy", "GenomicAlignments",
                  "GenomicRanges", "GenomeInfoDb", "BiocParallel", "BiocStyle",
-                 "futile.logger"))
+                 "futile.logger", "snow"))
 
 In addition, CopywriteR requires the CopyhelpeR package, which can be downloaded
 as tarball (.tar.gz-file) from the
@@ -77,7 +77,7 @@ GC-content, mappability and removal of blacklisted regions.
 
     > CopywriteR(sample.control, destination.folder, reference.folder,
                  bp.param, capture.regions.file,
-                 keep.intermediairy.files = FALSE)
+                 keep.intermediary.files = FALSE)
 
 `plotCNA` performs segmentation using the DNAcopy Bioconductor package, and
 plotting of copy number profiles.
@@ -180,6 +180,18 @@ plotCNA. Please refer to the manual for more information.
 
 There are a number of requirements for your CopywriteR analysis to run
 successfully. These are discussed below.
+
+#### Low number of off-target reads
+CopywriteR relies on the off-target sequence read count, which in our hands is
+roughly 10% of the total amount of reads. You can find the relevant numbers in
+the log-file. Since the sequence reads are normally not required, a number of
+pipelines filter for or deplete sequence reads that off-target. We recommend
+using the unprocessed .bam files to prevent discarding data for CopywriteR.
+
+In addition to the above, we have never tested CopywriteR on sequence data upon
+PCR-based enrichment strategies. However, we believe it is likely that there
+will be insufficient off-target reads to allow high-quality copy number data
+using CopywriteR.
 
 #### Chromosome names
 

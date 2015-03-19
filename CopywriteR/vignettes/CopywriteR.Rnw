@@ -92,12 +92,12 @@ required to run CopywriteR. If previously created helper files for a specific
 bin size / reference genome / prefix combination are available, the
 {\Rcode{preCopywriteR()} step can be omitted.
 
-In this example, CopywriteR will be applied to a bin size of 20 kb. This is the
-bin size we recommend trying out when analyzing whole-exome sequencing data,
-while we would start analyzing at 50 kb resolution for targeted sequencing on
-smaller gene panels. As the .bam file contained in the \Biocpkg{SCLCBam} package
-is mapped to the mm10 reference genome, we run {\Rcode{preCopywriteR()} as
-follows:
+In this example, CopywriteR will be applied to a bin size of 20 kb. We
+recommend to use a bin size of 20 kb when trying to analyze whole-exome
+sequencing data, while we would start analyzing at 50 kb resolution for targeted
+sequencing on smaller gene panels. As the .bam file contained in the
+\Biocpkg{SCLCBam} package is mapped to the mm10 reference genome, we run
+{\Rcode{preCopywriteR()} as follows:
 
 <<load.CopywriteR, print=FALSE, eval=TRUE>>=
 library(CopywriteR)
@@ -113,16 +113,16 @@ preCopywriteR(output.folder = file.path(data.folder),
               ref.genome = "mm10_4")
 @
 
-Please not that the "mm10_4" reference genome exclusively contains helper files
-for chromosome 4, and therefore should only be used when replicating the
-analysis in this vignette. The custom helper files are placed in a folder that
-is named after the reference genome and the bin size (in this example:
-mm10\symbol{95}20kb). This folder, on its turn, is placed inside the folder
-specified by the output.folder argument. The bin.size argument specifies the
-custom bin size (in bp), and the ref.genome argument can be either "hg18",
-"hg19", "hg38", "mm9" or "mm10". The default chromosome notation is "1", "2",
-..., "X", "Y". The prefix argument is optional and can be used to add a prefix
-to these names.
+Please not that the "mm10\symbol{95}4" reference genome exclusively contains
+helper files for chromosome 4, and therefore should only be used when
+replicating the analysis in this vignette. The custom helper files are placed in
+a folder that is named after the reference genome and the bin size (in this
+example: mm10\symbol{95}4\symbol{95}20kb). This folder, on its turn, is placed
+inside the folder specified by the output.folder argument. The bin.size argument
+specifies the custom bin size (in bp), and the ref.genome argument can be either
+"hg18", "hg19", "hg38", "mm9" or "mm10". The default chromosome notation is "1",
+"2", ..., "X", "Y". The prefix argument is optional and can be used to add a
+prefix to these names.
 
 If you are interested in getting helper files for other genomes, please contact
 me by the email addresses supplied at the beginning of this vignette.
@@ -165,7 +165,7 @@ specify which parallel environment is used by creating an instance of
 environment and specify a \Rcode{SnowParam}:
 
 <<create.BiocParallelParam, print=FALSE, eval=TRUE>>=
-bp.param <- SnowParam(workers = 1, type = "PSOCK")
+bp.param <- SnowParam(workers = 1, type = "SOCK")
 bp.param
 @
 
@@ -194,13 +194,12 @@ sample.control <- data.frame(samples, controls)
 CopywriteR(sample.control = sample.control,
            destination.folder = file.path(data.folder),
            reference.folder = file.path(data.folder, "mm10_4_20kb"),
-           bp.param = bp.param,
-           keep.intermediairy.files = TRUE)
+           bp.param = bp.param)
 @
 
 The destination.folder argument determines in which folder the output folder is
 going to be placed, and the reference.folder points to the location of the
-custom bin size helper files. The keep.intermediairy.files is an optional
+custom bin size helper files. The keep.intermediary.files is an optional
 argument that determines whether intermediary .bam, .bai and peak .bed files are
 kept. The default value is FALSE to limit disk space usage; it can be set to
 TRUE however for troubleshooting purposes. Finally, the capture.regions.file

@@ -1,6 +1,6 @@
 CopywriteR <- function(sample.control, destination.folder, reference.folder,
                        bp.param, capture.regions.file,
-                       keep.intermediairy.files = FALSE) {
+                       keep.intermediary.files = FALSE) {
 
     ##########################
     ## Check and initialise ##
@@ -106,8 +106,8 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
                      "destination.folder = \"", dirname(destination.folder),
                      "\", reference.folder = \"", reference.folder,
                      "\", BPPARAM = bp.param, capture.regions.file = \"",
-                     capture.regions.file, "\", keep.intermediairy.files = ",
-                     keep.intermediairy.files, ")"))
+                     capture.regions.file, "\", keep.intermediary.files = ",
+                     keep.intermediary.files, ")"))
     flog.info("The value of bp.param was:", getClass(bp.param), capture = TRUE)
     flog.info("The value of sample.control was:", sample.control,
               capture = TRUE)
@@ -180,7 +180,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
               sample.files, capture = TRUE)
 
     ## Index .bam files
-    if (!any(list.files(pattern = ".bam$") == gsub(".bai$", "", list.files(pattern = ".bai$")))) {
+    if (!all(file.exists(gsub("$", ".bai", sample.paths)))) {
         if (file.access(".", 2) == -1) {
             stop(.wrap("The .bam files are not indexed and you do not have",
                        "write permission in (one of) the folder(s) where the",
@@ -734,8 +734,8 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     }
 
     ## Remove BamBaiPeaksFiles folder
-    if (!keep.intermediairy.files) {
-        flog.info(paste("The 'keep.intermediairy.files variable' was set to",
+    if (!keep.intermediary.files) {
+        flog.info(paste("The 'keep.intermediary.files variable' was set to",
                         "FALSE; removing temporary files ..."))
         unlink(file.path(destination.folder, "BamBaiPeaksFiles"),
                recursive = TRUE)

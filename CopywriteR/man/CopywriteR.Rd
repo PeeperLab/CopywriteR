@@ -10,7 +10,7 @@ off-target reads
 }
 \usage{
 CopywriteR(sample.control, destination.folder, reference.folder, bp.param,
-           capture.regions.file, keep.intermediairy.files = FALSE)
+           capture.regions.file, keep.intermediary.files = FALSE)
 }
 \arguments{
 \item{sample.control}{
@@ -38,7 +38,7 @@ format. Overlapping bait regions should be reduced into single regions. If
 included, statistics on the overlap of peaks called by MACS and the capture
 regions will be provided.
 }
-\item{keep.intermediairy.files}{
+\item{keep.intermediary.files}{
 optional; logical that indicates whether intermediary .bam, .bai and peak
 regions files should be kept after the analysis is done. Defaults to FALSE.
 }
@@ -58,7 +58,7 @@ the \code{CopywriteR}() function. The helper files can be created using
 \item{BamBaiPeaksFiles}{
 a folder with the .bam, .bai and peak regions files that are created during
 the \code{CopywriteR}() run. The folder will only be created when the
-keep.intermediairy.files argument is set to TRUE.
+keep.intermediary.files argument is set to TRUE.
 }
 \item{input.Rdata}{
 an R object that contains information for \code{plotCNA}().
