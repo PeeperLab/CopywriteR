@@ -486,7 +486,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     statistics[, "on.chromosomes"] <- res$chrom.reads
 
     ## Calculate coverage
-    i <- c(seq_along(control.indices))
+    i <- c(seq_along(sample.indices))
     CalculateDepthOfCoverage <- function(i, sample.files, control.indices,
                                          sample.indices, GC.mappa.grange,
                                          bin.size) {
@@ -619,11 +619,12 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     sample.files <- gsub("_properreads.bam$", ".bam", sample.files)
 
     dir.create(file.path(destination.folder, "qc"))
-    for (i in seq_along(sample.files)) {
+    for (i in seq_along(sample.indices)) {
         pdf(file.path(destination.folder, "qc",
-                      paste0("fraction.of.bin.", sample.files[i], ".pdf")),
+                      paste0("fraction.of.bin.",
+                             sample.files[sample.indices[i]], ".pdf")),
             width = 7, height = 7)
-        plot(ecdf(as.numeric(read.counts[, 4 + (2 * length(sample.files)) + i])),
+        plot(ecdf(as.numeric(read.counts[, 4 + (2 * length(sample.indices)) + i])),
              verticals = TRUE, ylab = "Fraction of bins",
              xlab = "Remaining fraction of bin after peak removal", 
              main = "Cumulative distribution of remaining bin fraction")

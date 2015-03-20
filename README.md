@@ -29,8 +29,8 @@ command line:
     > source("http://bioconductor.org/biocLite.R")
     > biocLite(c("matrixStats", "gtools", "data.table", "S4Vectors", "chipseq",
                  "IRanges", "Rsamtools", "DNAcopy", "GenomicAlignments",
-                 "GenomicRanges", "GenomeInfoDb", "BiocParallel", "BiocStyle",
-                 "futile.logger", "snow"))
+                 "GenomicRanges", "GenomeInfoDb", "BiocParallel",
+                 "futile.logger"))
 
 In addition, CopywriteR requires the CopyhelpeR package, which can be downloaded
 as tarball (.tar.gz-file) from the
@@ -117,7 +117,7 @@ refer to the [BiocParallel](http://bioconductor.org/packages/release/bioc/html/B
 package for more information. A SnowParam using 12 CPUs can be defined as
 follows:
 
-    > bp.param <- SnowParam(workers = 12, type = "PSOCK")
+    > bp.param <- SnowParam(workers = 12, type = "SOCK")
 
 Next, we need to specify which samples and controls correspond to each other.
 For CopywriteR, controls are specified as those samples that will be used to
@@ -175,6 +175,21 @@ sample in the samples column of the variable will be analyzed without a
 reference, and with the corresponding control as a reference. Optionally, a new
 sample.control variable can be created to control analysis and plotting by
 plotCNA. Please refer to the manual for more information.
+
+## Vignette code
+
+The following packages can be optionally installed to allow running the
+vignette code:
+
+    > source("http://bioconductor.org/biocLite.R")
+    > biocLite(c("BiocStyle", "snow"))
+
+In addition, the SCLCBam experiment package is also required. The latest
+SCLCBam package can be downloaded from the
+[SCLCBam releases webpage](https://github.com/PeeperLab/SCLCBam/releases)
+and installed using the following command:
+
+    $ R CMD INSTALL SCLCBam*.tar.gz
 
 ## Troubleshooting
 
