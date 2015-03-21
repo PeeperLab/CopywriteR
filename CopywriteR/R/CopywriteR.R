@@ -636,7 +636,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     ##############################################
 
     ## Create data input file for correction function
-    read.counts <- read.counts[, seq_len(4 + length(sample.files))]
+    read.counts <- read.counts[, seq_len(4 + length(sample.indices))]
     data <- list(cov = read.counts[, 5:ncol(read.counts), drop = FALSE],
                  anno = read.counts[, c("Chromosome", "Start",
                                         "End", "Feature")])
@@ -659,7 +659,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
         }
         ratios <- bplapply(i, NormalizeDOC, data, .tng, usepoints,
                            destination.folder, BPPARAM = bp.param)
-        log2.read.counts <- matrix(unlist(ratios), ncol = length(sample.files))
+        log2.read.counts <- matrix(unlist(ratios), ncol = length(sample.indices))
     }, error = function(e) {
         stop(.wrap("The GC-content and mappability normalization did not work",
                    "due to a failure to calculate loesses. This can generally",
@@ -667,7 +667,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
                    "the remaining part of the script..."))
     })
 
-    colnames(log2.read.counts) <- paste0("log2.", sample.files)
+    colnames(log2.read.counts) <- paste0("log2.", sample.files[sample.indices])
 
     ###################
     ## Create output ##
