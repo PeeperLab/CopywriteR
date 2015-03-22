@@ -15,7 +15,7 @@ CopywriteR(sample.control, destination.folder, reference.folder, bp.param,
 \arguments{
 \item{sample.control}{
 a data.frame or matrix that contains the locations of sample and control BAM
-files. The file locations in a row represent a sample and its corresponding
+files, respectively, in columns. The file locations in a row represent a sample and its corresponding
 control, which is used for calling peaks.
 }
 \item{destination.folder}{

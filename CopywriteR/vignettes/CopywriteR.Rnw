@@ -176,14 +176,21 @@ now be passed on to \Rcode{CopywriteR()} to allow parallel computation.
 \subsection{\Rcode{CopywriteR()}}
 
 The \Rcode{CopywriteR()} function allows to calculate binned read count data
-based on the helper files created by \Rcode{preCopywriteR()}. CopywriteR uses
-a peak calling algorithm to remove 'on-target' reads. The argument that controls
-on which sample peaks are called is sample.control. This \Rcode{matrix} or
-\Rcode{data.frame} should contain path names to 'samples' and their
-corresponding 'controls' in rows. The peaks called in the controls are used to
-remove reads from the corresponding samples as well as the controls themselves.
+based on the helper files created by \Rcode{preCopywriteR()}. CopywriteR uses a
+peak calling algorithm to remove 'on-target' reads. For every sample that is to
+be analyzed by CopywriteR, the user can specify on which sample the peak regions
+should be identified. The argument that controls this is sample.control. This
+\Rcode{matrix} or \Rcode{data.frame} should contain path names to 'samples' in
+the first column, and their corresponding 'controls', in the second column. The
+peaks called in a 'control' are used to remove reads from the corresponding
+'sample'. Please note that any sample that is to be used by the downstream
+plotCNA function (including those that are only to be used as a reference) needs
+to be analyzed by the CopywriteR function.
+
 In the example used here, no matched germline control is available, and peaks
-are called on the sample itself. Therefore the sample and control are identical.
+are called on the sample itself. Therefore the paths specified in the samples
+and controls columns of the sample.control \Rcode{data.frame} below are
+identical.
 
 <<CopywriteR, print=FALSE, eval=TRUE>>=
 path <- SCLCBam::getPathBamFolder()

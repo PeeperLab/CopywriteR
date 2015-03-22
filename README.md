@@ -119,11 +119,12 @@ follows:
 
     > bp.param <- SnowParam(workers = 12, type = "SOCK")
 
-Next, we need to specify which samples and controls correspond to each other.
-For CopywriteR, controls are specified as those samples that will be used to
-identify which regions contain on-target and off-target reads. This information
-will then be applied to both the sample and the control to exclude on-target
-reads. We specify the sample.control variable as follows:
+Next, we need to specify which samples and controls correspond to each other
+using the sample.control variable. **For the CopywriteR function, controls are
+specified as those samples that will be used to identify which regions are
+'peaks' and contain on-target reads.** This information will then be used to
+remove on-target reads in the corresponding sample. We specify the
+sample.control variable as follows:
 
     > path <- "./path/to/bam"
     > samples <- list.files(path = path, pattern = "bam$", full.names = TRUE)
@@ -147,14 +148,28 @@ This might result in the following variable:
     11 ./M049.bam ./C049.bam
     12 ./M055.bam ./C055.bam
 
-Sequence data starting with 'M' could for instance be from a tumor sample,
-and the corresponding 'C' data set would from a matched germline sample. We
-recommend identifying on-target and off-target regions based on a germline
-sample if possible, as this would avoid identifying highly amplified regions
-as on-target regions. Please refer to
-[Kuilman et al., 2015](http://genomebiology.com/2015/16/1/49/abstract) for more
-details on how CopywriteR extracts copy number profiles from targeted
-sequencing.
+Sequence data starting with 'M' could for instance be from a tumor sample, and
+the corresponding 'C' data set would from a matched germline sample. **Please
+note that any dataset (whether sample or control) that is to be used by the
+downstream plotCNA function needs to be analyzed by the CopywriteR function.**
+Therefore, by including:
+
+    1  ./C003.bam ./C003.bam
+    2  ./C016.bam ./C016.bam
+    3  ./C024.bam ./C024.bam
+    4  ./C037.bam ./C037.bam
+    5  ./C049.bam ./C049.bam
+    6  ./C055.bam ./C055.bam
+
+we make sure that in the plotCNA function we can analyze the tumor samples
+relative to the corresponding germline samples. We recommend identifying
+on-target and off-target regions based on a germline sample if possible, as this
+would avoid identifying highly amplified regions as on-target regions.
+Nevertheless, we have observed that this has a negligible effect in practice,
+and that CopywriteR analysis without a reference is still highly accurate.
+Please refer to [Kuilman et al.,
+2015](http://genomebiology.com/2015/16/1/49/abstract) for more details on how
+CopywriteR extracts copy number profiles from targeted sequencing.
 
 We are now set for running CopywriteR:
 
@@ -171,10 +186,10 @@ and plot the result using the plotCNA function:
 
 By default, data will be analyzed and plotted according to the matching of
 samples and controls in the sample.control variable (specified above). Every
-sample in the samples column of the variable will be analyzed without a
-reference, and with the corresponding control as a reference. Optionally, a new
-sample.control variable can be created to control analysis and plotting by
-plotCNA. Please refer to the manual for more information.
+sample in the samples column of the sample.control variable will be analyzed
+without a reference, and with the corresponding control as a reference.
+Optionally, the sample.plot argument can be used to control analysis and
+plotting by plotCNA. Please refer to the manual for more information.
 
 ## Vignette code
 
@@ -196,7 +211,25 @@ and installed using the following command:
 There are a number of requirements for your CopywriteR analysis to run
 successfully. These are discussed below.
 
-#### Low number of off-target reads
+#### All .bam files should be processed by CopywriteR
+Any sample that is used as a sample or a reference for analysis and plotting in
+the plotCNA function needs prior analysis as a sample in the CopywriteR
+function. As an example, if one would like to analyze and plot tumor1.bam
+relative to matched.normal1.bam in plotCNA, the sample.control variable should
+contain both of the two rows below:
+
+    > sample.control
+                           samples                    controls
+    1  path/to/tumor1.bam          path/to/matched.normal1.bam
+    2  path/to/matched.normal1.bam path/to/matched.normal1.bam
+
+If not all samples needed by plotCNA have been analyzed by CopywriteR, the
+following error message will be displayed: "One of the samples in [LIST OF .BAM
+FILES] refers to a BAM file that has not been processed in CopywriteR. Please
+make sure that you have provided the correct input files or re-run CopywriteR
+accordingly."
+
+#### Number of off-target reads
 CopywriteR relies on the off-target sequence read count, which in our hands is
 roughly 10% of the total amount of reads. You can find the relevant numbers in
 the log-file. Since the sequence reads are normally not required, a number of
@@ -226,6 +259,13 @@ same reference genome.
 
 In order to allow plotting, the .bam files need to be present in the same folder
 as when the CopywriteR analysis was performed.
+
+#### Sorting of .bam files
+The Rsamtools package requires .bam files to be sorted. CopywriteR will provide
+an error message if this is the case. Unsorted .bam files can be sorted using
+samtools as follows:
+
+    $ samtools sort sample.bam sample.sorted.bam
 
 ## Contact
 
@@ -260,6 +300,7 @@ The CopywriteR tool has been cited and referenced by:
 
 ## Changes and additions we are currently working on
 
+- [ ] Improve error message in plotCNA when CopywriteR analysis is missing for some samples
 - [ ] Address the NA in counting reads of vignette
 - [ ] Change plotCNA (double line in plots of RB1705)
 - [ ] Remove warning messages small bams _chr

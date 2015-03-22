@@ -1,5 +1,16 @@
-IMPROVEMENTS
+RELEASE (version 2.0)
 
+Changes in version 1.99.2 (2015-03-21)
+
+	o Provided vignette that allows R CMD CHECK --no-build-vignettes in <5 min
+	o Fixed minor bug affecting runs in which not all samples are analyzed by CopywriteR function
+	o Included a test for sorting of .bam files
+
+-------------------------------------
+
+Changes in version 1.99.0 (2015-03-05)
+
+	o Released new version
 	o Improved the speed of the package
 	o Implemented logging with the futile.logger package
 	o Replaced direct slot or field access with the use of accessor functions
@@ -17,10 +28,3 @@ IMPROVEMENTS
 	o Changed T to TRUE
 	o Added biocViews
 	o Changed version to 0.99.0
-
-Changes in version 1.99.0 (2015-03-05)
--------------------------------------
-
-RELEASE (version 2.0)
-
-        o Released new version

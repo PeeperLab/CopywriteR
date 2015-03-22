@@ -126,10 +126,12 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     prefixes <- vector(mode = "character")
     chr.names <- NULL
     chr.lengths <- NULL
+    chr.sort.mode <- NULL
 
     tryCatch({
         for (samp in sample.paths) {
             header <- scanBamHeader(samp)
+            chr.sort.mode <- c(chr.sort.mode, header[[1]]$text$'@HD'[2])
             current.chr.names <- names(header[[1]]$targets)
             chr.names <- c(chr.names, current.chr.names)
             chr.lengths <- c(chr.lengths, header[[1]]$targets)
@@ -143,6 +145,12 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
                    "the script..."))
     })
 
+    if (!all(chr.sort.mode == "SO:coordinate")) {
+        stop(.wrap("The following .bam files are unsorted:"), "\n",
+             paste(sample.paths[which(!chr.sort.mode == "SO:coordinate")],
+             "Please sort these .bam files based on coordinates",
+             collapse = "\n"))
+    }
     if (!all(prefixes == prefixes[1])) {
         stop(.wrap("The bam files have different chromosome name prefixes.",
                    "Please adjust the .bam files such that they contain the",
