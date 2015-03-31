@@ -150,9 +150,8 @@ This might result in the following variable:
 
 Sequence data starting with 'M' could for instance be from a tumor sample, and
 the corresponding 'C' data set would from a matched germline sample. **Please
-note that any dataset (whether sample or control) that is to be used by the
-downstream plotCNA function needs to be analyzed by the CopywriteR function.**
-Therefore, by including:
+note that any sample that is to be used by the downstream plotCNA function needs
+to be analyzed by the CopywriteR function.** Therefore, by including:
 
     1  ./C003.bam ./C003.bam
     2  ./C016.bam ./C016.bam
@@ -300,14 +299,15 @@ The CopywriteR tool has been cited and referenced by:
 
 ## Changes and additions we are currently working on
 
-- [ ] Improve error message in plotCNA when CopywriteR analysis is missing for some samples
 - [ ] Address the NA in counting reads of vignette
-- [ ] Change plotCNA (double line in plots of RB1705)
 - [ ] Remove warning messages small bams _chr
 - [ ] Address warning message in analysis RB1705
 - [ ] Remove blacklisted regions by excluding regions and not excluding bins
 - [ ] Change CopywriteR to allow custom bins?
 - [ ] Compile into bioConductor package
+- [x] Fixed a minor bug affecting analysis of >100 simultaneous samples (implemented in source code)
+- [x] Change plotCNA (double line in plots of RB1705) (implemented in source code)
+- [x] Improve error message in plotCNA when CopywriteR analysis is missing for some samples (implemented in source code)
 - [x] Clean up code (implemented in source code)
 - [x] Use futile.logger for logging of messages (implemented in source code)
 - [x] Increase speed of paired / single end testing (implemented in source code)

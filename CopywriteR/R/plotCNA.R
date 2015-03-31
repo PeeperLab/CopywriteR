@@ -57,8 +57,7 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
         colnames(sample.plot) <- c("samples", "controls")
         sample.plot[, ] <- apply(sample.plot, c(1, 2), function(x) {
             if (!is.na(x)) {
-                x <- paste0("log2.read.counts.",
-                            gsub("_properreads", "", basename(x)))
+                x <- paste0("log2.", gsub("_properreads", "", basename(x)))
             } else {
                 x <- as.character(x)
             }
@@ -117,10 +116,16 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
             }
         }
     } else {
-        stop(.wrap("One of the samples in", sQuote(sample.plot), "refers to a",
-                   "BAM file that has not been processed in CopywriteR. Please",
-                   "make sure that you have provided the correct input files",
-                   "or re-run CopywriteR accordingly."))
+        unique.samples <- unique(na.omit(unlist(sample.plot)))
+        print(unique.samples)
+        print(unique.samples %in% colnames(log2.read.counts))
+        missing.samples <- unique.samples[!unique.samples %in% colnames(log2.read.counts)]
+        print(missing.samples)
+        stop(.wrap("The following samples refer to .bam files that have not",
+                   "been processed by CopywriteR:",
+                   paste(sQuote(missing.samples), collapse = ", "),
+                   ". Please re-analyze all required samples using CopywriteR",
+                   "and run the plotCNA function again."))
     }
 
     ## Apply DNAcopy
@@ -143,7 +148,7 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
     chrom.lengths <- data.frame(Chromosome = names(chrom.lengths),
                                 Length = chrom.lengths, row.names = NULL)
     suppressWarnings(chrom.lengths <- chrom.lengths[chrom.lengths$Chromosome %in% c("X", "Y") |
-                                                    !is.na(as.integer(chrom.lengths$Chromosome)), ])
+                                                    !is.na(as.integer(as.vector(chrom.lengths$Chromosome))), ])
     chrom.lengths <- chrom.lengths[mixedorder(chrom.lengths$Chromosome), ]
     chrom.lengths$Chromosome <- gsub("X", nautosomes + 1,
                                      chrom.lengths$Chromosome)

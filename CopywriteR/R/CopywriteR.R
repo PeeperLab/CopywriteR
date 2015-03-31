@@ -147,7 +147,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
 
     if (!all(chr.sort.mode == "SO:coordinate")) {
         stop(.wrap("The following .bam files are unsorted:"), "\n",
-             paste(sample.paths[which(!chr.sort.mode == "SO:coordinate")],
+             paste(sample.paths[which(!chr.sort.mode == "SO:coordinate")], "\n",
              "Please sort these .bam files based on coordinates",
              collapse = "\n"))
     }
@@ -608,7 +608,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     ## Remove potential NAs introduced by peaks spanning entire bins
     res[is.na(res)] <- 0
     
-    flog.info(unlist(res[4]))
+    sapply(res[[4]], flog.info)
 
     ## Read count statistics
     statistics[, "off.target"] <- unlist(res[5])

@@ -5,6 +5,9 @@ Changes in version 1.99.2 (2015-03-21)
 	o Provided vignette that allows R CMD CHECK --no-build-vignettes in <5 min
 	o Fixed minor bug affecting runs in which not all samples are analyzed by CopywriteR function
 	o Included a test for sorting of .bam files
+	o Improved error messages
+	o Fixed minor bug affecting plotting of samples
+	o Fixed minor bug causing error when processing >100 samples simultaneously
 
 -------------------------------------
 
