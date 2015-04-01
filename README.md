@@ -290,7 +290,16 @@ The CopywriteR tool has been cited and referenced by:
   genetic analysis reveal a secondary BRAFL505H resistance mutation and
   extensive intrapatient heterogeneity in metastatic BRAF mutant melanoma
   patients treated with vemurafenib. Pigment Cell & Melanoma Research.
-  doi: 10.1111/pcmr.12347. [[Pubmed]](http://www.ncbi.nlm.nih.gov/pubmed/25515853)
+  doi: 10.1111/pcmr.12347.
+  [[Pubmed]](http://www.ncbi.nlm.nih.gov/pubmed/25515853)
+- Schouten, P.C., Grigoriadis, A., Kuilman, T., Mirza, H., Watkins, J.A., Cooke,
+  S.A., van Dyk, E., Severson, T.M., Rueda, O.M., Hoogstraat, M., Verhagen, C.,
+	Natrajan, R., Chin, S.F., Lips, E.H., Kruizinga, J., Velds, A., Nieuwland, M.,
+	Kerkhoven, R.M., Krijgsman, O., Vens, C., Peeper, D., Nederlof, P.M., Caldas,
+	C., Tutt, A.N., Wessels, L.F. and Linn, S.C. (2015), Robust BRCA1-like
+	classification of copy number profiles of samples repeated across different
+	datasets and platforms. Molecular Oncology. doi: 10.1016/j.molonc.2015.03.002.
+	[[Pubmed]](http://www.ncbi.nlm.nih.gov/pubmed/25825120)
 - [Omicstools](http://omictools.com/copywriter-s8589.html)
 
 ## Reported bugs
