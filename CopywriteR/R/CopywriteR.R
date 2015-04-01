@@ -489,7 +489,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
         c(all.reads = all.reads, chrom.reads = chrom.reads)
     }
     res <- bplapply(sample.files, Stats.3, GC.mappa.grange, BPPARAM = bp.param)
-    res <- data.frame(Reduce(function(x,y) {rbind(x,y)}, res))
+    res <- res <- data.frame(do.call(Map, c(rbind, res)))
     statistics[, "unmappable.or.mitochondrial"] <- res$all.reads - res$chrom.reads
     statistics[, "on.chromosomes"] <- res$chrom.reads
 
@@ -717,6 +717,9 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
                                    sep = "\t")
         colnames(captured.bed) <- c("seqnames", "Start", "End")
         captured.grange <- makeGRangesFromDataFrame(captured.bed)
+				seqlevels(captured.grange) <- gsub("^", unique(prefixes),
+																	         gsub(unique(prefixes), "",
+																				        seqlevels(captured.grange)))
         
         for (control.index in control.uniq.indices) {
             peak.bed <- read.table(file = paste0("peaks", control.index,
