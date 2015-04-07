@@ -210,6 +210,12 @@ and installed using the following command:
 There are a number of requirements for your CopywriteR analysis to run
 successfully. These are discussed below.
 
+#### Installation
+One of the dependencies of CopywriteR (the chipseq package) requires
+Bioconductor 3.0. If installation fails, please check whether you are running
+the correct version of Bioconductor and whether all dependencies have been
+installed.
+
 #### All .bam files should be processed by CopywriteR
 Any sample that is used as a sample or a reference for analysis and plotting in
 the plotCNA function needs prior analysis as a sample in the CopywriteR
