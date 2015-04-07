@@ -238,7 +238,7 @@ accordingly."
 CopywriteR relies on the off-target sequence read count, which in our hands is
 roughly 10% of the total amount of reads. You can find the relevant numbers in
 the log-file. Since the sequence reads are normally not required, a number of
-pipelines filter for or deplete sequence reads that off-target. We recommend
+pipelines filter for or deplete sequence reads that are off-target. We recommend
 using the unprocessed .bam files to prevent discarding data for CopywriteR.
 
 In addition to the above, we have never tested CopywriteR on sequence data upon
@@ -266,9 +266,9 @@ In order to allow plotting, the .bam files need to be present in the same folder
 as when the CopywriteR analysis was performed.
 
 #### Sorting of .bam files
-The Rsamtools package requires .bam files to be sorted. CopywriteR will provide
-an error message if this is the case. Unsorted .bam files can be sorted using
-samtools as follows:
+The Rsamtools package requires .bam files to be sorted. If the .bam files that
+are to be analyzed are not sorted, CopywriteR will provide an error message.
+Unsorted .bam files can then be sorted using samtools as follows:
 
     $ samtools sort sample.bam sample.sorted.bam
 
