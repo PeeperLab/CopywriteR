@@ -1,5 +1,19 @@
 RELEASE (version 2.0)
 
+-------------------------------------
+
+Changes in version 1.99.4 (2015-04-08)
+
+	o Fixed bug related to logging when .bam are not indexed
+
+-------------------------------------
+
+Changes in version 1.99.3 (2015-04-06)
+
+	o Fixed bug related to testing of sort mode of .bam files 
+
+-------------------------------------
+
 Changes in version 1.99.2 (2015-03-21)
 
 	o Provided vignette that allows R CMD CHECK --no-build-vignettes in <5 min

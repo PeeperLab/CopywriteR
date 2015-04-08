@@ -199,7 +199,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
             paste0("indexBam(\"", sample.paths, "\")")
         }
         to.log <- bplapply(sample.paths, IndexBam, BPPARAM = bp.param)
-        flog.info(unlist(to.log))
+        lapply(to.log2, flog.info)
     }
 
     ## Check whether BAMs are paired-end
