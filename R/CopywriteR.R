@@ -264,7 +264,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     }
     to.log <- bplapply(i, ProperReads, sample.paths, destination.folder,
                        sample.files, is.paired.end, BPPARAM = bp.param)
-    flog.info(unlist(to.log))
+    lapply(to.log, flog.info)
 
     ## Read count statistics
     Stats.1 <- function(sample.paths) {
@@ -476,7 +476,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
                        prefixes[1], chromosomes, .peakCutoff,
                        destination.folder, BPPARAM = bp.param)
     # bp.param <- current.bp.param
-    flog.info(unlist(to.log))
+    lapply(to.log, flog.info)
 
     ## Read count statistics
     Stats.3 <- function(sample.files, GC.mappa.grange) {
