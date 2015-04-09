@@ -18,7 +18,20 @@ CopywriteR has been described in
 analysis described in this publication were performed using the older version
 [V1.3](https://github.com/PeeperLab/CopywriteR/releases/tag/V1.3).
 
-## Requirements:
+## Bioconductor
+
+We are happy to announce that the CopywriteR package has been accepted in
+Bioconductor. CopywriteR will be released with the next version of Bioconductor,
+which is scheduled for 17 April 2015. The CopywriteR development version
+(depending on R 3.2 and Bioconductor 3.1) can already be used as follows:
+
+    > source("http://bioconductor.org/biocLite.R")
+    > biocLite("CopywriteR")
+
+Upon release (17 April 2015) will also be backward compatible with R 3.1 and
+Bioconductor 3.0.
+
+## Installation (not via Bioconductor)
 
 CopywriteR was developed to run in R, and only depends on packages that are
 available via [CRAN](http://cran.r-project.org/) and
@@ -266,11 +279,19 @@ In order to allow plotting, the .bam files need to be present in the same folder
 as when the CopywriteR analysis was performed.
 
 #### Sorting of .bam files
+
 The Rsamtools package requires .bam files to be sorted. If the .bam files that
 are to be analyzed are not sorted, CopywriteR will provide an error message.
 Unsorted .bam files can then be sorted using samtools as follows:
 
     $ samtools sort sample.bam sample.sorted.bam
+
+#### Speed
+
+We have noted a ~1.5-fold reduction in total calculation time with the
+development version of R (3.2) and Bioconductor (3.1). These will soon be
+officially released, and in case the calculation time becomes a critical issue
+we recommend upgrading to these versions of R and Bioconductor.
 
 ## Contact
 
