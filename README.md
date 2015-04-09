@@ -28,16 +28,14 @@ which is scheduled for 17 April 2015. The CopywriteR development version
     > source("http://bioconductor.org/biocLite.R")
     > biocLite("CopywriteR")
 
-Upon release (17 April 2015) will also be backward compatible with R 3.1 and
+Upon release, CopywriteR will also be backward compatible with R 3.1 and
 Bioconductor 3.0.
 
 ## Installation (not via Bioconductor)
 
-CopywriteR was developed to run in R, and only depends on packages that are
-available via [CRAN](http://cran.r-project.org/) and
-[bioconductor](http://bioconductor.org/). A number of packages are required to
-run CopywriteR, which can be installed by pasting the following command in the R
-command line:
+Until the official release of the CopywriteR package on Bioconductor, CopywriteR
+can still be installed under Bioconductor 3.0. The dependencies are installed as
+follows:
 
     > source("http://bioconductor.org/biocLite.R")
     > biocLite(c("matrixStats", "gtools", "data.table", "S4Vectors", "chipseq",
@@ -74,19 +72,20 @@ CopywriteR contains three main functions:
 GC-content information, and one containing 'blacklisted' regions that contain
 are subject to copy number variation. These 'helper' files can be created for
 any specified bin size that is a multiple of 1000 bp, and for any of the
-available reference genomes (hg19, mm9 and mm10). The helper files can be
-re-used and need to be created only once for every combination of reference
-genome and bin size. `preCopywriteR` uses information stored in pre-assembled
-1kb bin mappability and GC-content GRanges objects to create the custom bin size
-helper files. These objects are stored in the CopyhelpeR annotation package.
+available reference genomes (hg18, hg19, hg38, mm9 and mm10). The helper files
+can be re-used and need to be created only once for every combination of
+reference genome and bin size. `preCopywriteR` uses information stored in
+pre-assembled 1kb bin mappability and GC-content GRanges objects to create the
+custom bin size helper files. These objects are stored in the CopyhelpeR
+annotation package.
 
 preCopywriteR can be run as follows:
 
     > preCopywriteR(output.folder, bin.size, ref.genome, prefix = "")
 
 `CopywriteR` will generate separate tables with compensated read counts and
-log2-transformed normalized read counts after compensated, correction for
-GC-content, mappability and removal of blacklisted regions.
+log2-transformed normalized compensated read counts after correction for
+GC-content, mappability and upon removal of blacklisted regions.
 
     > CopywriteR(sample.control, destination.folder, reference.folder,
                  bp.param, capture.regions.file,
@@ -120,13 +119,15 @@ Then, preCopywriteR can be run using the command:
                     prefix = "")
 
 Next, we need to specify the settings for parallel computing. We have
-implemented use of the [BiocParallel](http://bioconductor.org/packages/release/bioc/html/BiocParallel.html)
+implemented use of the
+[BiocParallel](http://bioconductor.org/packages/release/bioc/html/BiocParallel.html)
 package, which supports several different types of environments. For every
 environment, a BiocParallelParam can be specified that defines how parallel
 computation is executed. Below, we use a SnowParam instance of
 BiocParallelParam, which is based on the
 [snow](http://cran.r-project.org/web/packages/snow/index.html) package. Please
-refer to the [BiocParallel](http://bioconductor.org/packages/release/bioc/html/BiocParallel.html)
+refer to the
+[BiocParallel](http://bioconductor.org/packages/release/bioc/html/BiocParallel.html)
 package for more information. A SnowParam using 12 CPUs can be defined as
 follows:
 
@@ -176,12 +177,12 @@ to be analyzed by the CopywriteR function.** Therefore, by including:
 we make sure that in the plotCNA function we can analyze the tumor samples
 relative to the corresponding germline samples. We recommend identifying
 on-target and off-target regions based on a germline sample if possible, as this
-would avoid identifying highly amplified regions as on-target regions.
-Nevertheless, we have observed that this has a negligible effect in practice,
-and that CopywriteR analysis without a reference is still highly accurate.
-Please refer to [Kuilman et al.,
-2015](http://genomebiology.com/2015/16/1/49/abstract) for more details on how
-CopywriteR extracts copy number profiles from targeted sequencing.
+would avoid identifying highly amplified genomic regions in tumor cells as
+on-target regions. Nevertheless, we have observed that this effect is negligible
+in practice, and that CopywriteR analysis without a reference is still highly
+accurate. Please refer to
+[Kuilman et al., 2015](http://genomebiology.com/2015/16/1/49/abstract) for more
+details on how CopywriteR extracts copy number profiles from targeted sequencing.
 
 We are now set for running CopywriteR:
 
