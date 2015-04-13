@@ -230,6 +230,18 @@ Bioconductor 3.0. If installation fails, please check whether you are running
 the correct version of Bioconductor and whether all dependencies have been
 installed.
 
+#### Unique naming of .bam files
+
+CopywriteR uses the (base)name of a .bam file as an identifier for that file.
+Therefore, all the names of .bam files should be unique, and something like
+
+    > sample.control
+                             samples                        controls
+    1  path/sample1/aligned_read.bam   path/sample2/aligned_read.bam
+
+would result in an error. This can be solved by renaming the .bam files in such
+a way that all names become unique.
+
 #### All .bam files should be processed by CopywriteR
 Any sample that is used as a sample or a reference for analysis and plotting in
 the plotCNA function needs prior analysis as a sample in the CopywriteR
