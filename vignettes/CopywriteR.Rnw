@@ -45,8 +45,6 @@ advantages relative to current approaches \cite{s13059-015-0617-1} and it
 constitutes a viable alternative for copy number detection from targeted
 sequencing data.
 
-\newpage
-
 \section{CopywriteR workflow}
 
 CopywriteR uses .bam files as an input. These files are processed in
@@ -115,8 +113,6 @@ preCopywriteR(output.folder = file.path(data.folder),
               ref.genome = "mm10_4")
 @
 
-\newpage
-
 Please not that the "mm10\symbol{95}4" reference genome exclusively contains
 helper files for chromosome 4, and therefore should only be used when
 replicating the analysis in this vignette. The custom helper files are placed in
@@ -146,8 +142,6 @@ package) of which one (blacklist.rda) contains regions of copy number variation:
 load(file = file.path(data.folder, "mm10_4_20kb", "blacklist.rda"))
 blacklist.grange
 @
-
-\newpage
 
 The other helper file (GC\symbol{95}mappability.rda) contains GC-content and
 mappability information for a particular bin size:
@@ -188,8 +182,6 @@ peaks called in a 'control' are used to remove reads from the corresponding
 'sample'. Please note that any sample that is to be used by the downstream
 plotCNA function (including those that are only to be used as a reference) needs
 to be analyzed by the CopywriteR function.
-
-\newpage
 
 In the example used here, no matched germline control is available, and peaks
 are called on the sample itself. Therefore the paths specified in the samples
@@ -235,8 +227,6 @@ the read\symbol{95}counts.txt has the following content:
 read.table(file = file.path(data.folder, "CNAprofiles", "read_counts.txt"),
            header = TRUE)[1001:1006, ]
 @
-
-\newpage
 
 The log2\symbol{95}read\symbol{95}counts.igv file can be opened in the IGV
 browser (\url{http://www.broadinstitute.org/igv/}), and contains
@@ -286,8 +276,6 @@ For every sample a separate directory is created:
 <<plots.folder.contents, print=FALSE, eval=TRUE>>=
 cat(list.files(path = file.path(data.folder, "CNAprofiles", "plots")), sep = "\n")
 @
-
-\newpage
 
 The samples are plotted per chromosome, as well as in a genome-wide fashion.
 We provide here the result for chromosome 4:
