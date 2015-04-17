@@ -606,7 +606,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     read.counts <- cbind(read.counts[, ], Reduce(cbind, res[1:3]))
 
     ## Remove potential NAs introduced by peaks spanning entire bins
-    res[is.na(res)] <- 0
+    read.counts[is.na(read.counts)] <- 0
     
     sapply(res[[4]], flog.info)
 
