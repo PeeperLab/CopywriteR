@@ -1,13 +1,13 @@
 Package: CopywriteR
 Type: Package
-Title: DNA copy number profiles from whole exome sequencing
-Version: 2.1.0
+Title: Copy number information from targeted sequencing using off-target reads
+Version: 2.1.1
 Date: 2014-09-23
 Author: Thomas Kuilman
 Maintainer: Thomas Kuilman <t.kuilman@nki.nl>
 Imports: matrixStats, gtools, data.table, S4Vectors, chipseq, IRanges, Rsamtools, DNAcopy, GenomicAlignments, GenomicRanges, CopyhelpeR, GenomeInfoDb, futile.logger
 Depends: R(>= 3.1.0), BiocParallel
 Suggests: BiocStyle, SCLCBam, snow
-Description: CopywriteR generate DNA copy number profiles from whole exome sequencing by analysing the offtarget sequence reads. By exploiting the offtarget sequence reads, it allows for creation of robust copy number profiles from WES with a uniform read depth and evenly distributed data points over the genome.  
+Description: CopywriteR extracts DNA copy number information from targeted sequencing by utiizing off-target sequence reads. It allows for extracting uniformly distributed copy number information, can be used without reference, and can be applied to sequencing data obtained from various techniques including chromatin immunoprecipitation and target enrichment on small gene panels. Thereby, CopywriteR constitutes a widely applicable alternative to available tools.
 License: GPL-2
 biocViews: TargetedResequencing, ExomeSeq, CopyNumberVariation, Preprocessing, Visualization, Coverage

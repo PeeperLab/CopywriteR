@@ -1,4 +1,10 @@
-Changes in version 2.0.1 (2015-04-17)
+Changes in version 2.1.1 (2015-04-18)
+
+	o Updated DESCRIPTION file
+
+-------------------------------------
+
+Changes in version 2.1.0 (2015-04-17)
 
 	o Fixed bug resulting in failure to calculate loesses
 

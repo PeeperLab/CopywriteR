@@ -30,8 +30,8 @@ the prefix that is used for chromosome notation. Standard notation is "1", "2",
 }
 }
 \details{
-Currently helper files can only be generated for  human (hg19). We are
-currently implementing mm10 and will be available in the next release.
+Currently helper files can be generated for human (hg18, hg19 and hg38) and
+mouse (mm9 and mm10) reference genomes.
 
 Helper files can only be generated for a bin.size that is a multiple of 1000 bp. 
 }

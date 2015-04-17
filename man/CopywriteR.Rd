@@ -44,15 +44,13 @@ regions files should be kept after the analysis is done. Defaults to FALSE.
 }
 }
 \details{
-CopywriteR (ENhanced COpy number Detection from Exome Reads) uses the off-target
-sequence reads from whole-exome sequencing or other targeted sequencing
-approaches to create copy number profiles. First, it removes non-random
-off-target reads, and it subsequently calculates the depth of coverage for the
-bins that are provided in the helper files. It then performs GC-content and
-mappability corrections, and removes blacklisted regions.
-\code{plotCNA}() generates a DNA copy number profile from the output of
-the \code{CopywriteR}() function. The helper files can be created using
-\code{preCopywriteR}().
+CopywriteR uses off-target sequence reads from targeted sequencing to create
+copy number profiles. First, it removes non-random off-target reads, and it
+subsequently calculates the depth of coverage for the bins that are provided in
+the helper files. It then performs GC-content and mappability corrections, and
+removes blacklisted regions. \code{plotCNA}() generates a DNA copy number
+profile from the output of the \code{CopywriteR}() function. Helper files
+required for CopywriteR analysis can be created using \code{preCopywriteR}().
 }
 \value{
 \item{BamBaiPeaksFiles}{
