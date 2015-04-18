@@ -21,20 +21,22 @@ analysis described in this publication were performed using the older version
 ## Bioconductor
 
 We are happy to announce that the CopywriteR package has been accepted in
-Bioconductor. CopywriteR will be released with the next version of Bioconductor,
-which is scheduled for 17 April 2015. The CopywriteR development version
-(depending on R 3.2 and Bioconductor 3.1) can already be used as follows:
+Bioconductor and has been released as of 17 April 2015. All the Bioconductor
+packages in the newest release have a dependency for the newest version of R
+(version 3.2) and for Bioconductor version 3.1. If you have these installed,
+CopywriteR can be installed as follows:
 
     > source("http://bioconductor.org/biocLite.R")
     > biocLite("CopywriteR")
 
-Upon release, CopywriteR will also be backward compatible with R 3.1 and
-Bioconductor 3.0.
+We have developed CopywriteR with R 3.1 and Bioconductor 3.0, and therefore know
+that it works fine with these version too. In case you are running these,
+you can still install CopywriteR as is explained below.
 
 ## Installation (not via Bioconductor)
 
-Until the official release of the CopywriteR package on Bioconductor, CopywriteR
-can still be installed under Bioconductor 3.0. The dependencies are installed as
+CopywriteR can be installed without Bioconductor, which is useful when you have
+R 3.1 and Bioconductor 3.0 installed. Installation should be performed as
 follows:
 
     > source("http://bioconductor.org/biocLite.R")
@@ -220,7 +222,6 @@ and installed using the following command:
     $ R CMD INSTALL SCLCBam*.tar.gz
 
 ## Troubleshooting
-
 There are a number of requirements for your CopywriteR analysis to run
 successfully. These are discussed below.
 
@@ -228,10 +229,9 @@ successfully. These are discussed below.
 One of the dependencies of CopywriteR (the chipseq package) requires
 Bioconductor 3.0. If installation fails, please check whether you are running
 the correct version of Bioconductor and whether all dependencies have been
-installed.
+installed. When using the BiocInstaller
 
 #### Unique naming of .bam files
-
 CopywriteR uses the (base)name of a .bam file as an identifier for that file.
 Therefore, all the names of .bam files should be unique, and something like
 
