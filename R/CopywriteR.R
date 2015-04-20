@@ -7,6 +7,10 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     ##########################
 
     start.time <- Sys.time()
+
+    ## Restore work directory upon exit
+    wd.orig <- getwd()
+    on.exit(setwd(wd.orig))
     
     ## Make capture.regions.file path absolute if present
     if (missing(capture.regions.file)) {

@@ -2,6 +2,10 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
                     y.max, ...) {
 
     start.time <- Sys.time()
+    
+    ## Restore work directory upon exit
+    wd.orig <- getwd()
+    on.exit(setwd(wd.orig))
 
     ## Make destination folder path absolute
     destination.folder <- tools::file_path_as_absolute(destination.folder)

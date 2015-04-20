@@ -351,7 +351,11 @@ The CopywriteR tool has been cited and referenced by:
 - [ ] Remove blacklisted regions by excluding regions and not excluding bins
 - [ ] Change CopywriteR to allow custom bins?
 - [ ] Compile into bioConductor package
-- [x] Fixed minor bug affecting read count statistics on single-sample analysis
+- [x] Reset the working directories after analysis
+- [x] Fix bug related to bin-spanning peaks (implemented in source code)
+- [x] Fix bug related to analysis of non-indexed .bam files (implemented in source code)
+- [x] Fix bug related to testing sorting of .bam files (implemented in source code)
+- [x] Fix bug affecting read count statistics on single-sample analysis (implemented in source code)
 - [x] Remove warning messages small bams _chr (implemented in source code)
 - [x] Fixed a minor bug affecting analysis of >100 simultaneous samples (implemented in source code)
 - [x] Change plotCNA (double line in plots of RB1705) (implemented in source code)
