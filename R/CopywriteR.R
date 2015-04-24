@@ -180,9 +180,10 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
         prefixes[3] <- gsub("[[:digit:]]|X|Y", "", chr.names)[1]
 
         if (!all(prefixes == prefixes[1])) {
-            stop(.wrap("The bam files and supporting .bed files have different",
-                       "chromosome names. Please adjust the input files such",
-                       "that they contain the same chromosome notation."))
+            stop(.wrap("The support files created using preCopywriter and the",
+                       "bam files and contain different chromosome names.",
+                       "Please run preCopywriteR again using the right prefix",
+                       "argument."))
         }
     }
 
