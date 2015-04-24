@@ -135,7 +135,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     tryCatch({
         for (samp in sample.paths) {
             header <- scanBamHeader(samp)
-            chr.sort.mode <- c(chr.sort.mode, list(header[[1]]$text$'@HD'))
+            chr.sort.mode <- c(chr.sort.mode, grep("SO:[a-zA-Z]+",  x=header[[1]]$text$"@HD", value=TRUE))
             current.chr.names <- names(header[[1]]$targets)
             chr.names <- c(chr.names, current.chr.names)
             chr.lengths <- c(chr.lengths, header[[1]]$targets)
