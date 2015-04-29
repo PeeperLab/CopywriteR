@@ -353,7 +353,16 @@ The CopywriteR tool has been cited and referenced by:
 
 ## Reported bugs
 
-- None
+We have received feedback that CopywriteR throws the following error in a
+platform-dependent manner:
+
+Error in log2.read.counts[selection, , drop = FALSE] :
+  (subscript) logical subscript too long
+
+We are working on removing this error, but this might take a bit longer as we
+cannot reproduce this error on our platform. You can stay updated by 'watching'
+the CopywriteR package at the
+[watchers](https://github.com/PeeperLab/CopywriteR/watchers) page.
 
 ## Changes and additions we are currently working on
 
