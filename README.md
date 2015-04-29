@@ -222,8 +222,17 @@ and installed using the following command:
     $ R CMD INSTALL SCLCBam*.tar.gz
 
 ## Troubleshooting
-There are a number of requirements for your CopywriteR analysis to run
-successfully. These are discussed below.
+In general, we advise to update to the latest versions of CopywriteR and
+CopyhelpeR in case of errors. If the problems persist, please refer below for
+troubleshooting purposes.
+
+#### Mm10
+We have come to realise that there was an bug in CopyhelpeR version 1.0.0 which
+leads to an error when creating mm10 helper files using the preCopywriteR
+function. Please update to version 1.0.1 available at
+[GitHub](https://github.com/PeeperLab/CopyhelpeR/releases) or via
+[bioconductor](http://bioconductor.org/packages/release/data/experiment/html/CopyhelpeR.html)
+(available with the next build).
 
 #### Installation
 One of the dependencies of CopywriteR (the chipseq package) requires
@@ -350,7 +359,7 @@ The CopywriteR tool has been cited and referenced by:
 
 - [ ] Remove blacklisted regions by excluding regions and not excluding bins
 - [ ] Change CopywriteR to allow custom bins?
-- [ ] Compile into bioConductor package
+- [x] Compile into bioConductor package (implemented in source code)
 - [x] Reset the working directories after analysis
 - [x] Fix bug related to bin-spanning peaks (implemented in source code)
 - [x] Fix bug related to analysis of non-indexed .bam files (implemented in source code)
