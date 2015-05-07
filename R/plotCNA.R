@@ -203,10 +203,10 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
         current.sample$output <-
             current.sample$output[current.sample$output$ID == select.sample, ]
 
-				# Print MAD-values in log file
-				flog.info(paste("The MAD-value for sample", select.sample, "is:",
-												round(madDiff(current.sample$data[, select.sample]), 3)))
-														
+        # Print MAD-values in log file
+        flog.info(paste("The MAD-value for sample", select.sample, "is:",
+                        round(madDiff(current.sample$data[, select.sample]), 3)))
+                            
         # Create and set new directory
         dir.create(file.path(plot.folder, select.sample))
         setwd(file.path(plot.folder, select.sample))
