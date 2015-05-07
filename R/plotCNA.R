@@ -198,9 +198,15 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
         current.sample <- segment.CNA.object
         current.sample$data <-
             current.sample$data[, c("chrom", "maploc", select.sample)]
+        current.sample$data <-
+            current.sample$data[!is.na(current.sample$data[, select.sample]), ]
         current.sample$output <-
             current.sample$output[current.sample$output$ID == select.sample, ]
 
+				# Print MAD-values in log file
+				flog.info(paste("The MAD-value for sample", select.sample, "is:",
+												round(madDiff(current.sample$data[, select.sample]), 3)))
+														
         # Create and set new directory
         dir.create(file.path(plot.folder, select.sample))
         setwd(file.path(plot.folder, select.sample))
@@ -211,7 +217,6 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
             # Select chromosome
             select.chrom <- x
             current.sample$data <- current.sample$data[current.sample$data$chrom %in% select.chrom, ]
-            current.sample$data <- current.sample$data[!is.na(current.sample$data[, select.sample]), ]
             current.sample$output <- current.sample$output[current.sample$output$chrom %in% select.chrom, ]
 
             # Set variables
