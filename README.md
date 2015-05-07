@@ -229,7 +229,8 @@ troubleshooting purposes.
 #### Mm10
 We have come to realise that there was an bug in CopyhelpeR version 1.0.0 which
 leads to an error when creating mm10 helper files using the preCopywriteR
-function. Please update to version 1.0.1 available at
+function. If you need to use CopywriteR for mm10-based sequence data, please
+update to version 1.0.1 available at
 [GitHub](https://github.com/PeeperLab/CopyhelpeR/releases) or via
 [bioconductor](http://bioconductor.org/packages/release/data/experiment/html/CopyhelpeR.html)
 (available with the next build).
