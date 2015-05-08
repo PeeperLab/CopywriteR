@@ -368,6 +368,7 @@ the CopywriteR package at the
 ## Changes and additions we are currently working on
 
 - [ ] Include check for empty peaks.bed files when calculating overlap
+- [ ] Remove plotting of self vs self
 - [ ] Remove blacklisted regions by excluding regions and not excluding bins
 - [ ] Change CopywriteR to allow custom bins?
 - [x] Compile into bioConductor package (implemented in source code)
