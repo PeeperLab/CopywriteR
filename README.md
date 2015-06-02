@@ -241,7 +241,7 @@ Bioconductor 3.0. If installation fails, please check whether you are running
 the correct version of Bioconductor and whether all dependencies have been
 installed.
 
-#### X11
+#### X11 and PNG
 
 We have received feedback that CopywriteR throws the following error in a
 platform-dependent manner:
