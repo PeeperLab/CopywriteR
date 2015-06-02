@@ -239,7 +239,50 @@ update to version 1.0.1 available at
 One of the dependencies of CopywriteR (the chipseq package) requires
 Bioconductor 3.0. If installation fails, please check whether you are running
 the correct version of Bioconductor and whether all dependencies have been
-installed. When using the BiocInstaller
+installed.
+
+#### X11
+
+We have received feedback that CopywriteR throws the following error in a
+platform-dependent manner:
+
+Error in log2.read.counts[selection, , drop = FALSE] :
+  (subscript) logical subscript too long
+
+In some (and possibly in all) cases this is due to missing X11 and/or PNG
+libraries. To test whether this is the case, one can type these
+
+    > x11()
+    > png()
+
+in the R command line. If one of these libraries is indeed missing, you will get
+one or both of the following error message:
+
+    Error in x11(): X11 is not available
+    
+    unable to start device PNG
+    In addition: Warning message:
+    no png support in this version of R
+
+In this case, re-installing R after installation of the required libraries will
+solve the problem. This can be done as follows:
+
+    $ ## Install missing X11 libraries
+    $ sudo yum install libXt-devel
+    $ sudo yum install libX11-devel
+    
+    $ ## Install missing PNG libraries
+    $ sudo yum install libpng
+    $ sudo yum install libpng-devel
+
+    $ ## Download and install R from source (we needed to use the additional
+    $ ##  --with-readline=no flag to allow installation)
+    $ curl -O http://cran.rstudio.com/src/base/R-3/R-3.2.0.tar.gz
+    $ ./configure --with-x
+    $ make
+
+You can finish this exercise by re-installing CopywriteR. If this does not solve
+your issue, please let us know.
 
 #### Unique naming of .bam files
 CopywriteR uses the (base)name of a .bam file as an identifier for that file.
@@ -354,16 +397,7 @@ The CopywriteR tool has been cited and referenced by:
 
 ## Reported bugs
 
-We have received feedback that CopywriteR throws the following error in a
-platform-dependent manner:
-
-Error in log2.read.counts[selection, , drop = FALSE] :
-  (subscript) logical subscript too long
-
-We are working on removing this error, but this might take a bit longer as we
-cannot reproduce this error on our platform. You can stay updated by 'watching'
-the CopywriteR package at the
-[watchers](https://github.com/PeeperLab/CopywriteR/watchers) page.
+None
 
 ## Changes and additions we are currently working on
 
