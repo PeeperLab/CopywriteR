@@ -343,6 +343,9 @@ same reference genome.
 
 In order to allow plotting, the .bam files need to be present in the same folder
 as when the CopywriteR analysis was performed.
+Also, we have noted that due to changes in a CopywriteR dependency, chromosomes
+are plotted in the wrong order in older versions (< 2.0.4). Please update to
+version 2.0.4 to fix this problem.
 
 #### Sorting of .bam files
 
