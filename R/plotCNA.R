@@ -150,7 +150,8 @@ plotCNA <- function(destination.folder, smoothed = TRUE, sample.plot, y.min,
         scanBamHeader(inputStructure$sample.control$samples[1])[[1]]$targets
     names(chrom.lengths) <- gsub(prefix, "", names(chrom.lengths))    
     chrom.lengths <- data.frame(Chromosome = names(chrom.lengths),
-                                Length = chrom.lengths, row.names = NULL)
+                                Length = chrom.lengths, row.names = NULL,
+                                stringsAsFactors = FALSE)
     suppressWarnings(chrom.lengths <- chrom.lengths[chrom.lengths$Chromosome %in% c("X", "Y") |
                                                     !is.na(as.integer(as.vector(chrom.lengths$Chromosome))), ])
     chrom.lengths <- chrom.lengths[mixedorder(chrom.lengths$Chromosome), ]
