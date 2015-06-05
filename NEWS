@@ -1,3 +1,21 @@
+Changes in version 2.0.4 (2015-06-05)
+
+	o Fixed an error in plotCNA leading to mixing of chromosomes during plotting
+
+-------------------------------------
+
+Changes in version 2.0.3 (2015-05-06)
+
+	o Included MAD-values in CopywriteR log file
+
+-------------------------------------
+
+Changes in version 2.0.2 (2015-04-24)
+
+	o Fixed the bug that under certain circumstances error messages are thrown that .bam files are not coordinate sorted
+
+-------------------------------------
+
 Changes in version 2.0.1 (2015-04-18)
 
 	o Implemented resetting the original work directory upon exit of CopywriteR functions
