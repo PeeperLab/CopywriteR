@@ -408,6 +408,7 @@ None
 - [ ] Remove plotting of self vs self
 - [ ] Remove blacklisted regions by excluding regions and not excluding bins
 - [ ] Change CopywriteR to allow custom bins?
+- [x] Fixed issue regarding mixing of chromosomes during plotting (implemented in version 2.0.4)
 - [x] Compile into bioConductor package (implemented in source code)
 - [x] Reset the working directories after analysis
 - [x] Fix bug related to bin-spanning peaks (implemented in source code)
