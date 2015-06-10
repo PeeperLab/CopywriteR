@@ -137,10 +137,10 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
             header <- scanBamHeader(samp)
             chr.sort.mode <- c(chr.sort.mode, list(header[[1]]$text$'@HD'))
             current.chr.names <- names(header[[1]]$targets)
-            chr.names <- c(chr.names, current.chr.names)
-            chr.lengths <- c(chr.lengths, header[[1]]$targets)
-            prefixes <- append(prefixes, gsub("[[:digit:]]|X|Y|M|T",
-                                              "", chr.names[1])[1])
+    				chr.names <- c(chr.names, list(current.chr.names))
+		    		chr.lengths <- c(chr.lengths, list(header[[1]]$targets))
+    				prefixes <- append(prefixes, gsub("[[:digit:]]|X|Y|M|T",
+		    																			"", current.chr.names)[1])
         }
     }, error = function(e) {
         stop(.wrap("The BAM file header of file", sQuote(samp), "is corrupted",
@@ -162,14 +162,16 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
         stop(.wrap("The bam files have different chromosome name prefixes.",
                    "Please adjust the .bam files such that they contain the",
                    "same chromosome notation."))
-    } else if (!length(unique(chr.names)) * length(sample.paths) == length(chr.names)) {
-        stop(.wrap("The bam files have been mapped to different reference",
-                   "genomes. Please run only .bam files mapped to the same",
-                   "reference genome together."))
-    } else if (!length(unique(chr.lengths)) * length(sample.paths) == length(chr.lengths)) {
-        stop(.wrap("The bam files have different chromosome names. Please",
-                   "adjust the .bam files such that they contain the same",
-                   "chromosome notation."))
+		} else if (length(chr.names) > 1) {
+		    if (!Reduce(function(x,y) {identical(x,y)}, chr.names)) {
+						stop(.wrap("The bam files have been mapped to different reference",
+											 "genomes (the chromosome names are not identical). Please run",
+											 "only .bam files mapped to the same reference genome together."))
+				} else if (!Reduce(function(x,y) {identical(x,y)}, chr.lengths)) {
+						stop(.wrap("The bam files have been mapped to different reference",
+											 "genomes (the chromosome lengths are not identical). Please run",
+											 "only .bam files mapped to the same reference genome together."))
+		    }
     } else {
         prefixes <- prefixes[1]
 
