@@ -1,3 +1,9 @@
+Changes in version 2.0.6 (2015-06-15)
+
+	o Fixed another bug resulting from checking whether all co-analyzed bams were mapped to the same reference genome
+
+-------------------------------------
+
 Changes in version 2.0.5 (2015-06-10)
 
 	o Fixed an error resulting from checking whether all co-analyzed bams were mapped to the same reference genome

@@ -163,11 +163,11 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
                    "Please adjust the .bam files such that they contain the",
                    "same chromosome notation."))
 		} else if (length(chr.names) > 1) {
-		    if (!Reduce(function(x,y) {identical(x,y)}, chr.names)) {
+    		if (!all(sapply(chr.names, identical, chr.names[[1]]))) {
 						stop(.wrap("The bam files have been mapped to different reference",
 											 "genomes (the chromosome names are not identical). Please run",
 											 "only .bam files mapped to the same reference genome together."))
-				} else if (!Reduce(function(x,y) {identical(x,y)}, chr.lengths)) {
+    		} else if (!all(sapply(chr.lengths, identical, chr.lengths[[1]]))) {
 						stop(.wrap("The bam files have been mapped to different reference",
 											 "genomes (the chromosome lengths are not identical). Please run",
 											 "only .bam files mapped to the same reference genome together."))
