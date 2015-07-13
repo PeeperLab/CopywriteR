@@ -234,7 +234,8 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     i <- c(seq_along(sample.paths))
     ProperReads <- function(i, sample.paths, destination.folder, sample.files,
                             is.paired.end) {
-
+        
+        library(GenomicAlignments)
         if (is.paired.end[i]) {
             flag <- scanBamFlag(isProperPair = TRUE)
             param <- ScanBamParam(flag = flag, what = "mapq")
