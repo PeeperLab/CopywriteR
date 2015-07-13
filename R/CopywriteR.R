@@ -235,11 +235,10 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     ProperReads <- function(i, sample.paths, destination.folder, sample.files,
                             is.paired.end) {
         
-        library(GenomicAlignments)
         if (is.paired.end[i]) {
             flag <- scanBamFlag(isProperPair = TRUE)
             param <- ScanBamParam(flag = flag, what = "mapq")
-            filter <- FilterRules(list(isHighQual = function(x) {
+            filter <- S4Vectors::FilterRules(list(isHighQual = function(x) {
                 x$mapq >= 37
             }))
             filterBam(sample.paths[i], file.path(destination.folder,
@@ -256,7 +255,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
                    "param = param)")
         } else {
             param <- ScanBamParam(what = "mapq")
-            filter <- FilterRules(list(isHighQual = function(x) {
+            filter <- S4Vectors::FilterRules(list(isHighQual = function(x) {
                 x$mapq >= 37
             }))
             filterBam(sample.paths[i], file.path(destination.folder,
