@@ -365,8 +365,10 @@ we recommend upgrading to these versions of R and Bioconductor.
 ## Contact
 
 We have tried to make the CopywriteR code readable and its use as easy as
-possible. If any questions arise regarding the package, or if you want to report
-any bugs, please do not hesitate and contact:
+possible. For additional support next to GitHub, please refer the [Bioconductor
+support site](https://support.bioconductor.org/) for CopywriteR-related posts or
+to submit a question regarding the use of CopywriteR. To report any bugs, please
+do not hesitate and contact:
 
 - [Thomas Kuilman](mailto:t.kuilman@nki.nl)
 - [Oscar Krijgsman](mailto:o.krijgsman@nki.nl)
@@ -379,6 +381,16 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 The CopywriteR tool has been cited and referenced by:
 
+- Hehir-Kwa, J.Y., Pfundt, R., Veltman, J.A. (2015), Exome sequencing and whole
+  genome sequencing for the detection of copy number variation. Expert Review of
+  Molecular Diagnostics. doi: 10.1586/14737159.2015.
+  [[Pubmed]](http://www.ncbi.nlm.nih.gov/pubmed/26088785)
+- Kemper, K., Krijgsman, O., Cornelissen-Steijger, P., Shahrabi, A., Weeber, F.,
+  Song, J.Y., Kuilman, T., Vis, D.J., Wessels, L.F., Voest, E.E., Schumacher,
+  T.N., Blank, C.U., Adams, D.J., Haanen, J.B., Peeper, D.S. (2015), Intra‐ and
+  inter‐tumor heterogeneity in a vemurafenib‐resistant melanoma patient and
+  derived xenografts. EMBO Molecular Medicine. doi: 10.15252/emmm.201404914.
+  [[Pubmed]](http://www.ncbi.nlm.nih.gov/pubmed/26105199)
 - Hoogstraat, M., Gadellaa-van Hooijdonk, C. G., Ubink, I., Besselink, N. J. M.,
   Pieterse, M., Veldhuis, W., van Stralen, M., Meijer, E. F. J., Willems, S. M.,
   Hadders, M. A., Kuilman, T., Krijgsman, O., Peeper, D. S., Koudijs, M. J.,
@@ -404,6 +416,9 @@ None
 
 ## Changes and additions we are currently working on
 
+- [ ] Check whether first bam index file test works properly
+- [ ] Add test for matching chromosome prefix in helper files
+- [ ] Add support for bed files with and without header lines
 - [ ] Include check for empty peaks.bed files when calculating overlap
 - [ ] Remove plotting of self vs self
 - [ ] Remove blacklisted regions by excluding regions and not excluding bins
