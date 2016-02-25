@@ -381,14 +381,29 @@ Thomas and Oscar are working in the laboratory of Prof. Dr. Daniel S. Peeper.
 
 The CopywriteR tool has been cited and referenced by:
 
+- Murtaza, M., Dawson, S.J., Pogrebniak, K., Rueda, O.M.1, Provenzano, E.,
+  Grant, J., Chin, S.F., Tsui, D.W., Marass, F., Gale, D. Ali, H.R., Shah, P.,
+  Contente-Cuomo, T., Farahani, H., Shumansky, K., Kingsbury, Z., Humphray, S.,
+  Bentley, D., Shah, S.P., Wallis, M., Rosenfeld, N. and Caldas, C. (2015),
+  Multifocal clonal evolution characterized using circulating tumour DNA in a
+  case of metastatic breast cancer. Nature Communications. doi:
+  10.1038/ncomms9760.
+  [[Pubmed]](http://www.ncbi.nlm.nih.gov/pubmed/26530965)
+- Weeber, F., Van de Wetering, M., Hoogstraat, M., Dijkstra, K.K., Krijgsman,
+  O., Kuilman, T., Gadellaa-van Hooijdonk, C.G., Van der Velden, D.L., Peeper,
+  D.S., Cuppen, E.P., Vries, R.G. Clevers, H. and Voest, E.E. (2015), Preserved
+  genetic diversity in organoids cultured from biopsies of human colorectal
+  cancer metastases. Proceedings of the National Academy of Sciences. doi:
+  10.1073/pnas.1516689112.
+  [[Pubmed]](http://www.ncbi.nlm.nih.gov/pubmed/26460009)
 - Hehir-Kwa, J.Y., Pfundt, R., Veltman, J.A. (2015), Exome sequencing and whole
   genome sequencing for the detection of copy number variation. Expert Review of
   Molecular Diagnostics. doi: 10.1586/14737159.2015.
   [[Pubmed]](http://www.ncbi.nlm.nih.gov/pubmed/26088785)
 - Kemper, K., Krijgsman, O., Cornelissen-Steijger, P., Shahrabi, A., Weeber, F.,
   Song, J.Y., Kuilman, T., Vis, D.J., Wessels, L.F., Voest, E.E., Schumacher,
-  T.N., Blank, C.U., Adams, D.J., Haanen, J.B., Peeper, D.S. (2015), Intra‐ and
-  inter‐tumor heterogeneity in a vemurafenib‐resistant melanoma patient and
+  T.N., Blank, C.U., Adams, D.J., Haanen, J.B. and Peeper, D.S. (2015), Intra‐
+  and inter‐tumor heterogeneity in a vemurafenib‐resistant melanoma patient and
   derived xenografts. EMBO Molecular Medicine. doi: 10.15252/emmm.201404914.
   [[Pubmed]](http://www.ncbi.nlm.nih.gov/pubmed/26105199)
 - Hoogstraat, M., Gadellaa-van Hooijdonk, C. G., Ubink, I., Besselink, N. J. M.,
@@ -423,6 +438,7 @@ None
 - [ ] Remove plotting of self vs self
 - [ ] Remove blacklisted regions by excluding regions and not excluding bins
 - [ ] Change CopywriteR to allow custom bins?
+- [x] Include CITATION file
 - [x] Fixed issue regarding mixing of chromosomes during plotting (implemented in version 2.0.4)
 - [x] Compile into bioConductor package (implemented in source code)
 - [x] Reset the working directories after analysis
