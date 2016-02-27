@@ -293,9 +293,13 @@ provide the full command line output and the log-file.
 
 \section{Troubleshooting}
 
-We maintain a troubleshooting GitHub page where various issues are discussed
-that have been raised by CopywriteR users. Please follow this link:
-\url{https://github.com/PeeperLab/CopywriteR#troubleshooting}.
+When questions regarding the use of CopywriteR arise, please refer to the
+CopywriteR-related posts on the Bioconductor support site
+(\url{https://support.bioconductor.org/t/copywriter/}) and to our GitHub page
+(\url{https://github.com/PeeperLab/CopywriteR#troubleshooting}) for
+troubleshooting and for various issues that have been raised by CopywriteR
+users. Please submit new questions / issues to the Bioconductor support site
+(\url{https://support.bioconductor.org}).
 
 \newpage
 
