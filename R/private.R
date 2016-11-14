@@ -117,9 +117,9 @@
             points(countgcloess ~ mappa, data = df, subset = !mappause,
                    col = rgb(1, 0, 0, 0.3), pch = ".")
             lines(i, predict(rough, i), col = "green")
-            points(df$mappa, normv,
-                   subset = (!is.na(df$mappa) && !is.na(normv)),
-                   col = "red", pch = ".")
+            subset.points <- !is.na(df$mappa) && !is.na(normv)
+            points(df$mappa[subset.points], normv[subset.points], col = "red",
+                   pch = ".")
         }
 
         return(log2(df$countgcmappaloess/median(df$countgcmappaloess[use],

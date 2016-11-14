@@ -231,51 +231,55 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     }
 
     ## Remove anomalous reads and reads with Phred < 37
-    i <- c(seq_along(sample.paths))
-    ProperReads <- function(i, sample.paths, destination.folder, sample.files,
-                            is.paired.end) {
-        
-        if (is.paired.end[i]) {
-            flag <- scanBamFlag(isProperPair = TRUE)
-            param <- ScanBamParam(flag = flag, what = "mapq")
-            filter <- S4Vectors::FilterRules(list(isHighQual = function(x) {
-                x$mapq >= 37
-            }))
-            filterBam(sample.paths[i], file.path(destination.folder,
-                                                 "BamBaiPeaksFiles",
-                                                 gsub(".bam$",
-                                                      "_properreads.bam",
-                                                      sample.files[i])),
-                      filter = filter, indexDestination = TRUE, param = param)
-            paste0("filterBam(\"", sample.paths[i], "\", \"",
-                   file.path(destination.folder, "BamBaiPeaksFiles",
-                             gsub(".bam$", "_properreads.bam",
-                                  sample.files[i])),
-                   "\", filter = filter, indexDestination = TRUE, ",
-                   "param = param)")
-        } else {
-            param <- ScanBamParam(what = "mapq")
-            filter <- S4Vectors::FilterRules(list(isHighQual = function(x) {
-                x$mapq >= 37
-            }))
-            filterBam(sample.paths[i], file.path(destination.folder,
-                                                 "BamBaiPeaksFiles",
-                                                 gsub(".bam$",
-                                                      "_properreads.bam",
-                                                      sample.files[i])),
-                      filter = filter, indexDestination = TRUE, param = param)
-            paste0("filterBam(\"", sample.paths[i], "\", \"",
-                   file.path(destination.folder, "BamBaiPeaksFiles",
-                             gsub(".bam$", "_properreads.bam",
-                                  sample.files[i])),
-                   "\", filter = filter, indexDestination = TRUE, ",
-                   "param = param)")
-        }
+    if (!all(file.exists(sample.paths))) {
+			i <- c(seq_along(sample.paths))
+			ProperReads <- function(i, sample.paths, destination.folder, sample.files,
+															is.paired.end) {
+				
+					if (is.paired.end[i]) {
+							flag <- scanBamFlag(isProperPair = TRUE)
+							param <- ScanBamParam(flag = flag, what = "mapq")
+							filter <- S4Vectors::FilterRules(list(isHighQual = function(x) {
+									x$mapq >= 37
+							}))
+							filterBam(sample.paths[i], file.path(destination.folder,
+																									 "BamBaiPeaksFiles",
+																									 gsub(".bam$",
+																												"_properreads.bam",
+																												sample.files[i])),
+												filter = filter, indexDestination = TRUE, param = param)
+							paste0("filterBam(\"", sample.paths[i], "\", \"",
+										 file.path(destination.folder, "BamBaiPeaksFiles",
+															 gsub(".bam$", "_properreads.bam",
+																		sample.files[i])),
+										 "\", filter = filter, indexDestination = TRUE, ",
+										 "param = param)")
+					} else {
+							param <- ScanBamParam(what = "mapq")
+							filter <- S4Vectors::FilterRules(list(isHighQual = function(x) {
+									x$mapq >= 37
+							}))
+							filterBam(sample.paths[i], file.path(destination.folder,
+																									 "BamBaiPeaksFiles",
+																									 gsub(".bam$",
+																												"_properreads.bam",
+																												sample.files[i])),
+												filter = filter, indexDestination = TRUE, param = param)
+							paste0("filterBam(\"", sample.paths[i], "\", \"",
+										 file.path(destination.folder, "BamBaiPeaksFiles",
+															 gsub(".bam$", "_properreads.bam",
+																		sample.files[i])),
+										 "\", filter = filter, indexDestination = TRUE, ",
+										 "param = param)")
+					}
+			}
+			to.log <- bplapply(i, ProperReads, sample.paths, destination.folder,
+												 sample.files, is.paired.end, BPPARAM = bp.param)
+			lapply(to.log, flog.info)
+    } else {
+			flog.info(paste("CopywriteR has found the following pre-filtered",
+								"samples:"), sample.files, capture = TRUE)
     }
-    to.log <- bplapply(i, ProperReads, sample.paths, destination.folder,
-                       sample.files, is.paired.end, BPPARAM = bp.param)
-    lapply(to.log, flog.info)
-
     ## Read count statistics
     Stats.1 <- function(sample.paths) {
         countBam(sample.paths)
