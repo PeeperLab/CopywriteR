@@ -231,7 +231,10 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     }
 
     ## Remove anomalous reads and reads with Phred < 37
-    if (!all(file.exists(sample.paths))) {
+    if (!all(file.exists(file.path(destination.folder,
+																	 "BamBaiPeaksFiles",
+																	 gsub(".bam$", "_properreads.bam",
+																				sample.files[i]))))) {
 			i <- c(seq_along(sample.paths))
 			ProperReads <- function(i, sample.paths, destination.folder, sample.files,
 															is.paired.end) {
@@ -558,10 +561,10 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
                                                              "records")],
                                                   keep.extra.columns = TRUE)
         overlaps <- findOverlaps(counts.grange, GC.mappa.grange, minoverlap = 1L)
-        index <- subjectHits(overlaps)
-        records <- mcols(counts.grange[queryHits(overlaps)])$records
-        lengths <- width(pintersect(counts.grange[queryHits(overlaps)],
-                                    GC.mappa.grange[subjectHits(overlaps)]))
+        index <- S4Vectors::subjectHits(overlaps)
+        records <- mcols(counts.grange[S4Vectors::queryHits(overlaps)])$records
+        lengths <- width(pintersect(counts.grange[S4Vectors::queryHits(overlaps)],
+                                    GC.mappa.grange[S4Vectors::subjectHits(overlaps)]))
         aggregate.data.table <- data.table(index, records, lengths)
         aggregate.data.table <- aggregate.data.table[, list(records = sum(records),
                                                             lengths = sum(lengths)),
@@ -746,10 +749,10 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
 
             flog.info(paste0("Number of capture regions covered by peaks in ",
                              "sample ", sample.files[control.index], ": ",
-                             length(unique(queryHits(overlap)))))
+                             length(unique(S4Vectors::queryHits(overlap)))))
             flog.info(paste0("Number of peaks covered by capture regions in ",
                              "sample ", sample.files[control.index], ": ",
-                             length(unique(subjectHits(overlap)))))
+                             length(unique(S4Vectors::subjectHits(overlap)))))
             flog.info(paste0("Total number of capture regions in sample ",
                              sample.files[control.index], ": ",
                              length(captured.grange)))

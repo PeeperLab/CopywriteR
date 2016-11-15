@@ -18,6 +18,7 @@ BiocStyle::latex()
 \author{Thomas Kuilman}
 
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 
 \maketitle
 
