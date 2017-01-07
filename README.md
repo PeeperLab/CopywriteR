@@ -432,6 +432,7 @@ None
 
 ## Changes and additions we are currently working on
 
+- [ ] Remove "ncpu" from example code
 - [ ] Check whether first bam index file test works properly
 - [ ] Add test for matching chromosome prefix in helper files
 - [ ] Add support for bed files with and without header lines
