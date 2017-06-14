@@ -628,7 +628,7 @@ CopywriteR <- function(sample.control, destination.folder, reference.folder,
     sapply(res[[4]], flog.info)
 
     ## Read count statistics
-    statistics[, "off.target"] <- unlist(res[5])
+    statistics[, "off.target"] <- unlist(res[5])[!duplicated(sample.indices)]
     statistics[, "on.target"] <- statistics$on.chromosomes - statistics$off.target
     statistics$on.chromosomes <- NULL
     flog.info(paste("The following number of sequence reads were found in the",
