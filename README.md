@@ -244,12 +244,12 @@ Error in `[<-.data.frame`(`*tmp*`, , "off.target", value = c(X, X,  :
   replacement has Y rows, data has Z                  
 
 We have fixed this issue in the newest version of Bioconductor that is yet to be
-released, and will try to incorporate this in the release version too.
-Since different Bioconductor versions require different version of CopywriteR,
-I have provided two versions on the release page (under V2.6.1.2) that solve
-this issue. An alternative to installing the new package is to prevent the above
-situation, which is usually possible too. Please contact us if you have more
-questions.
+released, and will try to incorporate this in the release version too. The 
+preferable way to solve this is by re-installation using Bioconductor.
+Altneratively, I have provided two versions on the release page (under V2.6.1.2)
+that solve this issue. An alternative to installing a new package is to prevent
+the above situation from happening, which is usually possible too. Please
+contact us if you have more questions.
 
 #### Mm10
 We have come to realise that there was an bug in CopyhelpeR version 1.0.0 which
