@@ -226,6 +226,31 @@ In general, we advise to update to the latest versions of CopywriteR and
 CopyhelpeR in case of errors. If the problems persist, please refer below for
 troubleshooting purposes.
 
+#### Bug
+We have found out about a bug that is affecting situations where the number of
+comparisons between samples and controls exceeds the total number of unique
+samples AND controls. For instance, in the case below, the number of comparisons
+(3) exceeds the total number of unique samples and controls (./C003.bam and
+./C016.bam; thus 2)
+
+    > sample.control
+          samples   controls
+    1  ./C003.bam ./C003.bam
+    2  ./C016.bam ./C016.bam
+    3  ./C003.bam ./C016.bam
+    
+Error messages look like this:
+Error in `[<-.data.frame`(`*tmp*`, , "off.target", value = c(X, X,  :                             
+  replacement has Y rows, data has Z                  
+
+We have fixed this issue in the newest version of Bioconductor that is yet to be
+released, and will try to incorporate this in the release version too.
+Since different Bioconductor versions require different version of CopywriteR,
+I have provided two versions on the release page (under V2.6.1.2) that solve
+this issue. An alternative to installing the new package is to prevent the above
+situation, which is usually possible too. Please contact us if you have more
+questions.
+
 #### Mm10
 We have come to realise that there was an bug in CopyhelpeR version 1.0.0 which
 leads to an error when creating mm10 helper files using the preCopywriteR
