@@ -243,9 +243,9 @@ Error messages look like this:
 Error in `[<-.data.frame`(`*tmp*`, , "off.target", value = c(X, X,  :                             
   replacement has Y rows, data has Z                  
 
-We have fixed this issue in the newest version of Bioconductor that is yet to be
-released, and will try to incorporate this in the release version too. The 
-preferable way to solve this is by re-installation using Bioconductor.
+The preferable way to solve this is by re-installation using Bioconductor. We
+have fixed this issue in the release (2.8.1) and development (2.9.0) versions of
+Bioconductor. 
 Altneratively, I have provided two versions on the release page (under V2.6.1.2)
 that solve this issue. An alternative to installing a new package is to prevent
 the above situation from happening, which is usually possible too. Please
