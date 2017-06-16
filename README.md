@@ -243,9 +243,9 @@ Error messages look like this:
 Error in `[<-.data.frame`(`*tmp*`, , "off.target", value = c(X, X,  :                             
   replacement has Y rows, data has Z                  
 
-The preferable way to solve this is by re-installation using Bioconductor. We
-have fixed this issue in the release (2.8.1) and development (2.9.0) versions of
-Bioconductor. 
+The preferable way to solve this issue is by installing the newest CopywriteR
+version using Bioconductor. We have fixed the bug in the release (2.8.1) and
+development (2.9.0) versions of CopywriteR.
 Alternatively, I have provided two versions on the release page (under V2.6.1.2)
 that solve this issue. An alternative to installing a new package is to prevent
 the above situation from happening, which is usually possible too. Please
