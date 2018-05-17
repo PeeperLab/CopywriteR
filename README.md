@@ -449,7 +449,7 @@ The CopywriteR tool has been cited and referenced by:
 	datasets and platforms. Molecular Oncology. doi: 10.1016/j.molonc.2015.03.002.
 	[[Pubmed]](http://www.ncbi.nlm.nih.gov/pubmed/25825120)
 - [dbSTAR](http://dbstar.lbgi.fr/dbstar/software)
-- [Omicstools](http://omictools.com/copywriter-s8589.html)
+- [Omicstools](https://omictools.com/copywriter-tool)
 
 ## Reported bugs
 
